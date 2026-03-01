@@ -1,4 +1,4 @@
-package com.open.crm.domain.client;
+package com.open.crm.core.domain.employee;
 
 import java.util.UUID;
 
@@ -13,16 +13,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Client entity - stored in tenant-specific schema
- * Schema is determined by TenantContext at runtime
- */
 @Entity
-@Table(name = "clients")
+@Table(name = "employees")
 @NoArgsConstructor
 @Getter
-@Setter             
-public class Client {
+@Setter
+public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

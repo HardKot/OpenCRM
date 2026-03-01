@@ -12,10 +12,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PasswordService {
     private static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     public String generatePassword() {
         StringBuilder password = new StringBuilder();

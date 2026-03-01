@@ -1,4 +1,4 @@
-package com.open.crm.domain.common;
+package com.open.crm.tenancy;
 
 import java.util.UUID;
 
@@ -26,4 +26,11 @@ public class Tenant {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Column(nullable = false)
+    private boolean isReady = false;
+
+
+    public String getSchemaName() {
+        return "tenant_" + id.toString().replace("-", "_");
+    }
 }

@@ -26,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = "com.open.crm.application.repositories.tenant",
+    basePackages = "com.open.crm.core.application.repositories.tenant",
     entityManagerFactoryRef = "tenantEntityManagerFactory",
     transactionManagerRef = "tenantTransactionManager"
 )
 @RequiredArgsConstructor
-public class MultiTenantConfig {
+public class TenancyEntityManagerConfig {
     private final DataSource dataSource;
 
     @Bean(name = "tenantEntityManagerFactory")
@@ -41,7 +41,7 @@ public class MultiTenantConfig {
     ) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
-        emf.setPackagesToScan("com.open.crm.domain.client");
+        emf.setPackagesToScan("com.open.crm.core.domain");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         emf.setPersistenceUnitName("tenantPU");
         
@@ -51,7 +51,7 @@ public class MultiTenantConfig {
         props.put("hibernate.tenant_identifier_resolver", tenantResolver);
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.show_sql", true);
-        props.put("hibernate.hbm2ddl.auto", "update");
+        props.put("hibernate.hbm2ddl.auto", "none");
         
         emf.setJpaPropertyMap(props);
         return emf;

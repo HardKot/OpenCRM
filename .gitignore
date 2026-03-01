@@ -4,6 +4,11 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+logs/
+*.log
+*.tmp
+*.bak
+*.swp
 
 ### STS ###
 .apt_generated
@@ -35,3 +40,5 @@ out/
 
 ### VS Code ###
 .vscode/
+logs/spring.log
+logs/spring.log.2026-02-28.0.gz

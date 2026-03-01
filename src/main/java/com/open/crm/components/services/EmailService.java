@@ -1,15 +1,20 @@
-package com.open.crm.services;
+package com.open.crm.components.services;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import com.open.crm.components.events.ApplicationEmailEvent;
 import com.open.crm.config.AppProperties;
 
 import jakarta.mail.MessagingException;
@@ -27,7 +32,13 @@ public class EmailService {
     private final Pattern titleHtmlRegex = Pattern.compile("<title>(.*?)<\\/title>");
 
 
-    public boolean sendEmail(String email, String subject, String body) {
+    @Async
+    @EventListener
+    public void onApplicationEvent(ApplicationEmailEvent event) {
+        sendEmailWithTemplate(event.getEmail(), event.getSubject(), event.getTemplateName(), event.getContext());
+    }
+
+    public void sendEmail(String email, String subject, String body) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper message;
         try {
@@ -39,14 +50,12 @@ public class EmailService {
             message.setSubject(subject);
 
             javaMailSender.send(mimeMessage);
-            return true;
         } catch (MailException | MessagingException e) {
             log.error("Failed to send email to {}: {}", email, e.getMessage());
-            return false;
         }
     }
 
-    public boolean sendEmailWithTemplate(String email, String subject, String templateName, Object context) {
+    public void sendEmailWithTemplate(String email, String subject, String templateName, Object context) {
         String body = templateEngine.process(templateName, null);
 
         if (Objects.nonNull(body)) {
@@ -58,6 +67,6 @@ public class EmailService {
                 subject = title.replaceAll("</?title(.*?)>", "").trim();
             }
 
-        return sendEmail(email, subject, body);
+        sendEmail(email, subject, body);
     }
 }

@@ -1,7 +1,8 @@
-package com.open.crm.domain.common;
+package com.open.crm.security;
 
 import java.util.UUID;
 
+import com.open.crm.tenancy.Tenant;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -27,4 +28,6 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Tenant tenant;
+
+    // private long employeeId;
 }

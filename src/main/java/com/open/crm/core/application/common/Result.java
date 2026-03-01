@@ -1,4 +1,4 @@
-package com.open.crm.application.common;
+package com.open.crm.core.application.common;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

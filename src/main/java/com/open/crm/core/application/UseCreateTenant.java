@@ -1,38 +1,25 @@
-package com.open.crm.application;
+package com.open.crm.core.application;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
-import com.open.crm.application.common.Result;
-import com.open.crm.application.errors.ApplicationException;
-import com.open.crm.domain.common.Tenant;
-import com.open.crm.domain.common.User;
+import com.open.crm.core.application.common.Result;
+import com.open.crm.core.application.errors.ApplicationException;
+import com.open.crm.core.events.NotificateEmail;
+import com.open.crm.security.User;
+import com.open.crm.tenancy.Tenant;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UseCreateTenant {
-    private final Gateway gateway;
-
     public static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
 
-    public record CreateTenantResult(
-        User user,
-        Tenant tenant
-    ) {}
+    private final Gateway gateway;
 
-    
-    public interface Gateway {
-        boolean existByEmail(String email);
-        String generatePassword();
-        String hashPassword(String password);
-        void saveTenant(Tenant tenant);
-        void saveUser(User user);
-        boolean sendEmail(String email, String theme, String text);
-    }
 
     public Result<CreateTenantResult, ApplicationException> execute(String email) {
         if (Objects.isNull(email) || email.isBlank()) return Result.failure(new ApplicationException("Email cannot be empty"));
@@ -44,7 +31,12 @@ public class UseCreateTenant {
         String password = gateway.generatePassword();
         User user = createUser(tenant, email, password);
 
-        gateway.sendEmail(email, "Welcome to OpenCRM", "Your account has been created successfully. Your password is: " + password + ". Please change it after your first login.");
+        gateway.sendEmail(new NotificateEmail(
+            email, 
+            "Welcome to OpenCRM",
+            "welcome-email",
+            new EmailModel(email, password)
+        ));
 
 
         return Result.success(new CreateTenantResult(user, tenant));
@@ -66,4 +58,20 @@ public class UseCreateTenant {
 
         return user;
     }
+
+    public record CreateTenantResult(
+        User user,
+        Tenant tenant
+    ) {}
+    
+    public interface Gateway {
+        boolean existByEmail(String email);
+        String generatePassword();
+        String hashPassword(String password);
+        void saveTenant(Tenant tenant);
+        void saveUser(User user);
+        void sendEmail(NotificateEmail email);
+    }
+
+    public record EmailModel(String email, String password) {}
 }
