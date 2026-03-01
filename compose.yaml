@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    restart: unless-stopped
+    environment:
+      - 'POSTGRES_DB=open-crm'
+      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_USER=myuser'
+    ports:
+      - '5432'
+    networks:
+      - app-network
+
+  mailhog:
+      image: mailhog/mailhog
+      restart: unless-stopped
+      networks:
+        - app-network
+      ports:
+        - '1025'
+        - '8025'
+
+networks:
+  app-network:
+    driver: bridge
