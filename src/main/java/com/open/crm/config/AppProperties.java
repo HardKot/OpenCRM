@@ -4,12 +4,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Component
 @ConfigurationProperties(prefix = "app")
 @Getter
+@Setter
 public class AppProperties {
-    private Boolean multiTenancyEnabled;
     private String version;
     private String fromEmail;
     private String domain;

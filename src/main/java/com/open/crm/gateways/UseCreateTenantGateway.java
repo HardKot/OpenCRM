@@ -3,8 +3,8 @@ package com.open.crm.gateways;
 import org.springframework.stereotype.Component;
 
 import com.open.crm.application.UseCreateTenant;
-import com.open.crm.application.repositories.ITenantRepository;
-import com.open.crm.application.repositories.IUserRepository;
+import com.open.crm.application.repositories.common.ITenantRepository;
+import com.open.crm.application.repositories.common.IUserRepository;
 import com.open.crm.domain.common.Tenant;
 import com.open.crm.domain.common.User;
 import com.open.crm.security.PasswordService;

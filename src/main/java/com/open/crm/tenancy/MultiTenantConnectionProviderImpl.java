@@ -56,6 +56,6 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
 
     // остальные методы стандартно:
     @Override public boolean supportsAggressiveRelease() { return false; }
-    @Override public boolean isUnwrappableAs(Class unwrapType) { return false; }
+    @Override public boolean isUnwrappableAs(Class<?> unwrapType) { return false; }
     @Override public <T> T unwrap(Class<T> unwrapType) { return null; }
 }
