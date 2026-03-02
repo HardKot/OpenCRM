@@ -12,3 +12,4 @@ import com.open.crm.core.domain.client.Client;
 public interface IClientRepository extends JpaRepository<Client, Long> {
     
 }
+

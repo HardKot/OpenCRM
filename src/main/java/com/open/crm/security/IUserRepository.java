@@ -1,16 +1,14 @@
-package com.open.crm.core.application.repositories;
+package com.open.crm.security;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.open.crm.security.User;
-
+import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Repository for User entity in public schema
- */
 @Repository
 public interface IUserRepository extends JpaRepository<User, UUID> {
+    Optional<User> findByEmail(String email);
+
     boolean existsByEmail(String email);
 }

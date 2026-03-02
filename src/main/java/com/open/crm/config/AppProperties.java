@@ -12,6 +12,6 @@ import lombok.Setter;
 @Setter
 public class AppProperties {
     private String version;
-    private String fromEmail;
+    private String email;
     private String domain;
 }

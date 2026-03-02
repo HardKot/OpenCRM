@@ -44,10 +44,8 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
                 return false;
             }
         } else {
-            log.debug("No JWT authentication found");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication required");
-            return false;
+            log.info("No authentication or JWT token found, proceeding without tenant context");
+            return true;
         }
     }
 

@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = "com.open.crm.core.application.repositories.common",
+    basePackages = { "com.open.crm.tenancy", "com.open.crm.security" },
     entityManagerFactoryRef = "rootEntityManagerFactory",
     transactionManagerRef = "rootTransactionManager"
 )

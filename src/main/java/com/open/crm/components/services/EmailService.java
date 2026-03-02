@@ -1,5 +1,6 @@
 package com.open.crm.components.services;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +13,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.context.IContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import com.open.crm.components.events.ApplicationEmailEvent;
@@ -35,7 +38,12 @@ public class EmailService {
     @Async
     @EventListener
     public void onApplicationEvent(ApplicationEmailEvent event) {
-        sendEmailWithTemplate(event.getEmail(), event.getSubject(), event.getTemplateName(), event.getContext());
+        Context context = new Context();
+        for (Map.Entry<String, Object> entry : event.getContext().entrySet()) {
+            context.setVariable(entry.getKey(), entry.getValue());
+        }
+
+        sendEmailWithTemplate(event.getEmail(), event.getSubject(), event.getTemplateName(), context);
     }
 
     public void sendEmail(String email, String subject, String body) {
@@ -44,7 +52,7 @@ public class EmailService {
         try {
             message = new MimeMessageHelper(mimeMessage, true, "utf-8");
             message.setTo(email);
-            message.setFrom(appProperties.getFromEmail());
+            message.setFrom(appProperties.getEmail());
 
             message.setText(body);
             message.setSubject(subject);
@@ -55,8 +63,8 @@ public class EmailService {
         }
     }
 
-    public void sendEmailWithTemplate(String email, String subject, String templateName, Object context) {
-        String body = templateEngine.process(templateName, null);
+    public void sendEmailWithTemplate(String email, String subject, String templateName, IContext context) {
+        String body = templateEngine.process(templateName, context);
 
         if (Objects.nonNull(body)) {
                 String title = body;

@@ -1,0 +1,92 @@
+<html lang='ru' xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Добро пожаловать в команду</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 20px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #007bff;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+    <div class='header'>
+        <h1>Добро пожаловать в команду!</h1>
+    </div>
+
+    <div class='content'>
+        <p>Здравствуйте!</p>
+
+        <p>Добро пожаловать в Open CRM!</p>
+
+        <div class='actions'>
+            <a class='button'>Вход</a>
+
+            <p>Для входа в систему используйте следующие данные:</p>
+            <div>
+                <strong>Логин:</strong> <span th:text='${email}'>ivanov</span><br />
+                <strong>Пароль:</strong> <span th:text='${password}'>123456</span>
+        </div>
+
+
+        <p>После входа в личный кабинет, пожалуйста:</p>
+        <ul>
+            <li>Смените пароль</li>
+            <li>Проверьте необходимые данные в Вашем профиле</li>
+            <li>Ознакомьтесь с инструкциями по использованию системы</li>
+        </ul>
+
+        <p>Если у вас возникнут вопросы по работе с системой, обратитесь в
+            службу поддержки или к вашему руководителю.</p>
+    </div>
+</div>
+</body>
+</html>

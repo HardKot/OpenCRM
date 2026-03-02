@@ -26,8 +26,8 @@ public class Tenant {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(nullable = false)
-    private boolean isReady = false;
+    @Column(name = "is_ready",nullable = false)
+    private boolean ready = false;
 
 
     public String getSchemaName() {

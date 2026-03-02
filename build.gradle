@@ -32,12 +32,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
 
- 	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0'
-  	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'org.mapstruct:mapstruct:1.6.3'
 
-  	implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.hibernate.orm:hibernate-core'
 
