@@ -1,5 +1,5 @@
 CREATE TABLE clients (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
 
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
@@ -9,11 +9,14 @@ CREATE TABLE clients (
     email VARCHAR(255) NOT NULL UNIQUE,
     phoneNumber VARCHAR(255) NOT NULL,
 
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (tenant_id) REFERENCES public.tenants(id) ON DELETE CASCADE
 );
 
 CREATE TABLE employees (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
 
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
@@ -22,6 +25,11 @@ CREATE TABLE employees (
     tenant_id UUID NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone_number VARCHAR(255) NOT NULL,
+
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (tenant_id) REFERENCES public.tenants(id) ON DELETE CASCADE
 );

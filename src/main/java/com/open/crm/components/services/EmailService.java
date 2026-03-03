@@ -54,7 +54,7 @@ public class EmailService {
             message.setTo(email);
             message.setFrom(appProperties.getEmail());
 
-            message.setText(body);
+            message.setText(body, true);
             message.setSubject(subject);
 
             javaMailSender.send(mimeMessage);

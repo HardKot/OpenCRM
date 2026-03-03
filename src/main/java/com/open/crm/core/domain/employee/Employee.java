@@ -2,8 +2,13 @@ package com.open.crm.core.domain.employee;
 
 import java.util.UUID;
 
+import org.checkerframework.checker.units.qual.C;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.TenantId;
 
+import com.open.crm.core.domain.common.BaseEntity;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,18 +23,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Employee {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@SQLDelete(sql = "UPDATE employees SET is_deleted = true WHERE id = ?")
+public class Employee extends BaseEntity {
 
-    private String firstName;
-    private String lastName;
-    private String patronymic;
+    private String firstname = "";
+    private String lastname = "";
+    private String patronymic = "";
 
-    @TenantId
-    private UUID tenantId;
+    private String email = "";
+    
+    @Column(name = "phone_number")
+    private String phoneNumber = "";
 
-    private String email;
-    private String phoneNumber;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 }

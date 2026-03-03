@@ -40,6 +40,9 @@ public class User implements UserDetails {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Tenant tenant;
 
+    @Column(nullable = false, name = "employee_id")
+    private long employeeId;
+
     public String getUsername() {
         return email;
     }

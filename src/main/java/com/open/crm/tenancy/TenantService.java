@@ -21,9 +21,12 @@ import org.springframework.stereotype.Component;
 
 import com.open.crm.components.events.ApplicationEmailEvent;
 import com.open.crm.components.events.ApplicationSchemaEvent;
+import com.open.crm.core.application.EmployeeService;
+import com.open.crm.core.domain.employee.Employee;
 import com.open.crm.security.IUserRepository;
 import com.open.crm.security.PasswordService;
 import com.open.crm.security.User;
+import com.open.crm.security.UserService;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +37,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TenantService {
     private final ITenantRepository tenantRepository;
+    private final UserService userService;
     private final IUserRepository userRepository;
     private final PasswordService passwordService;  
     private final ApplicationEventPublisher eventPublisher;
     private final JdbcTemplate jdbc;
     private final DataSource dataSource;
+    private final EmployeeService employeeService;
 
 
     public static final Pattern EMAIL_REGEX = Pattern.compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
@@ -53,12 +58,11 @@ public class TenantService {
         String password = passwordService.generatePassword();
 
         Tenant tenant = initTenant();
-        User user = initUser(email, password);
 
-        user.setTenant(tenant);
 
         tenantRepository.save(tenant);
-        userRepository.save(user);
+        User user = userService.createUser(email, tenant, 1L);
+        userService.updatePassword(user, password);
 
         ApplicationEmailEvent emailEvent = new ApplicationEmailEvent(
             this, 
@@ -71,7 +75,8 @@ public class TenantService {
         ApplicationSchemaEvent schemaEvent = new ApplicationSchemaEvent(
             this, 
             tenant.getSchemaName(),
-            tenant.getId()
+            tenant.getId(),
+            user
         );
 
         eventPublisher.publishEvent(emailEvent);
@@ -88,31 +93,42 @@ public class TenantService {
         tenant.setReady(false);
         return tenant;
     }
-    private User initUser(String email, String password) {
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordService.passwordHash(password));
-        return user;
-    }
 
 
-    public void createSchemaForTenant(UUID tenantId, String schemaName) {
+    @Async
+    @EventListener
+    public void createSchemaForTenant(ApplicationSchemaEvent event) {
         Connection con = DataSourceUtils.getConnection(dataSource);
         try (Statement st = con.createStatement()) {
-            jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
+            jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + event.getSchemaName());
             
-            jdbc.update("UPDATE tenants SET active = true, is_ready = true WHERE id = ?", tenantId);
+            jdbc.update("UPDATE tenants SET active = true, is_ready = true WHERE id = ?", event.getTenantId());
 
-            runMigrationTenant(schemaName);
+            runMigrationTenant(event.getSchemaName());
 
-            st.execute("SET search_path TO " + schemaName + ", public");
+            st.execute("SET search_path TO " + event.getSchemaName() + ", public");
+            TenantContext.setCurrentTenant(event.getTenantId());
+            createRoot(event);
         } catch (Exception e) {
             throw new RuntimeException("Error creating tenant schema: " + e.getMessage(), e);
         } finally {
             DataSourceUtils.releaseConnection(con, dataSource);
+            TenantContext.clear();
         }
             
     }
+
+    private Employee createRoot(ApplicationSchemaEvent event) {
+        Employee root = new Employee();
+        root.setFirstname("Root");
+        root.setLastname("User");
+        root.setEmail(event.getUser().getEmail());
+        root.setTenantId(event.getTenantId());
+
+        employeeService.createEmployee(root);
+        return root;
+    }
+
     public void runMigrationTenant(String schemaName) {
         Flyway flyway = Flyway.configure()
             .dataSource(dataSource)
@@ -140,11 +156,5 @@ public class TenantService {
             }
         }
 
-    }
-
-    @Async
-    @EventListener
-    public void onApplicationEvent(ApplicationSchemaEvent event) {
-        createSchemaForTenant(event.getTenantId(), event.getSchemaName());
     }
 }
