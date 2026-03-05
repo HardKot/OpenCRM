@@ -7,7 +7,8 @@ import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 
 @Configuration
 public class EmailConfig {
-   @Bean
+
+    @Bean
     public SpringResourceTemplateResolver webTemplateResolver() {
         SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
         resolver.setPrefix("classpath:/templates/");

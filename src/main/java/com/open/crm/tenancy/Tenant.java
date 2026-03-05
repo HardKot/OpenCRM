@@ -12,13 +12,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
 @Table(name = "tenants", schema = "public")
 @NoArgsConstructor
 @Getter
 @Setter
 public class Tenant {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -26,11 +26,11 @@ public class Tenant {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(name = "is_ready",nullable = false)
+    @Column(name = "is_ready", nullable = false)
     private boolean ready = false;
-
 
     public String getSchemaName() {
         return "tenant_" + id.toString().replace("-", "_");
     }
+
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentifierResolver<UUID> {
+
     private static final UUID DEFAULT_TENANT = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     @Override
@@ -19,4 +20,5 @@ public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentif
     public boolean validateExistingCurrentSessions() {
         return true;
     }
+
 }

@@ -21,17 +21,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 
-
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(
-    basePackages = { "com.open.crm.tenancy", "com.open.crm.security" },
-    entityManagerFactoryRef = "rootEntityManagerFactory",
-    transactionManagerRef = "rootTransactionManager"
-)
+@EnableJpaRepositories(basePackages = { "com.open.crm.tenancy", "com.open.crm.security" },
+        entityManagerFactoryRef = "rootEntityManagerFactory", transactionManagerRef = "rootTransactionManager")
 @RequiredArgsConstructor
 public class RootEntityManagerConfig {
-    
+
     private final DataSource dataSource;
 
     @Primary
@@ -42,13 +38,13 @@ public class RootEntityManagerConfig {
         emf.setPackagesToScan("com.open.crm.tenancy", "com.open.crm.security");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         emf.setPersistenceUnitName("rootPU");
-        
+
         Map<String, Object> props = new HashMap<>();
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.default_schema", "public");
         props.put("hibernate.show_sql", true);
         props.put("hibernate.hbm2ddl.auto", "none");
-        
+
         emf.setJpaPropertyMap(props);
         return emf;
     }
@@ -56,14 +52,13 @@ public class RootEntityManagerConfig {
     @Primary
     @Bean(name = "rootTransactionManager")
     public PlatformTransactionManager rootTransactionManager(
-        @Qualifier("rootEntityManagerFactory") EntityManagerFactory rootEntityManagerFactory
-    ) {
+            @Qualifier("rootEntityManagerFactory") EntityManagerFactory rootEntityManagerFactory) {
         return new JpaTransactionManager(rootEntityManagerFactory);
     }
 
     @PostConstruct
     public void init() {
-       runMigrations();
+        runMigrations();
     }
 
     private void runMigrations() {
@@ -76,4 +71,5 @@ public class RootEntityManagerConfig {
 
         flyway.migrate();
     }
+
 }

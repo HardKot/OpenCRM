@@ -26,47 +26,50 @@ import com.open.crm.tenancy.TenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 
-
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthContoller {
-    private final TenantService tenantService;
-    private final AuthenticationManager authenticationManager;
-    private final TokenService tokenService;
-    private final IUserRepository userRepository;
 
+    private final TenantService tenantService;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final TokenService tokenService;
+
+    private final IUserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<LoginUserResponse> login(@RequestBody LoginUserRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-            );
+            Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-        
             SecurityContextHolder.getContext().setAuthentication(authentication);
             User user = userRepository.findByEmail(authentication.getName()).orElse(null);
-            
+
             Tenant tenant = user.getTenant();
             Jwt accessJwt = tokenService.generateAccessToken(user);
             Jwt refreshJwt = tokenService.generateRefreshToken(user);
 
-            TenantContext.setCurrentTenant(tenant.getId());            
-            LoginUserResponse response = new LoginUserResponse(true, user.getId(), user.getTenant().getId(), "Login successful", accessJwt.getTokenValue(), refreshJwt.getTokenValue());
+            TenantContext.setCurrentTenant(tenant.getId());
+            LoginUserResponse response = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
+                    "Login successful", accessJwt.getTokenValue(), refreshJwt.getTokenValue());
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             LoginUserResponse response = new LoginUserResponse(false, null, null, e.getMessage(), null, null);
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @PostMapping("/register/tenant")
     public ResponseEntity<RegisterTenantResponse> registerTenant(@RequestBody RegisterTenantRequest request) {
         try {
             tenantService.createTenant(request.email());
             return ResponseEntity.ok(new RegisterTenantResponse(true, "Tenant registered successfully"));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return ResponseEntity.badRequest().body(new RegisterTenantResponse(false, e.getMessage()));
         }
     }

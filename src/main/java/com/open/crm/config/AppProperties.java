@@ -11,7 +11,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AppProperties {
+
     private String version;
+
     private String email;
+
     private String domain;
+
 }

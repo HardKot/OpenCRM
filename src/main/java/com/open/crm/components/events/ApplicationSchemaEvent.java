@@ -10,8 +10,11 @@ import lombok.Getter;
 
 @Getter
 public class ApplicationSchemaEvent extends ApplicationEvent {
+
     private final String schemaName;
+
     private final User user;
+
     private final UUID tenantId;
 
     public ApplicationSchemaEvent(Object source, String schemaName, UUID tenantId, User user) {
@@ -20,5 +23,5 @@ public class ApplicationSchemaEvent extends ApplicationEvent {
         this.tenantId = tenantId;
         this.user = user;
     }
-    
+
 }

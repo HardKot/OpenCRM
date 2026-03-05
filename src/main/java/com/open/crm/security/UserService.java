@@ -19,8 +19,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
+
     private final IUserRepository userRepository;
-    private final PasswordService passwordService;  
+
+    private final PasswordService passwordService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -41,4 +43,5 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordService.passwordHash(password));
         return userRepository.save(user);
     }
+
 }

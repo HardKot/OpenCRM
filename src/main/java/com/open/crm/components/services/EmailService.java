@@ -29,11 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-    private final AppProperties appProperties;
-    private final SpringTemplateEngine templateEngine;
-    private final JavaMailSender javaMailSender;
-    private final Pattern titleHtmlRegex = Pattern.compile("<title>(.*?)<\\/title>");
 
+    private final AppProperties appProperties;
+
+    private final SpringTemplateEngine templateEngine;
+
+    private final JavaMailSender javaMailSender;
+
+    private final Pattern titleHtmlRegex = Pattern.compile("<title>(.*?)<\\/title>");
 
     @Async
     @EventListener
@@ -58,7 +61,8 @@ public class EmailService {
             message.setSubject(subject);
 
             javaMailSender.send(mimeMessage);
-        } catch (MailException | MessagingException e) {
+        }
+        catch (MailException | MessagingException e) {
             log.error("Failed to send email to {}: {}", email, e.getMessage());
         }
     }
@@ -67,14 +71,15 @@ public class EmailService {
         String body = templateEngine.process(templateName, context);
 
         if (Objects.nonNull(body)) {
-                String title = body;
-                Matcher matcher = titleHtmlRegex.matcher(title);
-                while (matcher.find()) {
-                    title = matcher.group();
-                }
-                subject = title.replaceAll("</?title(.*?)>", "").trim();
+            String title = body;
+            Matcher matcher = titleHtmlRegex.matcher(title);
+            while (matcher.find()) {
+                title = matcher.group();
             }
+            subject = title.replaceAll("</?title(.*?)>", "").trim();
+        }
 
         sendEmail(email, subject, body);
     }
+
 }

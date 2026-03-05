@@ -39,45 +39,48 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource)
+            throws Exception {
         return http
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/**", "/login", "/error").permitAll()
-                        .requestMatchers("/api-docs/**","/swagger-ui/**").permitAll() 
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(LogoutConfigurer::permitAll)
-                .cors(cors -> cors.disable())
-                .csrf(csrf -> csrf.disable())
-                //         .ignoringRequestMatchers("/api/**", "/auth/**")
-                //         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                // )
-                .build();
+            .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**", "/login", "/error")
+                .permitAll()
+                .requestMatchers("/api-docs/**", "/swagger-ui/**")
+                .permitAll()
+                .requestMatchers("/api/**")
+                .authenticated()
+                .anyRequest()
+                .authenticated())
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(LogoutConfigurer::permitAll)
+            .cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable())
+            // .ignoringRequestMatchers("/api/**", "/auth/**")
+            // .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            // )
+            .build();
     }
 
     @Bean
     public JwtDecoder jwtAccessDecoder(JwtProperties jwtProperties) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
-        return NimbusJwtDecoder.withSecretKey(
-                new SecretKeySpec(keyBytes, "HmacSHA256")
-        ).macAlgorithm(MacAlgorithm.HS256).build();
+        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256"))
+            .macAlgorithm(MacAlgorithm.HS256)
+            .build();
     }
 
     @Bean
     public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
-        OctetSequenceKey jwk = new OctetSequenceKey.Builder(keyBytes)
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.HS256)
-                .keyID("hmac-main")
-                .build();
+        OctetSequenceKey jwk = new OctetSequenceKey.Builder(keyBytes).keyUse(KeyUse.SIGNATURE)
+            .algorithm(JWSAlgorithm.HS256)
+            .keyID("hmac-main")
+            .build();
         return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
     }
 
@@ -85,4 +88,5 @@ public class SecurityConfig {
     public JwsHeader jwtHeaders() {
         return JwsHeader.with(MacAlgorithm.HS256).build();
     }
+
 }

@@ -7,9 +7,10 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class Result<T, E> {
-    private T value;
-    private E error;
 
+    private T value;
+
+    private E error;
 
     public static <T, E> Result<T, E> success(T value) {
         return new Result<>(value, null);
@@ -30,7 +31,8 @@ public class Result<T, E> {
     public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
         if (isSuccess()) {
             return success(mapper.apply(value));
-        } else {
+        }
+        else {
             return failure(error);
         }
     }
@@ -38,7 +40,8 @@ public class Result<T, E> {
     public <F> Result<T, F> mapError(Function<? super E, ? extends F> mapper) {
         if (isFailure()) {
             return failure(mapper.apply(error));
-        } else {
+        }
+        else {
             return success(value);
         }
     }
@@ -58,7 +61,8 @@ public class Result<T, E> {
     public T getValue() {
         if (isSuccess()) {
             return value;
-        } else {
+        }
+        else {
             throw new IllegalStateException("Cannot get value from a failure result");
         }
     }
@@ -66,8 +70,10 @@ public class Result<T, E> {
     public E getError() {
         if (isFailure()) {
             return error;
-        } else {
+        }
+        else {
             throw new IllegalStateException("Cannot get error from a success result");
         }
     }
+
 }

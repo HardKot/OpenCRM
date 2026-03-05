@@ -27,14 +27,17 @@ import lombok.Setter;
 public class Employee extends BaseEntity {
 
     private String firstname = "";
+
     private String lastname = "";
+
     private String patronymic = "";
 
     private String email = "";
-    
+
     @Column(name = "phone_number")
     private String phoneNumber = "";
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
 }

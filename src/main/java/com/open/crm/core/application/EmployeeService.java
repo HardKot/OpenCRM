@@ -10,11 +10,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+
     private final IEmployeeRepository employeeRepository;
 
     public Employee createEmployee(Employee employee) {
         employee.setId(null);
 
         return employeeRepository.save(employee);
-    } 
+    }
+
 }

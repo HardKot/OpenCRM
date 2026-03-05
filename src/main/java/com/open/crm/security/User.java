@@ -27,6 +27,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -50,4 +51,5 @@ public class User implements UserDetails {
     public List<GrantedAuthority> getAuthorities() {
         return List.of();
     }
+
 }

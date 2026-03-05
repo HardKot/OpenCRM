@@ -17,8 +17,11 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class TokenService {
+
     private final JwtDecoder jwtDecoder;
+
     private final JwtEncoder jwtEncoder;
+
     private final JwsHeader jwtHeaders;
 
     private final Set<String> blockedToken = HashSet.newHashSet(0);
@@ -30,16 +33,10 @@ public class TokenService {
         return jwtDecoder.decode(token);
     }
 
-
     public Jwt generateRefreshToken(User user) {
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-            .subject(user.getEmail())
-            .claim("type", "refresh")
-            .build();
+        JwtClaimsSet claims = JwtClaimsSet.builder().subject(user.getEmail()).claim("type", "refresh").build();
 
-        return jwtEncoder.encode(
-            JwtEncoderParameters.from(jwtHeaders, claims)
-        );
+        return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
     }
 
     public Jwt generateAccessToken(User user) {
@@ -49,8 +46,7 @@ public class TokenService {
             .claim("tenant_id", user.getTenant().getId().toString())
             .build();
 
-        return jwtEncoder.encode(
-            JwtEncoderParameters.from(jwtHeaders, claims)
-        );
+        return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
     }
+
 }

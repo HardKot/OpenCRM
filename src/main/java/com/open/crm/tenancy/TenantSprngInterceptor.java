@@ -18,9 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 public class TenantSprngInterceptor implements HandlerInterceptor {
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
 
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
             String tenantId = jwt.getClaimAsString("tenant_id");
@@ -31,26 +31,31 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
                     TenantContext.setCurrentTenant(tenantUuid);
                     log.debug("Set tenant context from JWT: {}", tenantUuid);
                     return true;
-                } catch (IllegalArgumentException e) {
+                }
+                catch (IllegalArgumentException e) {
                     log.error("Invalid tenant UUID in JWT: {}", tenantId, e);
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Invalid tenant in token");
                     return false;
                 }
-            } else {
+            }
+            else {
                 log.warn("Missing tenant_id claim in JWT token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Missing tenant_id in token");
                 return false;
             }
-        } else {
+        }
+        else {
             log.info("No authentication or JWT token found, proceeding without tenant context");
             return true;
         }
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+            Exception ex) {
         TenantContext.clear();
     }
+
 }
