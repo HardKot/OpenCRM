@@ -27,26 +27,23 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
 
             if (tenantId != null && !tenantId.isBlank()) {
                 try {
-                    UUID tenantUuid = UUID.fromString(tenantId);
-                    TenantContext.setCurrentTenant(tenantUuid);
-                    log.debug("Set tenant context from JWT: {}", tenantUuid);
+                    // TODO: schemaName
+                    TenantContext.setCurrentTenantSchemaName(tenantId);
+                    log.debug("Set tenant context from JWT: {}", tenantId);
                     return true;
-                }
-                catch (IllegalArgumentException e) {
-                    log.error("Invalid tenant UUID in JWT: {}", tenantId, e);
+                } catch (IllegalArgumentException e) {
+                    log.error("Invalid tenant ID in JWT: {}", tenantId, e);
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Invalid tenant in token");
                     return false;
                 }
-            }
-            else {
+            } else {
                 log.warn("Missing tenant_id claim in JWT token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Missing tenant_id in token");
                 return false;
             }
-        }
-        else {
+        } else {
             log.info("No authentication or JWT token found, proceeding without tenant context");
             return true;
         }

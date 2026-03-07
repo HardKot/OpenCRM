@@ -1,12 +1,9 @@
-package com.open.crm.tenancy;
+package com.open.crm.root.entities.tenant;
 
-import java.util.UUID;
+import com.open.crm.root.entities.common.BaseRootEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,11 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Tenant {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Tenant extends BaseRootEntity {
 
     @Column(nullable = false)
     private Boolean active = true;
@@ -29,8 +22,7 @@ public class Tenant {
     @Column(name = "is_ready", nullable = false)
     private boolean ready = false;
 
-    public String getSchemaName() {
-        return "tenant_" + id.toString().replace("-", "_");
-    }
+    @Column(name = "schema_name", nullable = false, unique = true)
+    private String schemaName;
 
 }

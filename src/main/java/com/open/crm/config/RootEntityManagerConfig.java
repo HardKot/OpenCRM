@@ -35,7 +35,7 @@ public class RootEntityManagerConfig {
     public LocalContainerEntityManagerFactoryBean rootEntityManagerFactory() {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
-        emf.setPackagesToScan("com.open.crm.tenancy", "com.open.crm.security");
+        emf.setPackagesToScan("com.open.crm.root");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         emf.setPersistenceUnitName("rootPU");
 

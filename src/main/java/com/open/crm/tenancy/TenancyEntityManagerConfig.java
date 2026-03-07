@@ -25,8 +25,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.open.crm.core.application.repositories",
-        entityManagerFactoryRef = "tenantEntityManagerFactory", transactionManagerRef = "tenantTransactionManager")
+@EnableJpaRepositories(basePackages = "com.open.crm.core.application.repositories", entityManagerFactoryRef = "tenantEntityManagerFactory", transactionManagerRef = "tenantTransactionManager")
 @RequiredArgsConstructor
 public class TenancyEntityManagerConfig {
 
@@ -34,11 +33,11 @@ public class TenancyEntityManagerConfig {
 
     @Bean(name = "tenantEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean tenantEntityManagerFactory(
-            MultiTenantConnectionProvider<UUID> connectionProvider,
-            CurrentTenantIdentifierResolver<UUID> tenantResolver) {
+            MultiTenantConnectionProvider<String> connectionProvider,
+            CurrentTenantIdentifierResolver<String> tenantResolver) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
-        emf.setPackagesToScan("com.open.crm.core.domain");
+        emf.setPackagesToScan("com.open.crm.core.entities");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
         emf.setPersistenceUnitName("tenantPU");
 

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -17,7 +16,7 @@ import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider<UUID> {
+public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider<String> {
 
     private final DataSource dataSource;
 
@@ -32,15 +31,13 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     }
 
     @Override
-    public Connection getConnection(UUID tenantIdentifier) throws SQLException {
+    public Connection getConnection(String schemaName) throws SQLException {
         Connection connection = getAnyConnection();
         try (Statement stmt = connection.createStatement()) {
-            String schemaName = "tenant_" + tenantIdentifier.toString().replace("-", "_");
 
             stmt.execute("SET search_path TO \"" + schemaName + "\", public");
-        }
-        catch (SQLException e) {
-            log.error("Failed to set search_path for tenant {}: {}", tenantIdentifier, e.getMessage(), e);
+        } catch (SQLException e) {
+            log.error("Failed to set search_path for tenant {}: {}", schemaName, e.getMessage(), e);
             connection.close();
             throw e;
         }
@@ -48,11 +45,10 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     }
 
     @Override
-    public void releaseConnection(UUID tenantIdentifier, Connection connection) throws SQLException {
+    public void releaseConnection(String schemaName, Connection connection) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("SET search_path TO public");
-        }
-        finally {
+        } finally {
             connection.close();
         }
     }

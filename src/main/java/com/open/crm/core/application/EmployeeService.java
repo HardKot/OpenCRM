@@ -3,7 +3,7 @@ package com.open.crm.core.application;
 import org.springframework.stereotype.Service;
 
 import com.open.crm.core.application.repositories.IEmployeeRepository;
-import com.open.crm.core.domain.employee.Employee;
+import com.open.crm.core.entities.employee.Employee;
 
 import lombok.RequiredArgsConstructor;
 

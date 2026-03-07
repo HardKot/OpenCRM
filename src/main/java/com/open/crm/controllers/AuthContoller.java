@@ -1,6 +1,5 @@
 package com.open.crm.controllers;
 
-import org.checkerframework.checker.units.qual.t;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,13 +14,13 @@ import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
 import com.open.crm.controllers.dto.RegisterTenantRequest;
 import com.open.crm.controllers.dto.RegisterTenantResponse;
+import com.open.crm.root.application.TenantService;
+import com.open.crm.root.application.UserService;
+import com.open.crm.root.entities.tenant.Tenant;
+import com.open.crm.root.entities.user.User;
 import com.open.crm.security.IUserRepository;
 import com.open.crm.security.TokenService;
-import com.open.crm.security.User;
-import com.open.crm.security.UserService;
-import com.open.crm.tenancy.Tenant;
 import com.open.crm.tenancy.TenantContext;
-import com.open.crm.tenancy.TenantService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +42,7 @@ public class AuthContoller {
     public ResponseEntity<LoginUserResponse> login(@RequestBody LoginUserRequest request) {
         try {
             Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+                    .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             User user = userRepository.findByEmail(authentication.getName()).orElse(null);
@@ -52,12 +51,11 @@ public class AuthContoller {
             Jwt accessJwt = tokenService.generateAccessToken(user);
             Jwt refreshJwt = tokenService.generateRefreshToken(user);
 
-            TenantContext.setCurrentTenant(tenant.getId());
+            TenantContext.setCurrentTenantSchemaName(tenant.getSchemaName());
             LoginUserResponse response = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
                     "Login successful", accessJwt.getTokenValue(), refreshJwt.getTokenValue());
             return ResponseEntity.ok(response);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LoginUserResponse response = new LoginUserResponse(false, null, null, e.getMessage(), null, null);
             return ResponseEntity.badRequest().body(response);
         }
@@ -68,8 +66,7 @@ public class AuthContoller {
         try {
             tenantService.createTenant(request.email());
             return ResponseEntity.ok(new RegisterTenantResponse(true, "Tenant registered successfully"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(new RegisterTenantResponse(false, e.getMessage()));
         }
     }

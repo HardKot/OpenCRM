@@ -21,6 +21,7 @@ configurations {
 		extendsFrom annotationProcessor
 	}
 }
+// filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus
 
 repositories {
 	mavenCentral()

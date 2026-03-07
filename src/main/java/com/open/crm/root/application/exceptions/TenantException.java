@@ -1,4 +1,4 @@
-package com.open.crm.tenancy;
+package com.open.crm.root.application.exceptions;
 
 public class TenantException extends RuntimeException {
 

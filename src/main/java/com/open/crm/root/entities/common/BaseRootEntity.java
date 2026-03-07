@@ -1,10 +1,9 @@
-package com.open.crm.core.domain.common;
+package com.open.crm.root.entities.common;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.TenantId;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
@@ -16,19 +15,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @MappedSuperclass
-@Setter
+@NoArgsConstructor
 @Getter
-public class BaseEntity {
-
+@Setter
+public class BaseRootEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @TenantId
-    @Column(name = "tenant_id", nullable = false)
-    private UUID tenantId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -41,5 +35,4 @@ public class BaseEntity {
     public int hashCode() {
         return 25;
     }
-
 }

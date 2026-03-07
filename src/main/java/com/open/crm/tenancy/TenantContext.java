@@ -1,16 +1,14 @@
 package com.open.crm.tenancy;
 
-import java.util.UUID;
-
 public class TenantContext {
 
-    private static final ThreadLocal<UUID> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<String> CURRENT = new ThreadLocal<>();
 
-    public static void setCurrentTenant(UUID tenant) {
+    public static void setCurrentTenantSchemaName(String tenant) {
         CURRENT.set(tenant);
     }
 
-    public static UUID getCurrentTenant() {
+    public static String getCurrentTenantSchemaName() {
         return CURRENT.get();
     }
 

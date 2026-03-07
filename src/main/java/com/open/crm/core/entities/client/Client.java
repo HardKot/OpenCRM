@@ -1,4 +1,4 @@
-package com.open.crm.core.domain.client;
+package com.open.crm.core.entities.client;
 
 import java.util.UUID;
 

@@ -1,12 +1,11 @@
-package com.open.crm.core.domain.employee;
+package com.open.crm.core.entities.employee;
 
 import java.util.UUID;
 
-import org.checkerframework.checker.units.qual.C;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.TenantId;
 
-import com.open.crm.core.domain.common.BaseEntity;
+import com.open.crm.core.entities.common.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
