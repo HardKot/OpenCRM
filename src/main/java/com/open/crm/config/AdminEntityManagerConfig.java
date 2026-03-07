@@ -5,7 +5,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,27 +16,26 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = { "com.open.crm.tenancy", "com.open.crm.security" },
-        entityManagerFactoryRef = "rootEntityManagerFactory", transactionManagerRef = "rootTransactionManager")
+@EnableJpaRepositories(basePackages = {
+        "com.open.crm.admin" }, entityManagerFactoryRef = "adminEntityManagerFactory", transactionManagerRef = "adminTransactionManager")
 @RequiredArgsConstructor
-public class RootEntityManagerConfig {
+public class AdminEntityManagerConfig {
 
     private final DataSource dataSource;
 
     @Primary
-    @Bean(name = "rootEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean rootEntityManagerFactory() {
+    @Bean(name = "adminEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean adminEntityManagerFactory() {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
-        emf.setPackagesToScan("com.open.crm.root");
+        emf.setPackagesToScan("com.open.crm.admin");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        emf.setPersistenceUnitName("rootPU");
+        emf.setPersistenceUnitName("adminPU");
 
         Map<String, Object> props = new HashMap<>();
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
@@ -50,26 +48,9 @@ public class RootEntityManagerConfig {
     }
 
     @Primary
-    @Bean(name = "rootTransactionManager")
-    public PlatformTransactionManager rootTransactionManager(
-            @Qualifier("rootEntityManagerFactory") EntityManagerFactory rootEntityManagerFactory) {
-        return new JpaTransactionManager(rootEntityManagerFactory);
+    @Bean(name = "adminTransactionManager")
+    public PlatformTransactionManager adminTransactionManager(
+            @Qualifier("adminEntityManagerFactory") EntityManagerFactory adminEntityManagerFactory) {
+        return new JpaTransactionManager(adminEntityManagerFactory);
     }
-
-    @PostConstruct
-    public void init() {
-        runMigrations();
-    }
-
-    private void runMigrations() {
-        Flyway flyway = Flyway.configure()
-            .dataSource(dataSource)
-            .schemas("public")
-            .locations("classpath:migrations/root")
-            .baselineOnMigrate(true)
-            .load();
-
-        flyway.migrate();
-    }
-
 }

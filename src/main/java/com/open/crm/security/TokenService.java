@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtEncodingException;
 import org.springframework.stereotype.Service;
 
-import com.open.crm.root.entities.user.User;
+import com.open.crm.admin.entities.user.User;
 
 import lombok.RequiredArgsConstructor;
 

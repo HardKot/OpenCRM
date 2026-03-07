@@ -1,6 +1,6 @@
-package com.open.crm.root.entities.tenant;
+package com.open.crm.admin.entities.tenant;
 
-import com.open.crm.root.entities.common.BaseRootEntity;
+import com.open.crm.admin.entities.common.BaseAdminEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Tenant extends BaseRootEntity {
+public class Tenant extends BaseAdminEntity {
 
     @Column(nullable = false)
     private Boolean active = true;

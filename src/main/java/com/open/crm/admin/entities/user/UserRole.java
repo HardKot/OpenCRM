@@ -1,4 +1,4 @@
-package com.open.crm.root.entities.user;
+package com.open.crm.admin.entities.user;
 
 public enum UserRole {
     ROLE_USER,

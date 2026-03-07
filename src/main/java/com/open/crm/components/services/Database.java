@@ -4,14 +4,16 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.stereotype.Component;
 
-import com.open.crm.root.application.interfaces.IDatabase;
-import com.open.crm.root.entities.tenant.Tenant;
+import com.open.crm.admin.application.interfaces.IDatabase;
+import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.tenancy.TenantContext;
 
 import jakarta.annotation.PostConstruct;
@@ -48,44 +50,63 @@ public class Database implements IDatabase {
 
     @Override
     public void schemaChangeTenant(String schema, Tenant tenant) throws Exception {
+        try (Connection conn = dataSource.getConnection();
+                Statement stmt = conn.createStatement()) {
 
+            ResultSet tables = stmt.executeQuery(String.format(
+                    "SELECT table_name FROM information_schema.columns WHERE table_schema = '%s' AND column_name = 'tenant_id'",
+                    schema));
+
+            while (tables.next()) {
+                String tableName = tables.getString("table_name");
+
+                stmt.execute(String.format(
+                        "UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '00000000-0000-0000-0000-000000000000'",
+                        schema, tableName, tenant.getId()));
+            }
+        } catch (Exception e) {
+            log.error("Error during schema change for tenant {}: {}", tenant.getId(), e.getMessage());
+            throw e;
+        }
     }
 
     @PostConstruct
     public void runMigration() {
         try {
-            runMigrationRoot();
-            runMigrationTenant(templateTenantSchemaName);
+            runMigrationAdmin();
+            runMigrationTenant(templateTenantSchemaName, UUID.fromString("00000000-0000-0000-0000-000000000000"));
 
             Connection conn = dataSource.getConnection();
             Statement stmt = conn.createStatement();
 
-            ResultSet tenantSchemas = stmt.executeQuery("SELECT schema_name FROM public.tenants");
+            ResultSet tenantSchemas = stmt.executeQuery("SELECT id, schema_name FROM public.tenants");
             while (tenantSchemas.next()) {
                 String schemaName = tenantSchemas.getString("schema_name");
-                runMigrationTenant(schemaName);
+                UUID tenantId = UUID.fromString(tenantSchemas.getString("id"));
+                runMigrationTenant(schemaName, tenantId);
             }
         } catch (Exception e) {
             log.error("Error during database migration: {}", e.getMessage());
         }
     }
 
-    public void runMigrationRoot() {
+    public void runMigrationAdmin() {
         Flyway.configure()
                 .dataSource(dataSource)
                 .schemas("public")
-                .locations("classpath:migrations/root")
+                .locations("classpath:migrations/admin")
                 .baselineOnMigrate(true)
                 .validateOnMigrate(true)
                 .load()
                 .migrate();
     }
 
-    public void runMigrationTenant(String schemaName) {
+    public void runMigrationTenant(String schemaName, UUID tenantId) {
         Flyway.configure()
                 .dataSource(dataSource)
                 .schemas(schemaName)
                 .locations("classpath:migrations/tenant")
+                .placeholders(Map.of("tenantId", tenantId.toString()))
                 .baselineOnMigrate(true)
                 .validateOnMigrate(true)
                 .load()

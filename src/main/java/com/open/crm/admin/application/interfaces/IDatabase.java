@@ -1,6 +1,6 @@
-package com.open.crm.root.application.interfaces;
+package com.open.crm.admin.application.interfaces;
 
-import com.open.crm.root.entities.tenant.Tenant;
+import com.open.crm.admin.entities.tenant.Tenant;
 
 public interface IDatabase {
     void copySchema(String from, String to) throws Exception;

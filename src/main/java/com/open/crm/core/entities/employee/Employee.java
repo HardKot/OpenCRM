@@ -1,17 +1,11 @@
 package com.open.crm.core.entities.employee;
 
-import java.util.UUID;
-
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.TenantId;
 
 import com.open.crm.core.entities.common.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,17 +18,15 @@ import lombok.Setter;
 @Setter
 @SQLDelete(sql = "UPDATE employees SET is_deleted = true WHERE id = ?")
 public class Employee extends BaseEntity {
-
     private String firstname = "";
-
     private String lastname = "";
-
     private String patronymic = "";
 
-    private String email = "";
+    private String position = "";
 
     @Column(name = "phone_number")
     private String phoneNumber = "";
+    private String email = "";
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;

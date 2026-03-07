@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.open.crm.admin.application.TenantService;
+import com.open.crm.admin.application.UserService;
+import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.entities.tenant.Tenant;
+import com.open.crm.admin.entities.user.User;
 import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
 import com.open.crm.controllers.dto.RegisterTenantRequest;
 import com.open.crm.controllers.dto.RegisterTenantResponse;
-import com.open.crm.root.application.TenantService;
-import com.open.crm.root.application.UserService;
-import com.open.crm.root.entities.tenant.Tenant;
-import com.open.crm.root.entities.user.User;
-import com.open.crm.security.IUserRepository;
 import com.open.crm.security.TokenService;
 import com.open.crm.tenancy.TenantContext;
 
@@ -45,7 +45,7 @@ public class AuthContoller {
                     .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
 
             Tenant tenant = user.getTenant();
             Jwt accessJwt = tokenService.generateAccessToken(user);

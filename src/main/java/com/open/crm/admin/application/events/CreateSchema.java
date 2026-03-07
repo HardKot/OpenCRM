@@ -1,10 +1,10 @@
-package com.open.crm.root.application.events;
+package com.open.crm.admin.application.events;
 
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEvent;
 
-import com.open.crm.root.entities.user.User;
+import com.open.crm.admin.entities.user.User;
 
 import lombok.Getter;
 

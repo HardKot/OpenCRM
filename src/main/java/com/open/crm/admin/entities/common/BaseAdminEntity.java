@@ -1,4 +1,4 @@
-package com.open.crm.root.entities.common;
+package com.open.crm.admin.entities.common;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,7 +19,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class BaseRootEntity {
+public class BaseAdminEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

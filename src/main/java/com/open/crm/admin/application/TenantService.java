@@ -1,14 +1,15 @@
-package com.open.crm.root.application;
+package com.open.crm.admin.application;
 
 import java.util.List;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.stereotype.Component;
 
-import com.open.crm.root.application.exceptions.TenantException;
-import com.open.crm.root.application.interfaces.IDatabase;
-import com.open.crm.root.entities.tenant.Tenant;
-import com.open.crm.tenancy.ITenantRepository;
+import com.open.crm.admin.application.exceptions.TenantException;
+import com.open.crm.admin.application.interfaces.IDatabase;
+import com.open.crm.admin.application.interfaces.ITenantRepository;
+import com.open.crm.admin.entities.tenant.Tenant;
+import com.open.crm.admin.entities.user.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TenantService {
     private final ITenantRepository tenantRepository;
     private final IDatabase database;
+    private final UserService userService;
 
     public Tenant createTenant(String email) throws TenantException {
         try {
@@ -32,6 +34,11 @@ public class TenantService {
                     database.getTemplateTenantSchemaName(),
                     tenant.getSchemaName());
             database.setContextTenant(tenant);
+
+            User user = new User();
+            user.setUsername(email);
+            userService.createUser(user);
+
             return tenant;
 
         } catch (Exception e) {

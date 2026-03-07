@@ -1,4 +1,4 @@
-package com.open.crm.root.entities.user;
+package com.open.crm.admin.entities.user;
 
 import java.util.Collection;
 import java.util.Set;
@@ -8,8 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.open.crm.root.entities.common.BaseRootEntity;
-import com.open.crm.root.entities.tenant.Tenant;
+import com.open.crm.admin.entities.common.BaseAdminEntity;
+import com.open.crm.admin.entities.tenant.Tenant;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -26,9 +26,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class User extends BaseRootEntity implements UserDetails {
+public class User extends BaseAdminEntity implements UserDetails {
     @Column(nullable = false, unique = true)
-    private String email = "";
+    private String username = "";
 
     @Column(nullable = false)
     private String password = "";
@@ -44,10 +44,6 @@ public class User extends BaseRootEntity implements UserDetails {
 
     @Column(name = "permissions")
     private Set<String> permissions = Set.of();
-
-    public String getUsername() {
-        return email;
-    }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = permissions.stream()
