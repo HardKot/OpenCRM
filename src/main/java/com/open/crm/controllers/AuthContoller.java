@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.crm.admin.application.TenantService;
+import com.open.crm.admin.application.UseCreateTenant;
 import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
@@ -29,13 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthContoller {
-
-    private final TenantService tenantService;
-
+    private final UseCreateTenant useCreateTenant;
     private final AuthenticationManager authenticationManager;
-
     private final TokenService tokenService;
-
     private final IUserRepository userRepository;
 
     @PostMapping("/login")
@@ -45,7 +42,7 @@ public class AuthContoller {
                     .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
 
             Tenant tenant = user.getTenant();
             Jwt accessJwt = tokenService.generateAccessToken(user);
@@ -64,7 +61,7 @@ public class AuthContoller {
     @PostMapping("/register/tenant")
     public ResponseEntity<RegisterTenantResponse> registerTenant(@RequestBody RegisterTenantRequest request) {
         try {
-            tenantService.createTenant(request.email());
+            useCreateTenant.execute(new UseCreateTenant.Params(request.email()));
             return ResponseEntity.ok(new RegisterTenantResponse(true, "Tenant registered successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new RegisterTenantResponse(false, e.getMessage()));

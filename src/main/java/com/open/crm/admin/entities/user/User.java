@@ -12,9 +12,14 @@ import com.open.crm.admin.entities.common.BaseAdminEntity;
 import com.open.crm.admin.entities.tenant.Tenant;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -28,7 +33,7 @@ import lombok.Setter;
 @Setter
 public class User extends BaseAdminEntity implements UserDetails {
     @Column(nullable = false, unique = true)
-    private String username = "";
+    private String email = "";
 
     @Column(nullable = false)
     private String password = "";
@@ -36,14 +41,22 @@ public class User extends BaseAdminEntity implements UserDetails {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Tenant tenant;
 
-    @Column(nullable = false, name = "employee_id")
-    private long employeeId;
+    @Column(nullable = true, name = "entity_id")
+    private long entityId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role = UserRole.ROLE_USER;
+    private UserRole role = UserRole.ROLE_EMPLOYEE;
 
-    @Column(name = "permissions")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", schema = "public", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "permission")
     private Set<String> permissions = Set.of();
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = permissions.stream()

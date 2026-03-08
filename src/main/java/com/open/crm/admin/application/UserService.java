@@ -17,8 +17,6 @@ import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.core.application.repositories.IEmployeeRepository;
-import com.open.crm.core.entities.employee.Employee;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final IUserRepository userRepository;
-    private final IEmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -36,42 +33,35 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
-    public User createUser(User data) {
-        if (Objects.isNull(data.getUsername()) || data.getUsername().isBlank())
-            throw new UserException("Username cannot be empty");
-        if (data.getUsername().length() > 255)
-            throw new UserException("Username cannot be longer than 255 characters");
-        if (!EMAIL_REGEX.matcher(data.getUsername()).matches())
-            throw new UserException("Username is not valid");
-        if (userRepository.existsByUsername(data.getUsername()))
-            throw new UserException("Username is already taken");
+    public User createUser(User data, String email) {
+        if (Objects.isNull(data.getEmail()) || data.getEmail().isBlank())
+            throw new UserException("Email cannot be empty");
+        if (data.getEmail().length() > 255)
+            throw new UserException("Email cannot be longer than 255 characters");
+        if (!EMAIL_REGEX.matcher(data.getEmail()).matches())
+            throw new UserException("Email is not valid");
+        if (userRepository.existsByEmail(data.getEmail()))
+            throw new UserException("Email is already taken");
 
         User user = new User();
-        user.setUsername(data.getUsername());
+        user.setEmail(data.getEmail());
         user.setTenant(data.getTenant());
-        user.setEmployeeId(data.getEmployeeId());
-        if (Objects.nonNull(data.getPassword())) {
-            PasswordType passwordType = getPasswordType(data.getPassword());
-            if (passwordType == PasswordType.WEAK) {
-                throw new UserException("Password is too weak");
-            }
-            user.setPassword(passwordEncoder.encode(data.getPassword()));
-        }
-        userRepository.save(user);
+        user.setEntityId(data.getEntityId());
 
-        Employee employee = employeeRepository.findById(data.getEmployeeId())
-                .orElseThrow(() -> new UserException("Employee not found with id: " + data.getEmployeeId()));
+        String password = generatePassword();
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
 
         eventPublisher.publishEvent(
                 new SendUserEmail(this,
-                        employee.getEmail(),
+                        user.getEmail(),
                         "Welcome!",
                         "welcome-email",
-                        Map.of("username", user.getUsername(), "password", data.getPassword())));
+                        Map.of("username", user.getUsername(), "password", password)));
 
         return user;
     }

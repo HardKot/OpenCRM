@@ -3,6 +3,7 @@ package com.open.crm.components.services;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class Database implements IDatabase {
     private final DataSource dataSource;
-    private final String templateTenantSchemaName = "template_schema_tenant";
+    private final String templateTenantSchemaName = "tenant_template";
     private final CopyDatabaseSchema copyDatabaseSchema;
 
     @Override
@@ -50,19 +51,25 @@ public class Database implements IDatabase {
 
     @Override
     public void schemaChangeTenant(String schema, Tenant tenant) throws Exception {
-        try (Connection conn = dataSource.getConnection();
-                Statement stmt = conn.createStatement()) {
+        try (Connection conn = dataSource.getConnection()) {
+            List<String> tables = new ArrayList<>();
 
-            ResultSet tables = stmt.executeQuery(String.format(
-                    "SELECT table_name FROM information_schema.columns WHERE table_schema = '%s' AND column_name = 'tenant_id'",
-                    schema));
+            try (Statement selectStmt = conn.createStatement()) {
+                ResultSet tablesResultSet = selectStmt.executeQuery(String.format(
+                        "SELECT table_name FROM information_schema.columns WHERE table_schema = '%s' AND column_name = 'tenant_id'",
+                        schema));
 
-            while (tables.next()) {
-                String tableName = tables.getString("table_name");
+                while (tablesResultSet.next()) {
+                    tables.add(tablesResultSet.getString(1));
+                }
+            }
 
-                stmt.execute(String.format(
-                        "UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '00000000-0000-0000-0000-000000000000'",
-                        schema, tableName, tenant.getId()));
+            try (Statement updateStmt = conn.createStatement()) {
+                for (String tableName : tables) {
+                    updateStmt.execute(String.format(
+                            "UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '00000000-0000-0000-0000-000000000000'",
+                            schema, tableName, tenant.getId()));
+                }
             }
         } catch (Exception e) {
             log.error("Error during schema change for tenant {}: {}", tenant.getId(), e.getMessage());
@@ -95,6 +102,7 @@ public class Database implements IDatabase {
                 .dataSource(dataSource)
                 .schemas("public")
                 .locations("classpath:migrations/admin")
+                .placeholders(Map.of("template_schema_name", templateTenantSchemaName))
                 .baselineOnMigrate(true)
                 .validateOnMigrate(true)
                 .load()
