@@ -27,7 +27,6 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
 
             if (tenantId != null && !tenantId.isBlank()) {
                 try {
-                    // TODO: schemaName
                     TenantContext.setCurrentTenantSchemaName(tenantId);
                     log.debug("Set tenant context from JWT: {}", tenantId);
                     return true;

@@ -15,7 +15,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.context.IContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import com.open.crm.components.events.ApplicationEmailEvent;
+import com.open.crm.admin.application.events.ApplicationEmailEvent;
 import com.open.crm.config.AppProperties;
 
 import jakarta.mail.MessagingException;

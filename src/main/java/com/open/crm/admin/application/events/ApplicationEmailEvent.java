@@ -1,4 +1,4 @@
-package com.open.crm.components.events;
+package com.open.crm.admin.application.events;
 
 import java.util.Map;
 

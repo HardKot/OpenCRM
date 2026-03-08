@@ -27,7 +27,7 @@ public class BaseEntity {
 
     @TenantId
     @Column(name = "tenant_id", nullable = false)
-    private UUID tenantId;
+    private String tenantId;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;

@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.open.crm.admin.application.events.ApplicationEmailEvent;
 import com.open.crm.admin.application.events.SendUserEmail;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
@@ -57,10 +58,10 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
 
         eventPublisher.publishEvent(
-                new SendUserEmail(this,
+                new ApplicationEmailEvent(this,
                         user.getEmail(),
                         "Welcome!",
-                        "welcome-email",
+                        "email/welcome-email",
                         Map.of("username", user.getUsername(), "password", password)));
 
         return user;

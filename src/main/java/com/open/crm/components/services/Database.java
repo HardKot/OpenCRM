@@ -67,8 +67,8 @@ public class Database implements IDatabase {
             try (Statement updateStmt = conn.createStatement()) {
                 for (String tableName : tables) {
                     updateStmt.execute(String.format(
-                            "UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '00000000-0000-0000-0000-000000000000'",
-                            schema, tableName, tenant.getId()));
+                            "UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '%s'",
+                            schema, tableName, tenant.getSchemaName(), templateTenantSchemaName));
                 }
             }
         } catch (Exception e) {
@@ -81,16 +81,15 @@ public class Database implements IDatabase {
     public void runMigration() {
         try {
             runMigrationAdmin();
-            runMigrationTenant(templateTenantSchemaName, UUID.fromString("00000000-0000-0000-0000-000000000000"));
+            runMigrationTenant(templateTenantSchemaName);
 
             Connection conn = dataSource.getConnection();
             Statement stmt = conn.createStatement();
 
-            ResultSet tenantSchemas = stmt.executeQuery("SELECT id, schema_name FROM public.tenants");
+            ResultSet tenantSchemas = stmt.executeQuery("SELECT schema_name FROM public.tenants");
             while (tenantSchemas.next()) {
                 String schemaName = tenantSchemas.getString("schema_name");
-                UUID tenantId = UUID.fromString(tenantSchemas.getString("id"));
-                runMigrationTenant(schemaName, tenantId);
+                runMigrationTenant(schemaName);
             }
         } catch (Exception e) {
             log.error("Error during database migration: {}", e.getMessage());
@@ -109,12 +108,12 @@ public class Database implements IDatabase {
                 .migrate();
     }
 
-    public void runMigrationTenant(String schemaName, UUID tenantId) {
+    public void runMigrationTenant(String schemaName) {
         Flyway.configure()
                 .dataSource(dataSource)
                 .schemas(schemaName)
                 .locations("classpath:migrations/tenant")
-                .placeholders(Map.of("tenantId", tenantId.toString()))
+                .placeholders(Map.of("tenantId", schemaName))
                 .baselineOnMigrate(true)
                 .validateOnMigrate(true)
                 .load()
