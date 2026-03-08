@@ -1,5 +1,6 @@
 package com.open.crm.controllers;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -7,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,12 +20,16 @@ import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
 import com.open.crm.controllers.dto.RegisterTenantRequest;
 import com.open.crm.controllers.dto.RegisterTenantResponse;
+import com.open.crm.security.TokenData;
 import com.open.crm.security.TokenService;
 import com.open.crm.tenancy.TenantContext;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.PostMapping;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -47,17 +53,47 @@ public class AuthContoller {
             User user = userRepository.findByEmail(authentication.getName()).orElse(null);
 
             Tenant tenant = user.getTenant();
-            Jwt accessJwt = tokenService.generateAccessToken(user);
-            Jwt refreshJwt = tokenService.generateRefreshToken(user);
+            TokenData tokens = tokenService.generateTokenPairs(user);
 
             TenantContext.setCurrentTenantSchemaName(tenant.getSchemaName());
-            LoginUserResponse response = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
-                    "Login successful", accessJwt.getTokenValue(), refreshJwt.getTokenValue());
+            LoginUserResponse response = new LoginUserResponse(
+                    true,
+                    user.getId(),
+                    user.getTenant().getId(),
+                    "Login successful",
+                    tokens.accessToken(),
+                    tokens.refreshToken());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            log.error("Error occurred while logging in", e);
             LoginUserResponse response = new LoginUserResponse(false, null, null, e.getMessage(), null, null);
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginUserResponse> refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        try {
+            if (token == null || !token.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest()
+                        .body(new LoginUserResponse(false, null, null, "Invalid token", null, null));
+            }
+            String refreshToken = token.replace("Bearer ", "");
+            TokenData tokens = tokenService.refreshTokne(refreshToken);
+            return ResponseEntity.ok(new LoginUserResponse(
+                    true,
+                    null,
+                    null,
+                    "Token refreshed successfully",
+                    tokens.accessToken(),
+                    tokens.refreshToken()));
+
+        } catch (Exception e) {
+            log.error("Error occurred while logging in", e);
+            LoginUserResponse response = new LoginUserResponse(false, null, null, e.getMessage(), null, null);
+            return ResponseEntity.badRequest().body(response);
+        }
+
     }
 
     @PostMapping("/register/tenant")

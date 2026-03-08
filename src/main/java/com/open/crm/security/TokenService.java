@@ -1,7 +1,10 @@
 package com.open.crm.security;
 
+import java.time.Instant;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,13 +14,16 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.config.JwtProperties;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class TokenService {
+    private final JwtProperties jwtProperties;
 
     private final JwtDecoder jwtDecoder;
 
@@ -25,26 +31,67 @@ public class TokenService {
 
     private final JwsHeader jwtHeaders;
 
+    private final IUserRepository userRepository;
+
     private final Set<String> blockedToken = HashSet.newHashSet(0);
 
     public Jwt decodeToken(String token) throws TokenException {
-        if (blockedToken.contains(token)) {
+        Jwt jwt = jwtDecoder.decode(token);
+        if (Objects.isNull(jwt)
+                || !"access".equals(jwt.getClaimAsString("type")) && !"refresh".equals(jwt.getClaimAsString("type"))
+                || Objects.isNull(jwt.getId())) {
+            throw new TokenException("Invalid token");
+        }
+
+        if (blockedToken.contains(jwt.getId())) {
             throw new TokenException("Token is blocked");
         }
-        return jwtDecoder.decode(token);
+        return jwt;
     }
 
-    public Jwt generateRefreshToken(User user) {
-        JwtClaimsSet claims = JwtClaimsSet.builder().subject(user.getEmail()).claim("type", "refresh").build();
+    public TokenData generateTokenPairs(User user) {
+        Jwt refreshToken = generateRefreshToken(user);
+        Jwt accessToken = generateAccessToken(user, refreshToken);
+
+        return new TokenData(accessToken, refreshToken);
+    }
+
+    public TokenData refreshTokne(String refreshToken) throws TokenException {
+        Jwt decodedRefreshToken = decodeToken(refreshToken);
+
+        if (Objects.isNull(decodedRefreshToken) || !"refresh".equals(decodedRefreshToken.getClaimAsString("type"))) {
+            throw new TokenException("Invalid token type");
+        }
+
+        String email = decodedRefreshToken.getSubject();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new TokenException("User not found"));
+        blockedToken.add(decodedRefreshToken.getId());
+
+        return generateTokenPairs(user);
+    }
+
+    private Jwt generateRefreshToken(User user) {
+        UUID tokenId = UUID.randomUUID();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .id(tokenId.toString())
+                .subject(user.getEmail())
+                .claim("type", "refresh")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusMillis(jwtProperties.getRefreshExpires()))
+                .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
     }
 
-    public Jwt generateAccessToken(User user) {
+    private Jwt generateAccessToken(User user, Jwt refreshToken) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                .id(refreshToken.getId())
                 .subject(user.getEmail())
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusMillis(jwtProperties.getAccessExpires()))
                 .claim("type", "access")
-                .claim("tenant_id", user.getTenant().getId().toString())
+                .claim("authorities", user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
+                .claim("tenantCode", user.getTenant().getSchemaName())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));

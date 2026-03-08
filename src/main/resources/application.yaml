@@ -46,6 +46,6 @@ logging:
         console: '%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n'
 
 jwt:
-    secret: ${JWT_SECRET:mysecretkey}
-    access-token-expiration: 900000 # 15 minutes in milliseconds
-    refresh-token-expiration: 604800000 # 7 days in milliseconds
+    secret: ${JWT_SECRET:rZaL5vR7SaHsH0DryywXyoh44QJlX9PQEKTKK4nShQtfxbjGR5yIrIEJMAj2awCb}
+    access-expires: 900000 # 15 minutes in milliseconds
+    refresh-expires: 604800000 # 7 days in milliseconds

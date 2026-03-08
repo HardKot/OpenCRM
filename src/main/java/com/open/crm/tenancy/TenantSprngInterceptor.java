@@ -22,7 +22,7 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-            String tenantId = jwt.getClaimAsString("tenant_id");
+            String tenantId = jwt.getClaimAsString("tenantCode");
 
             if (tenantId != null && !tenantId.isBlank()) {
                 try {
@@ -36,13 +36,12 @@ public class TenantSprngInterceptor implements HandlerInterceptor {
                     return false;
                 }
             } else {
-                log.warn("Missing tenant_id claim in JWT token");
+                log.warn("Missing tenantCode claim in JWT token");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Missing tenant_id in token");
+                response.getWriter().write("Missing tenantCode in token");
                 return false;
             }
         } else {
-            log.info("No authentication or JWT token found, proceeding without tenant context");
             return true;
         }
     }
