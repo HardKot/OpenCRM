@@ -6,6 +6,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -28,6 +29,7 @@ public class Database implements IDatabase {
     private final DataSource dataSource;
 
     private final String templateTenantSchemaName = "tenant_template";
+    private final UUID templateTenantId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final CopyDatabaseSchema copyDatabaseSchema;
 
@@ -43,7 +45,7 @@ public class Database implements IDatabase {
 
     @Override
     public void setContextTenant(Tenant tenant) {
-        TenantContext.setCurrentTenantSchemaName(tenant.getSchemaName());
+        TenantContext.setCurrentTenant(tenant);
     }
 
     @Override
@@ -68,12 +70,11 @@ public class Database implements IDatabase {
 
             try (Statement updateStmt = conn.createStatement()) {
                 for (String tableName : tables) {
-                    updateStmt.execute(String.format("UPDATE %s.%s SET tenant_id = '%s' WHERE tenant_id = '%s'", schema,
-                            tableName, tenant.getSchemaName(), templateTenantSchemaName));
+                    updateStmt.execute(String.format("UPDATE %s.%s SET tenant_id = '%s'", schema,
+                            tableName, tenant.getId()));
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error during schema change for tenant {}: {}", tenant.getId(), e.getMessage());
             throw e;
         }
@@ -83,44 +84,44 @@ public class Database implements IDatabase {
     public void runMigration() {
         try {
             runMigrationAdmin();
-            runMigrationTenant(templateTenantSchemaName);
+            runMigrationTenant(templateTenantId, templateTenantSchemaName);
 
             Connection conn = dataSource.getConnection();
             Statement stmt = conn.createStatement();
 
-            ResultSet tenantSchemas = stmt.executeQuery("SELECT schema_name FROM public.tenants");
+            ResultSet tenantSchemas = stmt.executeQuery("SELECT id, schema_name FROM public.tenants");
             while (tenantSchemas.next()) {
                 String schemaName = tenantSchemas.getString("schema_name");
-                runMigrationTenant(schemaName);
+                UUID tenantId = UUID.fromString(tenantSchemas.getString("id"));
+                runMigrationTenant(tenantId, schemaName);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error during database migration: {}", e.getMessage());
         }
     }
 
     public void runMigrationAdmin() {
         Flyway.configure()
-            .dataSource(dataSource)
-            .schemas("public")
-            .locations("classpath:migrations/admin")
-            .placeholders(Map.of("template_schema_name", templateTenantSchemaName))
-            .baselineOnMigrate(true)
-            .validateOnMigrate(true)
-            .load()
-            .migrate();
+                .dataSource(dataSource)
+                .schemas("public")
+                .locations("classpath:migrations/admin")
+                .placeholders(Map.of("template_schema_name", templateTenantSchemaName))
+                .baselineOnMigrate(true)
+                .validateOnMigrate(true)
+                .load()
+                .migrate();
     }
 
-    public void runMigrationTenant(String schemaName) {
+    public void runMigrationTenant(UUID tenantId, String schemaName) {
         Flyway.configure()
-            .dataSource(dataSource)
-            .schemas(schemaName)
-            .locations("classpath:migrations/tenant")
-            .placeholders(Map.of("tenantId", schemaName))
-            .baselineOnMigrate(true)
-            .validateOnMigrate(true)
-            .load()
-            .migrate();
+                .dataSource(dataSource)
+                .schemas(schemaName)
+                .locations("classpath:migrations/tenant")
+                .placeholders(Map.of("tenantId", tenantId.toString()))
+                .baselineOnMigrate(true)
+                .validateOnMigrate(true)
+                .load()
+                .migrate();
     }
 
 }

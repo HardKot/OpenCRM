@@ -1,6 +1,7 @@
 package com.open.crm.core.entities.common;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.TenantId;
@@ -27,7 +28,7 @@ public class BaseEntity {
 
     @TenantId
     @Column(name = "tenant_id", nullable = false)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;

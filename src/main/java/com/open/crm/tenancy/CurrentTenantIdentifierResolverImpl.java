@@ -1,17 +1,27 @@
 package com.open.crm.tenancy;
 
+import java.util.Objects;
+import java.util.UUID;
+
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.springframework.stereotype.Component;
 
-@Component
-public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentifierResolver<String> {
+import com.open.crm.admin.entities.tenant.Tenant;
 
-    private static final String DEFAULT_TENANT = "default_tenant";
+@Component
+public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentifierResolver<UUID> {
+
+    private static final String DEFAULT_TENANT = "00000000-0000-0000-0000-000000000000";
 
     @Override
-    public String resolveCurrentTenantIdentifier() {
-        String t = TenantContext.getCurrentTenantSchemaName();
-        return (t != null) ? t : DEFAULT_TENANT;
+    public UUID resolveCurrentTenantIdentifier() {
+        Tenant tenant = TenantContext.getCurrentTenant();
+
+        if (Objects.isNull(tenant)) {
+            return UUID.fromString(DEFAULT_TENANT);
+        }
+
+        return tenant.getId();
     }
 
     @Override

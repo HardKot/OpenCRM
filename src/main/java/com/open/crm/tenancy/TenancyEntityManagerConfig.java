@@ -2,6 +2,7 @@ package com.open.crm.tenancy;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -24,8 +25,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.open.crm.core", entityManagerFactoryRef = "tenantEntityManagerFactory",
-        transactionManagerRef = "tenantTransactionManager")
+@EnableJpaRepositories(basePackages = "com.open.crm.core", entityManagerFactoryRef = "tenantEntityManagerFactory", transactionManagerRef = "tenantTransactionManager")
 @RequiredArgsConstructor
 public class TenancyEntityManagerConfig {
 
@@ -33,8 +33,8 @@ public class TenancyEntityManagerConfig {
 
     @Bean(name = "tenantEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean tenantEntityManagerFactory(
-            MultiTenantConnectionProvider<String> connectionProvider,
-            CurrentTenantIdentifierResolver<String> tenantResolver) {
+            MultiTenantConnectionProvider<UUID> connectionProvider,
+            CurrentTenantIdentifierResolver<UUID> tenantResolver) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
         emf.setPackagesToScan("com.open.crm.core.entities");

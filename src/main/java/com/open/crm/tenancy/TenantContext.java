@@ -1,14 +1,16 @@
 package com.open.crm.tenancy;
 
+import com.open.crm.admin.entities.tenant.Tenant;
+
 public class TenantContext {
 
-    private static final ThreadLocal<String> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<Tenant> CURRENT = new ThreadLocal<>();
 
-    public static void setCurrentTenantSchemaName(String tenant) {
+    public static void setCurrentTenant(Tenant tenant) {
         CURRENT.set(tenant);
     }
 
-    public static String getCurrentTenantSchemaName() {
+    public static Tenant getCurrentTenant() {
         return CURRENT.get();
     }
 

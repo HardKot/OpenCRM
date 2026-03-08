@@ -52,10 +52,8 @@ public class AuthContoller {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             User user = userRepository.findByEmail(authentication.getName()).orElse(null);
 
-            Tenant tenant = user.getTenant();
             TokenData tokens = tokenService.generateTokenPairs(user);
 
-            TenantContext.setCurrentTenantSchemaName(tenant.getSchemaName());
             LoginUserResponse response = new LoginUserResponse(
                     true,
                     user.getId(),
