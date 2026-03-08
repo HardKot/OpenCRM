@@ -2,6 +2,7 @@ package com.open.crm.core.entities.employee;
 
 import org.hibernate.annotations.SQLDelete;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.open.crm.core.entities.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -17,6 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE employees SET is_deleted = true WHERE id = ?")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Employee extends BaseEntity {
 
     private String firstname = "";

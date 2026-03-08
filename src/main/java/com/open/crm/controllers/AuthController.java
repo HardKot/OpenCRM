@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthContoller {
+public class AuthController {
 
     private final UseCreateTenant useCreateTenant;
 

@@ -52,7 +52,7 @@ public class User extends BaseAdminEntity implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_permissions", schema = "public", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "permission")
-    private Set<String> permissions = Set.of();
+    private Set<UserPermission> permissions = Set.of();
 
     @Override
     public String getUsername() {
@@ -61,9 +61,8 @@ public class User extends BaseAdminEntity implements UserDetails {
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = permissions.stream()
-            .filter(permission -> !permission.isBlank())
-            .map(it -> new SimpleGrantedAuthority(it))
-            .collect(Collectors.toSet());
+                .map(it -> new SimpleGrantedAuthority(it.name()))
+                .collect(Collectors.toSet());
         authorities.add(new SimpleGrantedAuthority(role.name()));
         return authorities;
     }

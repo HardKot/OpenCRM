@@ -23,6 +23,8 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.open.crm.admin.entities.user.UserPermission;
+import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.config.JwtProperties;
 
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -50,8 +52,6 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**")
                         .permitAll()
-                        .requestMatchers("/api/**")
-                        .authenticated()
                         .anyRequest()
                         .authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)

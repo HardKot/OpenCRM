@@ -7,8 +7,6 @@ import com.open.crm.admin.application.interfaces.IDatabase;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
-import com.open.crm.admin.entities.user.User;
-import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 
 import lombok.RequiredArgsConstructor;
