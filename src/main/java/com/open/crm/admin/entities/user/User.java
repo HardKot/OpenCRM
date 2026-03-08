@@ -32,6 +32,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User extends BaseAdminEntity implements UserDetails {
+
     @Column(nullable = false, unique = true)
     private String email = "";
 
@@ -60,10 +61,11 @@ public class User extends BaseAdminEntity implements UserDetails {
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = permissions.stream()
-                .filter(permission -> !permission.isBlank())
-                .map(it -> new SimpleGrantedAuthority(it))
-                .collect(Collectors.toSet());
+            .filter(permission -> !permission.isBlank())
+            .map(it -> new SimpleGrantedAuthority(it))
+            .collect(Collectors.toSet());
         authorities.add(new SimpleGrantedAuthority(role.name()));
         return authorities;
     }
+
 }

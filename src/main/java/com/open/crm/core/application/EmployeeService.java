@@ -27,7 +27,7 @@ public class EmployeeService {
         }
 
         Employee existingEmployee = employeeRepository.findById(employee.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employee.getId()));
+            .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employee.getId()));
 
         existingEmployee.setFirstname(employee.getFirstname());
         existingEmployee.setLastname(employee.getLastname());
@@ -38,4 +38,5 @@ public class EmployeeService {
 
         return employeeRepository.save(employee);
     }
+
 }

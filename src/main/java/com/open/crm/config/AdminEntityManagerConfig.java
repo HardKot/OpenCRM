@@ -21,8 +21,8 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = {
-        "com.open.crm.admin" }, entityManagerFactoryRef = "adminEntityManagerFactory", transactionManagerRef = "adminTransactionManager")
+@EnableJpaRepositories(basePackages = { "com.open.crm.admin" }, entityManagerFactoryRef = "adminEntityManagerFactory",
+        transactionManagerRef = "adminTransactionManager")
 @RequiredArgsConstructor
 public class AdminEntityManagerConfig {
 
@@ -53,4 +53,5 @@ public class AdminEntityManagerConfig {
             @Qualifier("adminEntityManagerFactory") EntityManagerFactory adminEntityManagerFactory) {
         return new JpaTransactionManager(adminEntityManagerFactory);
     }
+
 }

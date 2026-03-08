@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.jwt.JwtEncodingException;
 import org.springframework.stereotype.Service;
 
 import com.open.crm.admin.entities.user.User;
@@ -43,10 +42,10 @@ public class TokenService {
 
     public Jwt generateAccessToken(User user) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
-            .subject(user.getEmail())
-            .claim("type", "access")
-            .claim("tenant_id", user.getTenant().getId().toString())
-            .build();
+                .subject(user.getEmail())
+                .claim("type", "access")
+                .claim("tenant_id", user.getTenant().getId().toString())
+                .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
     }

@@ -1,7 +1,6 @@
 package com.open.crm.core.entities.common;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.TenantId;
@@ -21,6 +20,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

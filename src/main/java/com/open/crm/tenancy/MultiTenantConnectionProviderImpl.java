@@ -36,7 +36,8 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
         try (Statement stmt = connection.createStatement()) {
 
             stmt.execute("SET search_path TO \"" + schemaName + "\", public");
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             log.error("Failed to set search_path for tenant {}: {}", schemaName, e.getMessage(), e);
             connection.close();
             throw e;
@@ -48,7 +49,8 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     public void releaseConnection(String schemaName, Connection connection) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("SET search_path TO public");
-        } finally {
+        }
+        finally {
             connection.close();
         }
     }

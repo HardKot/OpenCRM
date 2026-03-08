@@ -23,18 +23,22 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
+
     private final IUserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+
     private final ApplicationEventPublisher eventPublisher;
 
     private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     private Pattern EMAIL_REGEX = Pattern
-            .compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
+        .compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
     public User createUser(User data, String email) {
@@ -56,12 +60,8 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
 
-        eventPublisher.publishEvent(
-                new ApplicationEmailEvent(this,
-                        user.getEmail(),
-                        "Welcome!",
-                        "email/welcome-email",
-                        Map.of("username", user.getUsername(), "password", password)));
+        eventPublisher.publishEvent(new ApplicationEmailEvent(this, user.getEmail(), "Welcome!", "email/welcome-email",
+                Map.of("username", user.getUsername(), "password", password)));
 
         return user;
     }
@@ -102,11 +102,14 @@ public class UserService implements UserDetailsService {
 
         if (score >= 5) {
             return PasswordType.HARD;
-        } else if (score >= 3) {
+        }
+        else if (score >= 3) {
             return PasswordType.MEDIUM;
-        } else if (score >= 1) {
+        }
+        else if (score >= 1) {
             return PasswordType.SIMPLE;
-        } else {
+        }
+        else {
             return PasswordType.WEAK;
         }
     }
@@ -114,4 +117,5 @@ public class UserService implements UserDetailsService {
     public boolean matchPassword(String password, String hash) {
         return passwordEncoder.matches(password, hash);
     }
+
 }

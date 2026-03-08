@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class TenantService {
+
     private final ITenantRepository tenantRepository;
 
     public Tenant generateTenant() throws TenantException {
@@ -25,7 +26,8 @@ public class TenantService {
             tenantRepository.save(tenant);
             return tenant;
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new TenantException("Error creating tenant: " + e.getMessage());
         }
     }
@@ -37,4 +39,5 @@ public class TenantService {
 
         return schemaName;
     }
+
 }

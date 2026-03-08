@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Client entity - stored in tenant-specific schema Schema is determined by
- * TenantContext
+ * Client entity - stored in tenant-specific schema Schema is determined by TenantContext
  * at runtime
  */
 @Entity
@@ -19,6 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Client extends BaseEntity {
+
     private String firstname;
 
     private String lastname;

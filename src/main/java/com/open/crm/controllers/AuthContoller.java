@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.open.crm.admin.application.TenantService;
 import com.open.crm.admin.application.UseCreateTenant;
-import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.User;
@@ -30,9 +28,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthContoller {
+
     private final UseCreateTenant useCreateTenant;
+
     private final AuthenticationManager authenticationManager;
+
     private final TokenService tokenService;
+
     private final IUserRepository userRepository;
 
     @PostMapping("/login")

@@ -18,14 +18,18 @@ import lombok.Setter;
 @Setter
 @SQLDelete(sql = "UPDATE employees SET is_deleted = true WHERE id = ?")
 public class Employee extends BaseEntity {
+
     private String firstname = "";
+
     private String lastname = "";
+
     private String patronymic = "";
 
     private String position = "";
 
     @Column(name = "phone_number")
     private String phoneNumber = "";
+
     private String email = "";
 
     @Column(name = "is_deleted", nullable = false)

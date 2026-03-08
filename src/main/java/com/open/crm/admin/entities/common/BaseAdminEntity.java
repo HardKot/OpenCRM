@@ -20,6 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BaseAdminEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -35,4 +36,5 @@ public class BaseAdminEntity {
     public int hashCode() {
         return 25;
     }
+
 }

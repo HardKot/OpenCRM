@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class CopyDatabaseSchema {
+
     private final DataSource dataSource;
 
     public void execute(String sourceSchema, String targetSchema) throws Exception {
@@ -39,7 +40,8 @@ public class CopyDatabaseSchema {
                 copyData(conn, sourceSchema, targetSchema);
                 conn.commit();
                 log.info("Schema copy '{}' → '{}' completed successfully", sourceSchema, targetSchema);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 conn.rollback();
                 log.error("Schema copy '{}' → '{}' failed, rolling back: {}", sourceSchema, targetSchema,
                         e.getMessage());
@@ -79,10 +81,9 @@ public class CopyDatabaseSchema {
                     boolean cycle = "YES".equalsIgnoreCase(rs.getString("cycle_option"));
 
                     String ddl = String.format(
-                            "CREATE SEQUENCE IF NOT EXISTS \"%s\".\"%s\" AS %s " +
-                                    "START %s MINVALUE %s MAXVALUE %s INCREMENT %s %s",
-                            to, seqName, dataType, start, min, max, incr,
-                            cycle ? "CYCLE" : "NO CYCLE");
+                            "CREATE SEQUENCE IF NOT EXISTS \"%s\".\"%s\" AS %s "
+                                    + "START %s MINVALUE %s MAXVALUE %s INCREMENT %s %s",
+                            to, seqName, dataType, start, min, max, incr, cycle ? "CYCLE" : "NO CYCLE");
 
                     execute(conn, ddl);
                     log.debug("Created sequence '{}'", seqName);
@@ -105,9 +106,8 @@ public class CopyDatabaseSchema {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String table = rs.getString("table_name");
-                    String ddl = String.format(
-                            "CREATE TABLE \"%s\".\"%s\" (LIKE \"%s\".\"%s\" INCLUDING ALL)",
-                            to, table, from, table);
+                    String ddl = String.format("CREATE TABLE \"%s\".\"%s\" (LIKE \"%s\".\"%s\" INCLUDING ALL)", to,
+                            table, from, table);
                     execute(conn, ddl);
                     log.debug("Created table '{}'", table);
                 }
@@ -130,14 +130,12 @@ public class CopyDatabaseSchema {
                     String table = rs.getString("table_name");
                     String column = rs.getString("column_name");
                     String oldDef = rs.getString("column_default");
-                    String newDef = oldDef
-                            .replace("\"" + from + "\".", "\"" + to + "\".")
-                            .replace("'" + from + ".", "'" + to + ".");
+                    String newDef = oldDef.replace("\"" + from + "\".", "\"" + to + "\".")
+                        .replace("'" + from + ".", "'" + to + ".");
 
                     if (!newDef.equals(oldDef)) {
-                        String ddl = String.format(
-                                "ALTER TABLE \"%s\".\"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s",
-                                to, table, column, newDef);
+                        String ddl = String.format("ALTER TABLE \"%s\".\"%s\" ALTER COLUMN \"%s\" SET DEFAULT %s", to,
+                                table, column, newDef);
                         execute(conn, ddl);
                         log.debug("Fixed sequence default for '{}.{}'", table, column);
                     }
@@ -171,9 +169,8 @@ public class CopyDatabaseSchema {
                     String table = rs.getString("table_name");
                     String column = rs.getString("column_name");
 
-                    String ddl = String.format(
-                            "ALTER SEQUENCE \"%s\".\"%s\" OWNED BY \"%s\".\"%s\".\"%s\"",
-                            to, seq, to, table, column);
+                    String ddl = String.format("ALTER SEQUENCE \"%s\".\"%s\" OWNED BY \"%s\".\"%s\".\"%s\"", to, seq,
+                            to, table, column);
                     execute(conn, ddl);
                     log.debug("Set ownership of sequence '{}' → '{}.{}'", seq, table, column);
                 }
@@ -220,7 +217,7 @@ public class CopyDatabaseSchema {
                     String onUpdate = rs.getString("update_rule");
 
                     fks.computeIfAbsent(name, k -> new FkInfo(srcTable, refSchema, refTable, onDelete, onUpdate))
-                            .addColumn(srcCol, refCol);
+                        .addColumn(srcCol, refCol);
                 }
             }
         }
@@ -230,25 +227,14 @@ public class CopyDatabaseSchema {
 
             String targetRefSchema = from.equals(fk.refSchema) ? to : fk.refSchema;
 
-            String srcCols = fk.srcColumns.stream()
-                    .map(c -> "\"" + c + "\"")
-                    .reduce((a, b) -> a + ", " + b).orElse("");
-            String refCols = fk.refColumns.stream()
-                    .map(c -> "\"" + c + "\"")
-                    .reduce((a, b) -> a + ", " + b).orElse("");
+            String srcCols = fk.srcColumns.stream().map(c -> "\"" + c + "\"").reduce((a, b) -> a + ", " + b).orElse("");
+            String refCols = fk.refColumns.stream().map(c -> "\"" + c + "\"").reduce((a, b) -> a + ", " + b).orElse("");
 
             String ddl = String.format(
-                    "ALTER TABLE \"%s\".\"%s\" " +
-                            "ADD CONSTRAINT \"%s\" " +
-                            "FOREIGN KEY (%s) " +
-                            "REFERENCES \"%s\".\"%s\" (%s) " +
-                            "ON DELETE %s ON UPDATE %s",
-                    to, fk.srcTable,
-                    entry.getKey(),
-                    srcCols,
-                    targetRefSchema, fk.refTable,
-                    refCols,
-                    fk.onDelete, fk.onUpdate);
+                    "ALTER TABLE \"%s\".\"%s\" " + "ADD CONSTRAINT \"%s\" " + "FOREIGN KEY (%s) "
+                            + "REFERENCES \"%s\".\"%s\" (%s) " + "ON DELETE %s ON UPDATE %s",
+                    to, fk.srcTable, entry.getKey(), srcCols, targetRefSchema, fk.refTable, refCols, fk.onDelete,
+                    fk.onUpdate);
 
             execute(conn, ddl);
             log.debug("Created FK '{}' on table '{}'", entry.getKey(), fk.srcTable);
@@ -269,8 +255,8 @@ public class CopyDatabaseSchema {
                 while (rs.next()) {
                     String viewName = rs.getString("table_name");
                     String def = rs.getString("view_definition")
-                            .replace("\"" + from + "\".", "\"" + to + "\".")
-                            .replace(from + ".", to + ".");
+                        .replace("\"" + from + "\".", "\"" + to + "\".")
+                        .replace(from + ".", to + ".");
 
                     String ddl = String.format("CREATE OR REPLACE VIEW \"%s\".\"%s\" AS %s", to, viewName, def);
                     execute(conn, ddl);
@@ -294,9 +280,8 @@ public class CopyDatabaseSchema {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String table = rs.getString("table_name");
-                    String ddl = String.format(
-                            "INSERT INTO \"%s\".\"%s\" SELECT * FROM \"%s\".\"%s\"",
-                            to, table, from, table);
+                    String ddl = String.format("INSERT INTO \"%s\".\"%s\" SELECT * FROM \"%s\".\"%s\"", to, table, from,
+                            table);
                     execute(conn, ddl);
                     log.debug("Copied data for table '{}'", table);
                 }
@@ -312,16 +297,22 @@ public class CopyDatabaseSchema {
     }
 
     private static class FkInfo {
+
         final String srcTable;
+
         final String refSchema;
+
         final String refTable;
+
         final String onDelete;
+
         final String onUpdate;
+
         final List<String> srcColumns = new ArrayList<>();
+
         final List<String> refColumns = new ArrayList<>();
 
-        FkInfo(String srcTable, String refSchema, String refTable,
-                String onDelete, String onUpdate) {
+        FkInfo(String srcTable, String refSchema, String refTable, String onDelete, String onUpdate) {
             this.srcTable = srcTable;
             this.refSchema = refSchema;
             this.refTable = refTable;
@@ -333,6 +324,7 @@ public class CopyDatabaseSchema {
             srcColumns.add(src);
             refColumns.add(ref);
         }
+
     }
 
 }

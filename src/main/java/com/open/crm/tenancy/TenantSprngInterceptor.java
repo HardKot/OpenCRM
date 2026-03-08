@@ -1,7 +1,6 @@
 package com.open.crm.tenancy;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
