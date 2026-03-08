@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.open.crm.admin.application.events.ApplicationEmailEvent;
-import com.open.crm.admin.application.events.SendUserEmail;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.user.PasswordType;
