@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 import com.open.crm.admin.application.events.ApplicationEmailEvent;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.admin.entities.user.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,15 +35,24 @@ public class UserService implements UserDetailsService {
     private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     private Pattern EMAIL_REGEX = Pattern
-        .compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
+            .compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
-    public User createUser(User data, String email) {
+    public User createOwnerUser(Tenant tenant, String email, long entityId) {
+        User data = new User();
+        data.setEmail(email);
+        data.setRole(UserRole.ROLE_OWNER);
+        data.setTenant(tenant);
+        data.setEntityId(entityId);
+        return createUser(data);
+    }
+
+    private User createUser(User data) {
         if (Objects.isNull(data.getEmail()) || data.getEmail().isBlank())
             throw new UserException("Email cannot be empty");
         if (data.getEmail().length() > 255)
@@ -102,14 +113,11 @@ public class UserService implements UserDetailsService {
 
         if (score >= 5) {
             return PasswordType.HARD;
-        }
-        else if (score >= 3) {
+        } else if (score >= 3) {
             return PasswordType.MEDIUM;
-        }
-        else if (score >= 1) {
+        } else if (score >= 1) {
             return PasswordType.SIMPLE;
-        }
-        else {
+        } else {
             return PasswordType.WEAK;
         }
     }

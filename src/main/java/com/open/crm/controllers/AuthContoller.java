@@ -1,5 +1,7 @@
 package com.open.crm.controllers;
 
+import java.util.Objects;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.open.crm.admin.application.UseCreateTenant;
 import com.open.crm.admin.application.interfaces.IUserRepository;
-import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
@@ -22,7 +23,6 @@ import com.open.crm.controllers.dto.RegisterTenantRequest;
 import com.open.crm.controllers.dto.RegisterTenantResponse;
 import com.open.crm.security.TokenData;
 import com.open.crm.security.TokenService;
-import com.open.crm.tenancy.TenantContext;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,12 +72,9 @@ public class AuthContoller {
     @PostMapping("/refresh")
     public ResponseEntity<LoginUserResponse> refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         try {
-            if (token == null || !token.startsWith("Bearer ")) {
-                return ResponseEntity.badRequest()
-                        .body(new LoginUserResponse(false, null, null, "Invalid token", null, null));
-            }
-            String refreshToken = token.replace("Bearer ", "");
-            TokenData tokens = tokenService.refreshTokne(refreshToken);
+            String tokenValue = extractTokenValue(token);
+
+            TokenData tokens = tokenService.refreshTokne(tokenValue);
             return ResponseEntity.ok(new LoginUserResponse(
                     true,
                     null,
@@ -94,6 +91,24 @@ public class AuthContoller {
 
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        try {
+            String tokenValue = extractTokenValue(token);
+            if (Objects.isNull(tokenValue)) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            Jwt jwt = tokenService.decodeToken(tokenValue);
+            tokenService.blockToken(jwt);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error occurred while logging out", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/register/tenant")
     public ResponseEntity<RegisterTenantResponse> registerTenant(@RequestBody RegisterTenantRequest request) {
         try {
@@ -104,4 +119,11 @@ public class AuthContoller {
         }
     }
 
+    private String extractTokenValue(String header) {
+        if (header == null || !header.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = header.replace("Bearer ", "");
+        return token;
+    }
 }

@@ -103,6 +103,10 @@ public class TokenService {
         return generateTokenPairs(user);
     }
 
+    public void blockToken(Jwt jwt) {
+        blockedToken.add(jwt.getId());
+    }
+
     private Jwt generateRefreshToken(User user) {
         UUID tokenId = UUID.randomUUID();
         JwtClaimsSet claims = JwtClaimsSet.builder()

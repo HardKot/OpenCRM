@@ -41,8 +41,7 @@ public class UseCreateTenant {
         try {
 
             Tenant tenant = tenantService.generateTenant();
-            User user = createUserForTenant(tenant, params.email());
-            user = userService.createUser(user, params.email());
+            userService.createOwnerUser(tenant, params.email(), 1L);
 
             database.copySchema(database.getTemplateTenantSchemaName(), tenant.getSchemaName());
             database.schemaChangeTenant(tenant.getSchemaName(), tenant);
@@ -57,20 +56,9 @@ public class UseCreateTenant {
             tenantRepository.save(tenant);
 
             return tenant;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error creating tenant", e);
             throw new TenantException("Error creating tenant: " + e.getMessage());
         }
     }
-
-    private User createUserForTenant(Tenant tenant, String email) {
-        User user = new User();
-        user.setEmail(email);
-        user.setTenant(tenant);
-        user.setEntityId(1);
-        user.setRole(UserRole.ROLE_OWNER);
-        return user;
-    }
-
 }
