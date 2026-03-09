@@ -17,7 +17,6 @@ public class EmployeeService {
 
     public Employee createEmployee(Employee employee) {
         employee.setId(null);
-
         return employeeRepository.save(employee);
     }
 
@@ -25,18 +24,28 @@ public class EmployeeService {
         if (Objects.isNull(employee.getId())) {
             throw new IllegalArgumentException("Employee ID cannot be null for update");
         }
-
         Employee existingEmployee = employeeRepository.findById(employee.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employee.getId()));
-
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employee.getId()));
         existingEmployee.setFirstname(employee.getFirstname());
         existingEmployee.setLastname(employee.getLastname());
+        existingEmployee.setPatronymic(employee.getPatronymic());
+        existingEmployee.setPosition(employee.getPosition());
         existingEmployee.setEmail(employee.getEmail());
         existingEmployee.setPhoneNumber(employee.getPhoneNumber());
+        return employeeRepository.save(existingEmployee);
+    }
 
-        existingEmployee.setPosition(null);
+    public void deleteEmployee(Long id) {
+        employeeRepository.deleteById(id);
+    }
 
-        return employeeRepository.save(employee);
+    public Employee getEmployee(Long id) {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + id));
+    }
+
+    public java.util.List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
     }
 
 }
