@@ -22,14 +22,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "investigation_log")
+@Table(name = "investigation_logs")
 @Getter
 @Setter
 @NoArgsConstructor
 public class InvestigationLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;
 
     @ManyToOne
