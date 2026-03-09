@@ -62,19 +62,14 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByEmail(data.getEmail()))
             throw new UserException("Email is already taken");
 
-        User user = new User();
-        user.setEmail(data.getEmail());
-        user.setTenant(data.getTenant());
-        user.setEntityId(data.getEntityId());
-
         String password = generatePassword();
-        user.setPassword(passwordEncoder.encode(password));
-        userRepository.save(user);
+        data.setPassword(passwordEncoder.encode(password));
+        userRepository.save(data);
 
-        eventPublisher.publishEvent(new ApplicationEmailEvent(this, user.getEmail(), "Welcome!", "email/welcome-email",
-                Map.of("username", user.getUsername(), "password", password)));
+        eventPublisher.publishEvent(new ApplicationEmailEvent(this, data.getEmail(), "Welcome!", "email/welcome-email",
+                Map.of("username", data.getUsername(), "password", password)));
 
-        return user;
+        return data;
     }
 
     public User updatePassword(User user, String password) {
