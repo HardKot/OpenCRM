@@ -14,19 +14,24 @@ import org.springframework.stereotype.Service;
 
 import com.open.crm.admin.application.events.ApplicationEmailEvent;
 import com.open.crm.admin.application.exceptions.UserException;
+import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.admin.entities.user.UserEntity;
 import com.open.crm.admin.entities.user.UserRole;
+import com.open.crm.core.application.IUserService;
+import com.open.crm.core.entities.employee.Employee;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService implements UserDetailsService, IUserService {
 
     private final IUserRepository userRepository;
+    private final ITenantRepository tenantRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -43,9 +48,32 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
+    @Override
+    public void updateUserEmail(Employee employee, String email) {
+        userRepository.findByEmployeeId(employee.getId(), employee.getTenantId())
+                .ifPresent(user -> {
+                    user.setEmail(email);
+                    userRepository.save(user);
+                });
+    }
+
+    @Override
+    public void createUserFromEmployee(Employee employee) {
+        Tenant tenant = tenantRepository.findById(employee.getTenantId())
+                .orElseThrow(() -> new UserException("Tenant not found"));
+        User data = new User();
+        data.setEmail(employee.getEmail());
+        data.setEntityName(UserEntity.EMPLOYEE);
+        data.setRole(UserRole.ROLE_EMPLOYEE);
+        data.setTenant(tenant);
+        data.setEntityId(employee.getId());
+        createUser(data);
+    }
+
     public User createOwnerUser(Tenant tenant, String email, long entityId) {
         User data = new User();
         data.setEmail(email);
+        data.setEntityName(UserEntity.EMPLOYEE);
         data.setRole(UserRole.ROLE_OWNER);
         data.setTenant(tenant);
         data.setEntityId(entityId);
@@ -120,5 +148,4 @@ public class UserService implements UserDetailsService {
     public boolean matchPassword(String password, String hash) {
         return passwordEncoder.matches(password, hash);
     }
-
 }

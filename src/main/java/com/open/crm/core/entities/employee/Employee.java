@@ -17,7 +17,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLDelete(sql = "UPDATE employees SET is_deleted = true WHERE id = ?")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Employee extends BaseEntity {
 
@@ -33,8 +32,5 @@ public class Employee extends BaseEntity {
     private String phoneNumber = "";
 
     private String email = "";
-
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted = false;
 
 }

@@ -24,19 +24,14 @@ CREATE TABLE employees (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO
-    clients (
-        firstname,
-        lastname,
-        patronymic,
-        tenant_id
-    )
-VALUES (
-        'Иван',
-        'Иванов',
-        'Иванович',
-        '${tenantId}'
-    );
+CREATE TABLE investigation_logs (
+    id SERIAL PRIMARY KEY,
+    employee_id INTEGER NOT NULL,
+    tenant_id UUID NOT NULL,
+    details JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees (id)
+);
 
 INSERT INTO
     employees (
@@ -54,4 +49,21 @@ VALUES (
         'Петрович',
         '${tenantId}',
         'Владелец'
+    );
+
+INSERT INTO
+    investigation_logs (
+        employee_id,
+        tenant_id,
+        details
+    )
+VALUES (
+        1,
+        '${tenantId}',
+        '{"description": "Создание организации" }'
+    ),
+    (
+        1,
+        '${tenantId}',
+        '{"description": "Создание владельца организации", "action": "CREATE", "entity": "EMPLOYEE", "entityId": 1 }'
     );

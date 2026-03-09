@@ -3,6 +3,7 @@ package com.open.crm.core.application;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.entities.employee.Employee;
@@ -20,6 +21,7 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
+    @Transactional
     public Employee updateEmployeeData(Employee employee) {
         if (Objects.isNull(employee.getId())) {
             throw new IllegalArgumentException("Employee ID cannot be null for update");
@@ -32,9 +34,12 @@ public class EmployeeService {
         existingEmployee.setPosition(employee.getPosition());
         existingEmployee.setEmail(employee.getEmail());
         existingEmployee.setPhoneNumber(employee.getPhoneNumber());
+        existingEmployee.restore();
+
         return employeeRepository.save(existingEmployee);
     }
 
+    @Transactional
     public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
     }

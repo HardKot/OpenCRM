@@ -42,6 +42,10 @@ public class User extends BaseAdminEntity implements UserDetails {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Tenant tenant;
 
+    @Column(nullable = true, name = "entity_name")
+    @Enumerated(EnumType.STRING)
+    private UserEntity entityName;
+
     @Column(nullable = true, name = "entity_id")
     private long entityId;
 

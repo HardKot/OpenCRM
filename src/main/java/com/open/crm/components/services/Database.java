@@ -1,8 +1,10 @@
 package com.open.crm.components.services;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,39 @@ public class Database implements IDatabase {
     private final UUID templateTenantId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final CopyDatabaseSchema copyDatabaseSchema;
+
+    @Override
+    public void dropTimestamp(String schema) throws Exception {
+        try (Connection conn = dataSource.getConnection()) {
+            Map<String, List<String>> tableColumns = new java.util.LinkedHashMap<>();
+
+            try (Statement selectStmt = conn.createStatement()) {
+                ResultSet rs = selectStmt.executeQuery(String.format(
+                        "SELECT table_name, column_name FROM information_schema.columns " +
+                                "WHERE table_schema = '%s' AND column_name IN ('created_at', 'updated_at')",
+                        schema));
+
+                while (rs.next()) {
+                    String tableName = rs.getString(1);
+                    String columnName = rs.getString(2);
+                    tableColumns.computeIfAbsent(tableName, k -> new ArrayList<>()).add(columnName);
+                }
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            try (Statement updateStmt = conn.createStatement()) {
+                for (Map.Entry<String, List<String>> entry : tableColumns.entrySet()) {
+                    String tableName = entry.getKey();
+                    String setClauses = entry.getValue().stream()
+                            .map(col -> col + " = '" + now + "'")
+                            .collect(java.util.stream.Collectors.joining(", "));
+                    updateStmt.execute(String.format("UPDATE %s.%s SET %s", schema, tableName, setClauses));
+                }
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 
     @Override
     public String getTemplateTenantSchemaName() {

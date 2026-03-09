@@ -43,6 +43,7 @@ public class UseCreateTenant {
 
             database.copySchema(database.getTemplateTenantSchemaName(), tenant.getSchemaName());
             database.schemaChangeTenant(tenant.getSchemaName(), tenant);
+            database.dropTimestamp(tenant.getSchemaName());
             database.setContextTenant(tenant);
 
             employeeRepository.findById(1L).ifPresent(employee -> {
