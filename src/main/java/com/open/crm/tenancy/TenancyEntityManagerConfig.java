@@ -31,6 +31,7 @@ public class TenancyEntityManagerConfig {
 
     private final DataSource dataSource;
 
+    @Primary
     @Bean(name = "tenantEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean tenantEntityManagerFactory(
             MultiTenantConnectionProvider<UUID> connectionProvider,
@@ -53,6 +54,7 @@ public class TenancyEntityManagerConfig {
         return emf;
     }
 
+    @Primary
     @Bean(name = "tenantTransactionManager")
     public PlatformTransactionManager tenantTransactionManager(
             @Qualifier("tenantEntityManagerFactory") EntityManagerFactory tenantEntityManagerFactory) {

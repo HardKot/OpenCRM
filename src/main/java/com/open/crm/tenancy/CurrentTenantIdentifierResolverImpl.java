@@ -26,7 +26,7 @@ public class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentif
 
     @Override
     public boolean validateExistingCurrentSessions() {
-        return true;
+        return false;
     }
 
 }

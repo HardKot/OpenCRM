@@ -36,6 +36,16 @@ public class Database implements IDatabase {
     private final CopyDatabaseSchema copyDatabaseSchema;
 
     @Override
+    public void setValue(String table, String query, Tenant tenant) throws Exception {
+        try (Connection conn = dataSource.getConnection()) {
+            Statement stmt = conn.createStatement();
+            stmt.execute(String.format("UPDATE %s.%s SET %s", tenant.getSchemaName(), table, query));
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
     public void dropTimestamp(String schema) throws Exception {
         try (Connection conn = dataSource.getConnection()) {
             Map<String, List<String>> tableColumns = new java.util.LinkedHashMap<>();

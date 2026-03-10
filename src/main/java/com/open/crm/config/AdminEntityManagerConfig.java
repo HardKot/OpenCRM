@@ -21,14 +21,13 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = { "com.open.crm.admin" }, entityManagerFactoryRef = "adminEntityManagerFactory",
-        transactionManagerRef = "adminTransactionManager")
+@EnableJpaRepositories(basePackages = {
+        "com.open.crm.admin" }, entityManagerFactoryRef = "adminEntityManagerFactory", transactionManagerRef = "adminTransactionManager")
 @RequiredArgsConstructor
 public class AdminEntityManagerConfig {
 
     private final DataSource dataSource;
 
-    @Primary
     @Bean(name = "adminEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean adminEntityManagerFactory() {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
@@ -47,7 +46,6 @@ public class AdminEntityManagerConfig {
         return emf;
     }
 
-    @Primary
     @Bean(name = "adminTransactionManager")
     public PlatformTransactionManager adminTransactionManager(
             @Qualifier("adminEntityManagerFactory") EntityManagerFactory adminEntityManagerFactory) {

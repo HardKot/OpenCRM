@@ -39,7 +39,7 @@ public class User extends BaseAdminEntity implements UserDetails {
     @Column(nullable = false)
     private String password = "";
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     private Tenant tenant;
 
     @Column(nullable = true, name = "entity_name")

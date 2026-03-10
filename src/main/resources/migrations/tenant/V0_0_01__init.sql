@@ -5,7 +5,8 @@ CREATE TABLE clients (
     patronymic VARCHAR(255) NOT NULL,
     tenant_id UUID NOT NULL,
     email VARCHAR(255) DEFAULT '',
-    phoneNumber VARCHAR(255) DEFAULT '',
+    phone_number VARCHAR(255) DEFAULT '',
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -35,7 +36,6 @@ CREATE TABLE investigation_logs (
 
 INSERT INTO
     employees (
-        id,
         firstname,
         lastname,
         patronymic,
@@ -43,7 +43,6 @@ INSERT INTO
         position
     )
 VALUES (
-        1,
         'Петр',
         'Петров',
         'Петрович',

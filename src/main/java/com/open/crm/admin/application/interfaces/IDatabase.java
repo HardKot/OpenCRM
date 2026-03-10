@@ -8,6 +8,8 @@ public interface IDatabase {
 
     void schemaChangeTenant(String schema, Tenant tenant) throws Exception;
 
+    void setValue(String table, String query, Tenant tenant) throws Exception;
+
     void dropTimestamp(String schema) throws Exception;
 
     String getTemplateTenantSchemaName();
