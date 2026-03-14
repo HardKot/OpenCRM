@@ -63,6 +63,18 @@ public class User extends BaseAdminEntity implements UserDetails {
         return email;
     }
 
+    public UserPermission[] getPermissions() {
+        if (role.equals(UserRole.ROLE_OWNER)) {
+            return UserPermission.values();
+        }
+
+        if (role.equals(UserRole.ROLE_ADMIN)) {
+            return UserPermission.values();
+        }
+
+        return permissions.toArray(new UserPermission[0]);
+    }
+
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = permissions.stream()
                 .map(it -> new SimpleGrantedAuthority(it.name()))

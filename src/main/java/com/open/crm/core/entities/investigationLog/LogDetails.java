@@ -22,4 +22,5 @@ public class LogDetails implements Serializable {
     private String entityName;
 
     private Long entityId;
+
 }

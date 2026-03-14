@@ -51,9 +51,11 @@ public class UseCreateTenant {
             tenantRepository.save(tenant);
 
             return tenant;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Error creating tenant", e);
             throw new TenantException("Error creating tenant: " + e.getMessage());
         }
     }
+
 }

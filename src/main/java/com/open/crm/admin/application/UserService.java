@@ -3,8 +3,11 @@ package com.open.crm.admin.application;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
+import org.aspectj.weaver.ast.Not;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,14 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.open.crm.admin.application.events.ApplicationEmailEvent;
 import com.open.crm.admin.application.exceptions.UserException;
+import com.open.crm.admin.application.interfaces.ISecurityGateway;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.admin.entities.user.UserEntity;
+import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.core.application.IUserService;
+import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.entities.employee.Employee;
 
 import lombok.RequiredArgsConstructor;
@@ -33,11 +39,14 @@ import lombok.RequiredArgsConstructor;
 public class UserService implements UserDetailsService, IUserService {
 
     private final IUserRepository userRepository;
+
     private final ITenantRepository tenantRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    private final ISecurityGateway securityGateway;
 
     private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -52,17 +61,28 @@ public class UserService implements UserDetailsService, IUserService {
 
     @Override
     public void updateUserEmail(Employee employee, String email) {
-        userRepository.findByEmployeeId(employee.getId(), employee.getTenantId())
-                .ifPresent(user -> {
-                    user.setEmail(email);
-                    userRepository.save(user);
-                });
+        userRepository.findByEmployeeId(employee.getId(), employee.getTenantId()).ifPresent(user -> {
+            updateUserEmail(user, email);
+        });
+    }
+
+    public User updateUserEmail(User user, String email) throws UserException {
+        if (userRepository.existsByEmail(email))
+            throw new UserException("Email is already taken");
+        user.setEmail(email);
+        User updatedUser = userRepository.save(user);
+        securityGateway.refreshAccessUser(updatedUser);
+        return updatedUser;
     }
 
     @Override
-    public void createUserFromEmployee(Employee employee) {
+    public void createUserFromEmployee(Employee employee) throws UserException, NotFoundException {
+        if (userRepository.existsEmployeeByEmail(employee.getEmail(), employee.getTenantId())) {
+            throw new UserException("User already exists for employee with id: " + employee.getId());
+        }
+
         Tenant tenant = tenantRepository.findById(employee.getTenantId())
-                .orElseThrow(() -> new UserException("Tenant not found"));
+                .orElseThrow(() -> new NotFoundException("Tenant not found"));
         User data = new User();
         data.setEmail(employee.getEmail());
         data.setEntityName(UserEntity.EMPLOYEE);
@@ -72,7 +92,7 @@ public class UserService implements UserDetailsService, IUserService {
         createUser(data);
     }
 
-    public User createOwnerUser(Tenant tenant, String email, long entityId) {
+    public User createOwnerUser(Tenant tenant, String email, long entityId) throws UserException {
         User data = new User();
         data.setEmail(email);
         data.setEntityName(UserEntity.EMPLOYEE);
@@ -82,7 +102,12 @@ public class UserService implements UserDetailsService, IUserService {
         return createUser(data);
     }
 
-    private User createUser(User data) {
+    public User getUserByEmployee(Employee employee) throws UserException {
+        return userRepository.findByEmployeeId(employee.getId(), employee.getTenantId())
+                .orElseThrow(() -> new NotFoundException("User not found for employee with id: " + employee.getId()));
+    }
+
+    private User createUser(User data) throws UserException {
         if (Objects.isNull(data.getEmail()) || data.getEmail().isBlank())
             throw new UserException("Email cannot be empty");
         if (data.getEmail().length() > 255)
@@ -102,7 +127,33 @@ public class UserService implements UserDetailsService, IUserService {
         return data;
     }
 
-    public User updatePassword(User user, String password) {
+    public User updateUserPermission(Employee employee, UserPermission[] permissions) throws UserException {
+        User user = getUserByEmployee(employee);
+        return updateUserPermissions(user, permissions);
+    }
+
+    public User updateUserPermissions(User user, UserPermission[] permissions) {
+        if (user.getRole().equals(UserRole.ROLE_OWNER)) {
+            throw new UserException("Cannot change permissions for owner");
+        }
+
+        if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
+            throw new UserException("Cannot change permissions for admin");
+        }
+        user.setPermissions(Set.of(permissions));
+
+        securityGateway.refreshAccessUser(user);
+
+        return userRepository.save(user);
+    }
+
+    public User updateUserPermissions(UUID userId, UserPermission[] permissions) throws UserException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        return updateUserPermissions(user, permissions);
+    }
+
+    public User updatePassword(User user, String password) throws UserException {
         PasswordType passwordType = getPasswordType(password);
         if (passwordType == PasswordType.WEAK) {
             throw new UserException("Password is too weak");
@@ -150,4 +201,5 @@ public class UserService implements UserDetailsService, IUserService {
     public boolean matchPassword(String password, String hash) {
         return passwordEncoder.matches(password, hash);
     }
+
 }

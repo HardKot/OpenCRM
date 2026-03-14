@@ -18,4 +18,5 @@ public interface ITenantRepository extends JpaRepository<Tenant, UUID> {
 
     @Query("SELECT u.tenant FROM User u WHERE u.email = :email")
     Optional<Tenant> findByUserEmail(@Param("email") String email);
+
 }

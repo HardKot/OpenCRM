@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.core.application.ISessionEmployee;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.entities.employee.Employee;
 
@@ -16,10 +15,10 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class SessionUserService implements ISessionEmployee {
+public class SessionEmployeeService {
+
     private final IEmployeeRepository employeeRepository;
 
-    @Override
     public Optional<Employee> getCurrent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

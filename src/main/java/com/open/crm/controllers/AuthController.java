@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,8 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.crm.admin.application.UseCreateTenant;
+import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
 import com.open.crm.controllers.dto.TokenLoginUserResponse;
@@ -35,6 +38,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Slf4j
@@ -52,112 +56,89 @@ public class AuthController {
     private final IUserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginUserResponse> login(@RequestBody LoginUserRequest entity, HttpServletRequest request,
-            HttpServletResponse response) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(entity.email(), entity.password()));
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authentication);
+    public ResponseEntity<LoginUserResponse> actionLogin(@RequestBody LoginUserRequest entity,
+            HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(entity.email(), entity.password()));
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
 
-            SecurityContextHolder.setContext(context);
-            HttpSession session = request.getSession(true);
-            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        SecurityContextHolder.setContext(context);
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-            User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
 
-            LoginUserResponse loginResponse = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
-                    "Login successful");
+        LoginUserResponse loginResponse = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
+                user.getPermissions(),
+                user.getEntityId(), user.getEntityName(), user.getRole());
 
-            return ResponseEntity.ok(loginResponse);
-
-        } catch (Exception e) {
-            log.error("Error occurred while logging in", e);
-            LoginUserResponse loginResponse = new LoginUserResponse(false, null, null, e.getMessage());
-            return ResponseEntity.badRequest().body(loginResponse);
-        }
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/token/login")
-    public ResponseEntity<TokenLoginUserResponse> tokenLogin(@RequestBody LoginUserRequest request) {
-        try {
-            Authentication authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+    public ResponseEntity<TokenLoginUserResponse> actionTokenLogin(@RequestBody LoginUserRequest request) {
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        User user = userRepository.findByEmail(authentication.getName()).orElse(null);
 
-            TokenData tokens = tokenService.generateTokenPairs(user);
+        TokenData tokens = tokenService.generateTokenPairs(user);
 
-            TokenLoginUserResponse response = new TokenLoginUserResponse(
-                    true,
-                    user.getId(),
-                    user.getTenant().getId(),
-                    "Login successful",
-                    tokens.accessToken(),
-                    tokens.refreshToken());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error occurred while logging in", e);
-            TokenLoginUserResponse response = new TokenLoginUserResponse(false, null, null, e.getMessage(), null, null);
-            return ResponseEntity.badRequest().body(response);
-        }
+        TokenLoginUserResponse response = new TokenLoginUserResponse(user.getId(), user.getTenant().getId(),
+                tokens.accessToken().getTokenValue(), tokens.refreshToken().getTokenValue(),
+                user.getPermissions(),
+                user.getEntityId(), user.getEntityName(), user.getRole());
+        return ResponseEntity.ok(response);
+
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<TokenLoginUserResponse> tokenRefresh(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        try {
-            String tokenValue = extractTokenValue(token);
+    public ResponseEntity<TokenLoginUserResponse> actionTokenRefresh(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        String tokenValue = extractTokenValue(token);
 
-            TokenData tokens = tokenService.refreshTokne(tokenValue);
-            return ResponseEntity.ok(new TokenLoginUserResponse(
-                    true,
-                    null,
-                    null,
-                    "Token refreshed successfully",
-                    tokens.accessToken(),
-                    tokens.refreshToken()));
+        TokenData tokens = tokenService.refreshTokne(tokenValue);
 
-        } catch (Exception e) {
-            log.error("Error occurred while logging in", e);
-            TokenLoginUserResponse response = new TokenLoginUserResponse(false, null, null, e.getMessage(), null, null);
-            return ResponseEntity.badRequest().body(response);
-        }
+        TokenLoginUserResponse response = new TokenLoginUserResponse(tokens.userId(), tokens.tenantId(),
+                tokens.accessToken().getTokenValue(), tokens.refreshToken().getTokenValue(), tokens.permissions(),
+                tokens.entityId(), tokens.entityName(), tokens.role());
 
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    public ResponseEntity<Void> actionLogout(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             HttpServletRequest request, HttpServletResponse response) {
-        try {
-            String tokenValue = extractTokenValue(token);
-            if (Objects.nonNull(tokenValue)) {
-                Jwt jwt = tokenService.decodeToken(tokenValue);
-                tokenService.blockToken(jwt);
-            }
-
-            HttpSession session = request.getSession(false);
-            if (Objects.nonNull(session)) {
-                session.invalidate();
-            }
-
-            SecurityContextHolder.clearContext();
-
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Error occurred while logging out", e);
-            return ResponseEntity.badRequest().build();
+        String tokenValue = extractTokenValue(token);
+        if (Objects.nonNull(tokenValue)) {
+            Jwt jwt = tokenService.decodeToken(tokenValue);
+            tokenService.blockToken(jwt);
         }
+
+        HttpSession session = request.getSession(false);
+        if (Objects.nonNull(session)) {
+            session.invalidate();
+        }
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok().build();
+
     }
 
     @PostMapping("/register/tenant")
     public ResponseEntity<RegisterTenantResponse> registerTenant(@RequestBody RegisterTenantRequest request) {
-        try {
-            useCreateTenant.execute(new UseCreateTenant.Params(request.email()));
-            return ResponseEntity.ok(new RegisterTenantResponse(true, "Tenant registered successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new RegisterTenantResponse(false, e.getMessage()));
-        }
+        useCreateTenant.execute(new UseCreateTenant.Params(request.email()));
+        return ResponseEntity.ok(new RegisterTenantResponse(true, "Tenant registered successfully"));
+    }
+
+    @ExceptionHandler({
+            UserException.class
+    })
+    public ResponseEntity<ApplicationErrorDto> handleEmployeeException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApplicationErrorDto(ex.getMessage()));
     }
 
     private String extractTokenValue(String header) {
@@ -167,4 +148,5 @@ public class AuthController {
         String token = header.replace("Bearer ", "");
         return token;
     }
+
 }

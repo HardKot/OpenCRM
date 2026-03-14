@@ -27,8 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class TenantSprngInterceptor implements HandlerInterceptor {
+
     private final TokenService tokenService;
+
     private final ITenantRepository tenantRepository;
+
     private final IDatabase database;
 
     @Override

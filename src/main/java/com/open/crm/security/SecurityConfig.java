@@ -49,22 +49,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource,
-            JwtAuthenticationFilter jwtAuthenticationFilter)
-            throws Exception {
+            JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         return http
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/auth/**", "/login", "/error").permitAll()
-                        .requestMatchers("/api-docs/**", "/swagger-ui/**").permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .securityContext(ctx -> ctx.requireExplicitSave(false))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(LogoutConfigurer::permitAll)
-                .cors(cors -> cors.disable())
-                .csrf(csrf -> csrf.disable())
-                .build();
+            .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**", "/login", "/error")
+                .permitAll()
+                .requestMatchers("/api-docs/**", "/swagger-ui/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated())
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .securityContext(ctx -> ctx.requireExplicitSave(false))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            .formLogin(AbstractHttpConfigurer::disable)
+            .logout(LogoutConfigurer::permitAll)
+            .cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable())
+            .build();
     }
 
     @Bean
@@ -76,17 +76,17 @@ public class SecurityConfig {
     public JwtDecoder jwtAccessDecoder(JwtProperties jwtProperties) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
         return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256"))
-                .macAlgorithm(MacAlgorithm.HS256)
-                .build();
+            .macAlgorithm(MacAlgorithm.HS256)
+            .build();
     }
 
     @Bean
     public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
         byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
         OctetSequenceKey jwk = new OctetSequenceKey.Builder(keyBytes).keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.HS256)
-                .keyID("hmac-main")
-                .build();
+            .algorithm(JWSAlgorithm.HS256)
+            .keyID("hmac-main")
+            .build();
         return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
     }
 

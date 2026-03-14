@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum TokenType {
-    ACCESS("access"),
-    REFRESH("refresh");
+
+    ACCESS("access"), REFRESH("refresh");
 
     private final String value;
 
@@ -19,4 +19,5 @@ public enum TokenType {
         }
         throw new IllegalArgumentException("Unknown token type: " + value);
     }
+
 }

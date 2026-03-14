@@ -31,6 +31,7 @@ public class Database implements IDatabase {
     private final DataSource dataSource;
 
     private final String templateTenantSchemaName = "tenant_template";
+
     private final UUID templateTenantId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private final CopyDatabaseSchema copyDatabaseSchema;
@@ -40,7 +41,8 @@ public class Database implements IDatabase {
         try (Connection conn = dataSource.getConnection()) {
             Statement stmt = conn.createStatement();
             stmt.execute(String.format("UPDATE %s.%s SET %s", tenant.getSchemaName(), table, query));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw e;
         }
     }
@@ -51,10 +53,11 @@ public class Database implements IDatabase {
             Map<String, List<String>> tableColumns = new java.util.LinkedHashMap<>();
 
             try (Statement selectStmt = conn.createStatement()) {
-                ResultSet rs = selectStmt.executeQuery(String.format(
-                        "SELECT table_name, column_name FROM information_schema.columns " +
-                                "WHERE table_schema = '%s' AND column_name IN ('created_at', 'updated_at')",
-                        schema));
+                ResultSet rs = selectStmt
+                    .executeQuery(String.format(
+                            "SELECT table_name, column_name FROM information_schema.columns "
+                                    + "WHERE table_schema = '%s' AND column_name IN ('created_at', 'updated_at')",
+                            schema));
 
                 while (rs.next()) {
                     String tableName = rs.getString(1);
@@ -67,13 +70,15 @@ public class Database implements IDatabase {
             try (Statement updateStmt = conn.createStatement()) {
                 for (Map.Entry<String, List<String>> entry : tableColumns.entrySet()) {
                     String tableName = entry.getKey();
-                    String setClauses = entry.getValue().stream()
-                            .map(col -> col + " = '" + now + "'")
-                            .collect(java.util.stream.Collectors.joining(", "));
+                    String setClauses = entry.getValue()
+                        .stream()
+                        .map(col -> col + " = '" + now + "'")
+                        .collect(java.util.stream.Collectors.joining(", "));
                     updateStmt.execute(String.format("UPDATE %s.%s SET %s", schema, tableName, setClauses));
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw e;
         }
     }
@@ -115,11 +120,12 @@ public class Database implements IDatabase {
 
             try (Statement updateStmt = conn.createStatement()) {
                 for (String tableName : tables) {
-                    updateStmt.execute(String.format("UPDATE %s.%s SET tenant_id = '%s'", schema,
-                            tableName, tenant.getId()));
+                    updateStmt
+                        .execute(String.format("UPDATE %s.%s SET tenant_id = '%s'", schema, tableName, tenant.getId()));
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Error during schema change for tenant {}: {}", tenant.getId(), e.getMessage());
             throw e;
         }
@@ -140,33 +146,34 @@ public class Database implements IDatabase {
                 UUID tenantId = UUID.fromString(tenantSchemas.getString("id"));
                 runMigrationTenant(tenantId, schemaName);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Error during database migration: {}", e.getMessage());
         }
     }
 
     public void runMigrationAdmin() {
         Flyway.configure()
-                .dataSource(dataSource)
-                .schemas("public")
-                .locations("classpath:migrations/admin")
-                .placeholders(Map.of("template_schema_name", templateTenantSchemaName))
-                .baselineOnMigrate(true)
-                .validateOnMigrate(true)
-                .load()
-                .migrate();
+            .dataSource(dataSource)
+            .schemas("public")
+            .locations("classpath:migrations/admin")
+            .placeholders(Map.of("template_schema_name", templateTenantSchemaName))
+            .baselineOnMigrate(true)
+            .validateOnMigrate(true)
+            .load()
+            .migrate();
     }
 
     public void runMigrationTenant(UUID tenantId, String schemaName) {
         Flyway.configure()
-                .dataSource(dataSource)
-                .schemas(schemaName)
-                .locations("classpath:migrations/tenant")
-                .placeholders(Map.of("tenantId", tenantId.toString()))
-                .baselineOnMigrate(true)
-                .validateOnMigrate(true)
-                .load()
-                .migrate();
+            .dataSource(dataSource)
+            .schemas(schemaName)
+            .locations("classpath:migrations/tenant")
+            .placeholders(Map.of("tenantId", tenantId.toString()))
+            .baselineOnMigrate(true)
+            .validateOnMigrate(true)
+            .load()
+            .migrate();
     }
 
 }

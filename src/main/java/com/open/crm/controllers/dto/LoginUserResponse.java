@@ -2,8 +2,11 @@ package com.open.crm.controllers.dto;
 
 import java.util.UUID;
 
-public record LoginUserResponse(boolean success, UUID userId, UUID tenantId,
+import com.open.crm.admin.entities.user.UserEntity;
+import com.open.crm.admin.entities.user.UserPermission;
+import com.open.crm.admin.entities.user.UserRole;
 
-        String message) {
+public record LoginUserResponse(boolean success, UUID userId, UUID tenantId, UserPermission[] permissions,
+                Long entityId, UserEntity entityName, UserRole role) {
 
 }

@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class TokenService {
+
     private final JwtProperties jwtProperties;
 
     private final JwtDecoder jwtDecoder;
@@ -35,9 +36,11 @@ public class TokenService {
     private final JwsHeader jwtHeaders;
 
     private final IUserRepository userRepository;
+
     private final ITenantRepository tenantRepository;
 
     private final Set<String> blockedToken = HashSet.newHashSet(0);
+    private final Set<UUID> promiseUserToken = HashSet.newHashSet(0);
 
     public Jwt decodeToken(String token) throws TokenException {
         Jwt jwt = jwtDecoder.decode(token);
@@ -46,15 +49,22 @@ public class TokenService {
             throw new TokenException("Invalid token");
         }
 
-        if (Objects.isNull(jwt)
-                || !"access".equals(jwt.getClaimAsString("type")) && !"refresh".equals(jwt.getClaimAsString("type"))
-                || Objects.isNull(jwt.getId())) {
+        Optional<TokenType> tokenTypeOpt = getType(jwt);
+        Optional<User> userOpt = getUserFromToken(jwt);
+
+        if (Objects.isNull(jwt) || Objects.isNull(jwt.getId()) || tokenTypeOpt.isEmpty()) {
             throw new TokenException("Invalid token");
         }
 
         if (blockedToken.contains(jwt.getId())) {
             throw new TokenException("Token is blocked");
         }
+
+        if (tokenTypeOpt.get().equals(TokenType.ACCESS) && userOpt.isPresent()
+                && promiseUserToken.contains(userOpt.get().getId())) {
+            throw new TokenException("Token is need to be refreshed");
+        }
+
         return jwt;
     }
 
@@ -90,7 +100,9 @@ public class TokenService {
         Jwt refreshToken = generateRefreshToken(user);
         Jwt accessToken = generateAccessToken(user, refreshToken);
 
-        return new TokenData(accessToken, refreshToken);
+        return new TokenData(accessToken, refreshToken, user.getId(), user.getTenant().getId(),
+                user.getPermissions(),
+                user.getEntityId(), user.getEntityName(), user.getRole());
     }
 
     public TokenData refreshTokne(String refreshToken) throws TokenException {
@@ -127,15 +139,24 @@ public class TokenService {
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusMillis(jwtProperties.getAccessExpires()))
                 .claim(CLAIM_TYPE, TokenType.ACCESS.getValue())
-                .claim(CLAIM_AUTHORITIES,
-                        user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
+                .claim(CLAIM_USER_ID, user.getId())
+                .claim(CLAIM_AUTHORITIES, user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
                 .claim(CLAIM_TENANT_ID, user.getTenant().getId())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
     }
 
+    public void addRefreshUserTokens(User user) {
+        promiseUserToken.add(user.getId());
+    }
+
     private static final String CLAIM_TYPE = "type";
+
     private static final String CLAIM_AUTHORITIES = "authorities";
+
     private static final String CLAIM_TENANT_ID = "tenantId";
+
+    private static final String CLAIM_USER_ID = "userId";
+
 }

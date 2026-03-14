@@ -38,6 +38,7 @@ public class CopyDatabaseSchema {
                 copyForeignKeys(conn, sourceSchema, targetSchema);
                 copyViews(conn, sourceSchema, targetSchema);
                 copyData(conn, sourceSchema, targetSchema);
+                resetSequences(conn, targetSchema);
                 conn.commit();
                 log.info("Schema copy '{}' → '{}' completed successfully", sourceSchema, targetSchema);
             }
@@ -284,6 +285,41 @@ public class CopyDatabaseSchema {
                             table);
                     execute(conn, ddl);
                     log.debug("Copied data for table '{}'", table);
+                }
+            }
+        }
+    }
+
+    private void resetSequences(Connection conn, String schema) throws SQLException {
+        String sql = """
+                SELECT seq.relname  AS seq_name,
+                       tab.relname  AS table_name,
+                       col.attname  AS column_name
+                FROM   pg_class          seq
+                JOIN   pg_namespace      seq_ns  ON seq_ns.oid   = seq.relnamespace
+                JOIN   pg_depend         dep     ON dep.objid    = seq.oid
+                JOIN   pg_class          tab     ON tab.oid      = dep.refobjid
+                JOIN   pg_namespace      tab_ns  ON tab_ns.oid   = tab.relnamespace
+                JOIN   pg_attribute      col     ON col.attrelid = tab.oid
+                                                 AND col.attnum  = dep.refobjsubid
+                WHERE  seq.relkind   = 'S'
+                  AND  dep.deptype   = 'a'
+                  AND  seq_ns.nspname = ?
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, schema);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String seqName = rs.getString("seq_name");
+                    String tableName = rs.getString("table_name");
+                    String columnName = rs.getString("column_name");
+                    String ddl = String.format("SELECT setval('\"" + schema + "\".\"" + seqName + "\"', "
+                            + "COALESCE((SELECT MAX(\"" + columnName + "\") FROM \"" + schema + "\".\"" + tableName
+                            + "\"), 1), " + "(SELECT MAX(\"" + columnName + "\") FROM \"" + schema + "\".\"" + tableName
+                            + "\") IS NOT NULL)");
+                    execute(conn, ddl);
+                    log.debug("Reset sequence '{}' for '{}.{}'", seqName, tableName, columnName);
                 }
             }
         }

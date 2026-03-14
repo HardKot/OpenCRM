@@ -21,7 +21,9 @@ import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 @Component
 @RequiredArgsConstructor
 public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider<UUID> {
+
     private final ITenantRepository tenantRepository;
+
     private final DataSource dataSource;
 
     @Override
@@ -37,13 +39,14 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     @Override
     public Connection getConnection(UUID tenantId) throws SQLException {
         Tenant tenant = tenantRepository.findById(tenantId)
-                .orElseThrow(() -> new SQLException("Tenant not found: " + tenantId));
+            .orElseThrow(() -> new SQLException("Tenant not found: " + tenantId));
 
         Connection connection = getAnyConnection();
         try (Statement stmt = connection.createStatement()) {
 
             stmt.execute("SET search_path TO \"" + tenant.getSchemaName() + "\", public");
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             log.error("Failed to set search_path for tenant {}: {}", tenantId, e.getMessage(), e);
             connection.close();
             throw e;
@@ -55,7 +58,8 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     public void releaseConnection(UUID tenantId, Connection connection) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("SET search_path TO public");
-        } finally {
+        }
+        finally {
             connection.close();
         }
     }
