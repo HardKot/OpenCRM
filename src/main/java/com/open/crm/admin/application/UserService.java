@@ -3,11 +3,9 @@ package com.open.crm.admin.application;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import org.aspectj.weaver.ast.Not;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -140,7 +138,7 @@ public class UserService implements UserDetailsService, IUserService {
         if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
             throw new UserException("Cannot change permissions for admin");
         }
-        user.setPermissions(Set.of(permissions));
+        user.setPermissions(new java.util.HashSet<>(java.util.Arrays.asList(permissions)));
 
         securityGateway.refreshAccessUser(user);
 

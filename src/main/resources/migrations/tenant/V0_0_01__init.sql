@@ -27,11 +27,10 @@ CREATE TABLE employees (
 
 CREATE TABLE investigation_logs (
     id SERIAL PRIMARY KEY,
-    employee_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL,
     tenant_id UUID NOT NULL,
     details JSONB,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
 INSERT INTO

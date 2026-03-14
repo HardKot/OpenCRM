@@ -8,16 +8,11 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.TenantId;
 import org.hibernate.type.SqlTypes;
 
-import com.open.crm.core.entities.employee.Employee;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,8 +29,7 @@ public class InvestigationLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
-    private Employee employee;
+    private Author author;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false)

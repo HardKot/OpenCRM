@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.entities.employee.Employee;
+import com.open.crm.core.entities.investigationLog.Author;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,7 @@ public class SessionEmployeeService {
 
     private final IEmployeeRepository employeeRepository;
 
-    public Optional<Employee> getCurrent() {
+    public Optional<Employee> getCurrentEmployee() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Object principal = authentication.getPrincipal();
@@ -33,4 +34,16 @@ public class SessionEmployeeService {
         return Optional.empty();
     }
 
+    public boolean isShowDeleted() {
+        return false;
+    }
+
+    public Optional<Author> getCurrentAuthor() {
+        return getCurrentEmployee().map(employee -> {
+            Author author = new Author();
+            author.setEntityId(employee.getId());
+            author.setEntityName("EMPLOYEE");
+            return author;
+        });
+    }
 }
