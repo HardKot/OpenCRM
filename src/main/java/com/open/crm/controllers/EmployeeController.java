@@ -27,104 +27,110 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public class EmployeeController {
 
-        private final EmployeeService employeeService;
+    private final EmployeeService employeeService;
 
-        private final UserService userService;
+    private final UserService userService;
 
-        private final SessionService sessionEmployeeService;
+    private final SessionService sessionEmployeeService;
 
-        @PostMapping
-        @Transactional
-        @ResponseStatus(HttpStatus.CREATED)
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-        public Employee actionCreate(@RequestBody Employee employee) {
-                Author author = sessionEmployeeService.getAuthor();
+    @PostMapping
+    @Transactional
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+    public Employee actionCreate(@RequestBody Employee employee) {
+        Author author = sessionEmployeeService.getAuthor();
 
-                Employee createdEmployee = employeeService.createEmployee(employee, author);
+        Employee createdEmployee = employeeService.createEmployee(employee, author);
 
-                return createdEmployee;
+        return createdEmployee;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
+    public ResponseEntity<List<Employee>> actionGetAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "100") int size) {
+        return ResponseEntity.ok(employeeService.getEmployeeSelector().getItems(page, size,
+                sessionEmployeeService.isShowDeleted()));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+    public Employee actionUpdate(@PathVariable("id") long id, @RequestBody Employee data) {
+        Author author = sessionEmployeeService.getAuthor();
+
+        data.setId(id);
+        Employee employee = employeeService.updateEmployeeData(data, author);
+
+        if (!data.getEmail().equals(employee.getEmail())) {
+            employee = employeeService.updateEmail(employee, data.getEmail(), author);
         }
 
-        @GetMapping
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-        public ResponseEntity<List<Employee>> actionGetAll(
-                        @RequestParam(name = "page", defaultValue = "0") int page,
-                        @RequestParam(name = "size", defaultValue = "100") int size) {
-                return ResponseEntity.ok(employeeService.getEmployeeSelector().getItems(page, size,
-                                sessionEmployeeService.isShowDeleted()));
-        }
+        return employee;
+    }
 
-        @PutMapping("/{id}")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-        public Employee actionUpdate(@PathVariable("id") long id, @RequestBody Employee employee) {
-                Author author = sessionEmployeeService.getAuthor();
+    @GetMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
+    public Employee actionGet(@PathVariable("id") long id) {
+        return employeeService.getEmployeeById(id);
+    }
 
-                employee.setId(id);
-                return employeeService.updateEmployeeData(employee, author);
-        }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+    public Employee actionDelete(@PathVariable("id") long id) {
+        Author author = sessionEmployeeService.getAuthor();
+        Employee employee = employeeService.getEmployeeById(id);
+        employee = employeeService.deleteEmployee(employee, author);
+        return employee;
+    }
 
-        @GetMapping("/{id}")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-        public Employee actionGet(@PathVariable("id") long id) {
-                return null;
-        }
+    @PostMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+    public Employee actionRestore(@PathVariable("id") long id) {
+        Author author = sessionEmployeeService.getAuthor();
+        Employee employee = employeeService.getEmployeeById(id);
+        employee = employeeService.restoreEmployee(employee, author);
+        return employee;
+    }
 
-        @DeleteMapping("/{id}")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-        public Employee actionDelete(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getAuthor();
-                Employee employee = employeeService.getEmployeeById(id);
-                employee = employeeService.deleteEmployee(employee, author);
-                return employee;
-        }
+    @PostMapping("/{id}/invite")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
+    public Employee actionInvite(@PathVariable("id") long id) {
+        Author author = sessionEmployeeService.getAuthor();
 
-        @PostMapping("/{id}")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-        public Employee actionRestore(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getAuthor();
-                Employee employee = employeeService.getEmployeeById(id);
-                employee = employeeService.restoreEmployee(employee, author);
-                return employee;
-        }
+        Employee employee = employeeService.getEmployeeById(id);
+        userService.createUserFromEmployee(employee, author);
 
-        @PostMapping("/{id}/invite")
-        @ResponseStatus(HttpStatus.CREATED)
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-        public Employee actionInvite(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getAuthor();
+        return employee;
+    }
 
-                Employee employee = employeeService.getEmployeeById(id);
-                userService.createUserFromEmployee(employee, author);
+    @GetMapping("{id}/access")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
+    public EmployeeAccess actionGetAccess(@PathVariable("id") long id) {
+        Employee employee = employeeService.getEmployeeById(id);
+        User user = userService.getUserByEmployee(employee);
 
-                return employee;
-        }
+        UserPermission[] permissions = user.getPermissions();
 
-        @GetMapping("{id}/access")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-        public EmployeeAccess actionGetAccess(@PathVariable("id") long id) {
-                Employee employee = employeeService.getEmployeeById(id);
-                User user = userService.getUserByEmployee(employee);
+        return new EmployeeAccess(permissions);
+    }
 
-                UserPermission[] permissions = user.getPermissions();
+    @PutMapping("{id}/access")
+    @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
+    public EmployeeAccess putMethodName(@PathVariable("id") long id,
+            @RequestBody EmployeeAccess entity) {
+        Author author = sessionEmployeeService.getAuthor();
 
-                return new EmployeeAccess(permissions);
-        }
+        Employee employee = employeeService.getEmployeeById(id);
+        User user = userService.updateUserPermissionsByEmployee(employee, entity.permissions(), author);
 
-        @PutMapping("{id}/access")
-        @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-        public EmployeeAccess putMethodName(@PathVariable("id") long id,
-                        @RequestBody EmployeeAccess entity) {
-                Author author = sessionEmployeeService.getAuthor();
+        return new EmployeeAccess(user.getPermissions());
+    }
 
-                Employee employee = employeeService.getEmployeeById(id);
-                User user = userService.updateUserPermissionsByEmployee(employee, entity.permissions(), author);
-
-                return new EmployeeAccess(user.getPermissions());
-        }
-
-        @ExceptionHandler({ EmployeeException.class, UserException.class })
-        public ResponseEntity<ApplicationErrorDto> handleEmployeeException(Exception ex) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApplicationErrorDto(ex.getMessage()));
-        }
+    @ExceptionHandler({ EmployeeException.class, UserException.class })
+    public ResponseEntity<ApplicationErrorDto> handleEmployeeException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApplicationErrorDto(ex.getMessage()));
+    }
 
 }

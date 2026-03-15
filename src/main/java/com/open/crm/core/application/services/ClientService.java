@@ -1,6 +1,8 @@
 package com.open.crm.core.application.services;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -53,21 +55,19 @@ public class ClientService {
             throw new ClientException("Cannot update a deleted client with ID: " + client.getId());
         }
 
-        client.setBalance(existingClient.getBalance());
-
         if (!cleaner.cleanName()) {
-            client.setFirstname(existingClient.getFirstname());
-            client.setLastname(existingClient.getLastname());
-            client.setPatronymic(existingClient.getPatronymic());
+            existingClient.setFirstname(client.getFirstname());
+            existingClient.setLastname(client.getLastname());
+            existingClient.setPatronymic(client.getPatronymic());
         }
 
         if (!cleaner.cleanContact()) {
-            client.setEmail(existingClient.getEmail());
-            client.setPhoneNumber(existingClient.getPhoneNumber());
+            existingClient.setEmail(client.getEmail());
+            existingClient.setPhoneNumber(client.getPhoneNumber());
         }
 
         Client updatedClient = clientRepository.save(existingClient);
-        InvestigationLog log = investigationLogCreator.createClientLog(updatedClient, author);
+        InvestigationLog log = investigationLogCreator.updateClientLog(updatedClient, author);
         investigationLogRepository.save(log);
 
         return clearClientInfo(updatedClient, cleaner);
@@ -114,7 +114,28 @@ public class ClientService {
                 throw new NotFoundException("Cannot merge deleted client with ID: " + sourceClient.getId());
             }
 
-            targetClient.merge(existingSourceClient);
+            if (existingSourceClient.getId() == targetClient.getId()) {
+                throw new ClientException("Cannot merge client with itself. Client ID: " + targetClient.getId());
+            }
+
+            if (targetClient.getFirstname().isBlank()) {
+                targetClient.setFirstname(existingSourceClient.getFirstname());
+            }
+            if (targetClient.getLastname().isBlank()) {
+                targetClient.setLastname(existingSourceClient.getLastname());
+            }
+            if (targetClient.getPatronymic().isBlank()) {
+                targetClient.setPatronymic(existingSourceClient.getPatronymic());
+            }
+            if (targetClient.getEmail().isBlank()) {
+                targetClient.setEmail(existingSourceClient.getEmail());
+            }
+            if (targetClient.getPhoneNumber().isBlank()) {
+                targetClient.setPhoneNumber(existingSourceClient.getPhoneNumber());
+            }
+
+            targetClient.setBalance(targetClient.getBalance() + existingSourceClient.getBalance());
+
             existingSourceClient.setDeleted(true);
             clientRepository.save(existingSourceClient);
         }
@@ -122,6 +143,18 @@ public class ClientService {
         InvestigationLog log = investigationLogCreator.mergeClientLog(mergedClient, sourceClients, author);
         investigationLogRepository.save(log);
         return mergedClient;
+    }
+
+    @Transactional
+    public Client manualUpdateClientBalance(Client client, long newBalance, Author author) throws NotFoundException {
+        if (client.isDeleted()) {
+            throw new NotFoundException("Cannot update balance of a deleted client with ID: " + client.getId());
+        }
+        client.setBalance(newBalance);
+        Client updatedClient = clientRepository.save(client);
+        InvestigationLog log = investigationLogCreator.updateClientBalanceLog(updatedClient, author);
+        investigationLogRepository.save(log);
+        return updatedClient;
     }
 
     public Client getClientById(long id, boolean withDeleted, ClientInfoCleaner cleaner) throws NotFoundException {
@@ -136,6 +169,25 @@ public class ClientService {
     public List<Client> getClients(int page, int size, boolean withDeleted, ClientInfoCleaner cleaner) {
         List<Client> clients = clientSelector.getItems(page, size, withDeleted);
         return clients.stream().map(client -> clearClientInfo(client, cleaner)).toList();
+    }
+
+    public List<Client> getDuplicateClients(Client client, ClientInfoCleaner cleaner) {
+        List<Client> byEmail = List.of();
+        List<Client> byPhone = List.of();
+
+        if (Objects.nonNull(client.getEmail()) && !client.getEmail().isBlank()) {
+            byEmail = clientRepository.findByEmailAndIsDeleted(client.getEmail(), false);
+        }
+
+        if (Objects.nonNull(client.getPhoneNumber()) && !client.getPhoneNumber().isBlank()) {
+            byPhone = clientRepository.findByPhoneNumberAndIsDeleted(client.getPhoneNumber(), false);
+        }
+
+        return Stream.concat(byEmail.stream(), byPhone.stream())
+                .filter(c -> c.getId() != client.getId())
+                .distinct()
+                .map(it -> clearClientInfo(it, cleaner))
+                .toList();
     }
 
     private Client clearClientInfo(Client client, ClientInfoCleaner cleaner) {

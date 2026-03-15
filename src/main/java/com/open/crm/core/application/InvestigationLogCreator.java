@@ -3,9 +3,7 @@ package com.open.crm.core.application;
 import java.util.Arrays;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import com.open.crm.core.application.repositories.IInvestigationLogRepository;
 import com.open.crm.core.entities.client.Client;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
@@ -81,6 +79,19 @@ public class InvestigationLogCreator {
         log.setAuthor(author);
         log.setDetails(
                 LogDetails.builder().action("UPDATE_ACCESS").entityName("EMPLOYEE").entityId(employee.getId()).build());
+        return log;
+    }
+
+    public InvestigationLog updateClientBalanceLog(Client client, Author author) {
+        InvestigationLog log = new InvestigationLog();
+        log.setAuthor(author);
+        log.setDetails(LogDetails.builder()
+                .action("UPDATE_BALANCE")
+                .entityId(client.getId())
+                .entityName("CLIENT")
+                .description("New balance: " + client.getBalance())
+                .build());
+
         return log;
     }
 }

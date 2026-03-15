@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.open.crm.core.entities.common.BaseEntity;
 
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -31,23 +32,8 @@ public class Client extends BaseEntity {
 
     private String email = "";
 
+    @Column(name = "phone_number")
     private String phoneNumber = "";
 
     private long balance = 0;
-
-    public Client merge(Client other) {
-        if (firstname.isEmpty())
-            this.firstname = other.getFirstname();
-        if (lastname.isEmpty())
-            this.lastname = other.getLastname();
-        if (patronymic.isEmpty())
-            this.patronymic = other.getPatronymic();
-        if (email.isEmpty())
-            this.email = other.getEmail();
-        if (phoneNumber.isEmpty())
-            this.phoneNumber = other.getPhoneNumber();
-
-        balance += other.getBalance();
-        return this;
-    }
 }

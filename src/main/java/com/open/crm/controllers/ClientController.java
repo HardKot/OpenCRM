@@ -1,8 +1,8 @@
 package com.open.crm.controllers;
 
+import java.util.Arrays;
 import java.util.List;
-
-import javax.swing.text.html.parser.Entity;
+import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.crm.components.services.SessionService;
+import com.open.crm.controllers.dto.ApplicationErrorDto;
+import com.open.crm.core.application.errors.ClientException;
 import com.open.crm.core.application.services.ClientService;
 import com.open.crm.core.entities.client.Client;
 
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -50,21 +53,29 @@ public class ClientController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
     public Client actionGetClient(@PathVariable("id") long id) {
         return clientService.getClientById(id, sessionEmployeeService.isShowDeleted(),
                 sessionEmployeeService.getClientInfoCleaner());
     }
 
     @PutMapping("/{id}")
-    public Client actionUpdateClient(@PathVariable("id") long id, @RequestBody Client entity) {
-        entity.setId(id);
-        clientService.updateClient(entity, sessionEmployeeService.getAuthor(),
+    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+    public Client actionUpdateClient(@PathVariable("id") long id, @RequestBody Client data) {
+        data.setId(id);
+        Client entity = clientService.updateClient(data, sessionEmployeeService.getAuthor(),
                 sessionEmployeeService.getClientInfoCleaner());
+
+        if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
+            entity = clientService.manualUpdateClientBalance(entity, data.getBalance(),
+                    sessionEmployeeService.getAuthor());
+        }
 
         return entity;
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
     public Client actionDeleteClient(@PathVariable("id") long id) {
         Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
         clientService.deleteClient(entity, sessionEmployeeService.getAuthor(),
@@ -74,6 +85,7 @@ public class ClientController {
     }
 
     @PostMapping("/{id}")
+    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
     public Client actionRestoreClient(@PathVariable("id") long id) {
         Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
         clientService.restoreClient(entity, sessionEmployeeService.getAuthor(),
@@ -82,4 +94,35 @@ public class ClientController {
         return entity;
     }
 
+    @PutMapping("/{id}/merge")
+    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+    public Client actionMergeClient(@PathVariable("id") long id, @RequestBody Long[] ids) {
+        Client targetClient = clientService.getClientById(id, false, sessionEmployeeService.getClientInfoCleaner());
+        Client[] sourceClients = Arrays.stream(ids)
+                .map(sourceId -> clientService.getClientById(sourceId, false,
+                        sessionEmployeeService.getClientInfoCleaner()))
+                .toArray(Client[]::new);
+
+        targetClient = clientService.mergeClients(targetClient, sourceClients, sessionEmployeeService.getAuthor(),
+                sessionEmployeeService.getClientInfoCleaner());
+
+        return targetClient;
+    }
+
+    @GetMapping("/{id}/duplicate")
+    @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
+    public Client[] getMethodName(@PathVariable("id") long id) {
+        Client client = clientService.getClientById(id, false,
+                sessionEmployeeService.getClientInfoCleaner());
+
+        List<Client> duplicates = clientService.getDuplicateClients(client,
+                sessionEmployeeService.getClientInfoCleaner());
+        return duplicates.toArray(new Client[0]);
+    }
+
+    @ExceptionHandler({ ClientException.class })
+    public ResponseEntity<ApplicationErrorDto> handleClientException(ClientException ex) {
+        ApplicationErrorDto error = new ApplicationErrorDto(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 }
