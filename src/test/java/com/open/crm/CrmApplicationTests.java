@@ -1,4 +1,4 @@
-package com.relix.crm;
+package com.open.crm;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

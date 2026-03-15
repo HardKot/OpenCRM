@@ -1,6 +1,7 @@
 package com.open.crm.admin.entities.user;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,9 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.open.crm.admin.entities.common.BaseAdminEntity;
 import com.open.crm.admin.entities.tenant.Tenant;
-import com.open.crm.core.application.services.ClientInfoCleaner;
 
-import groovyjarjarantlr4.v4.parse.ANTLRParser.optionValue_return;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -75,7 +74,7 @@ public class User extends BaseAdminEntity implements UserDetails {
     }
 
     public boolean isEmployeeUser() {
-        return entityName.equals(UserEntity.EMPLOYEE);
+        return Objects.equals(entityName, UserEntity.EMPLOYEE);
     }
 
     public UserPermission[] getPermissions() {
