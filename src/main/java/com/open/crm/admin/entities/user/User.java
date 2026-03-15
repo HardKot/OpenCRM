@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.open.crm.admin.entities.common.BaseAdminEntity;
 import com.open.crm.admin.entities.tenant.Tenant;
+import com.open.crm.core.application.services.ClientInfoCleaner;
 
+import groovyjarjarantlr4.v4.parse.ANTLRParser.optionValue_return;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -55,6 +57,7 @@ public class User extends BaseAdminEntity implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_permissions", schema = "public", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
     @Column(name = "permission")
     private Set<UserPermission> permissions = Set.of();
 
@@ -71,6 +74,10 @@ public class User extends BaseAdminEntity implements UserDetails {
         return isEnabled;
     }
 
+    public boolean isEmployeeUser() {
+        return entityName.equals(UserEntity.EMPLOYEE);
+    }
+
     public UserPermission[] getPermissions() {
         if (role.equals(UserRole.ROLE_OWNER)) {
             return UserPermission.values();
@@ -81,6 +88,18 @@ public class User extends BaseAdminEntity implements UserDetails {
         }
 
         return permissions.toArray(new UserPermission[0]);
+    }
+
+    public boolean hasPermission(UserPermission permission) {
+        if (role.equals(UserRole.ROLE_OWNER)) {
+            return true;
+        }
+
+        if (role.equals(UserRole.ROLE_ADMIN)) {
+            return true;
+        }
+
+        return permissions.contains(permission);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {

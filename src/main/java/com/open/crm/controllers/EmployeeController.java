@@ -4,12 +4,10 @@ import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.admin.entities.user.UserPermission;
-import com.open.crm.components.services.SessionEmployeeService;
+import com.open.crm.components.services.SessionService;
 import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.controllers.dto.EmployeeAccess;
 import com.open.crm.core.application.errors.EmployeeException;
-import com.open.crm.core.application.errors.NotFoundException;
-import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.application.services.EmployeeService;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
@@ -30,19 +28,17 @@ import org.springframework.http.HttpStatus;
 public class EmployeeController {
 
         private final EmployeeService employeeService;
-        private final EmployeeSelector employeeSelector;
 
         private final UserService userService;
 
-        private final SessionEmployeeService sessionEmployeeService;
+        private final SessionService sessionEmployeeService;
 
         @PostMapping
         @Transactional
         @ResponseStatus(HttpStatus.CREATED)
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
         public Employee actionCreate(@RequestBody Employee employee) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
+                Author author = sessionEmployeeService.getAuthor();
 
                 Employee createdEmployee = employeeService.createEmployee(employee, author);
 
@@ -54,15 +50,14 @@ public class EmployeeController {
         public ResponseEntity<List<Employee>> actionGetAll(
                         @RequestParam(name = "page", defaultValue = "0") int page,
                         @RequestParam(name = "size", defaultValue = "100") int size) {
-                return ResponseEntity.ok(
-                                employeeSelector.getPageEmployees(page, size, sessionEmployeeService.isShowDeleted()));
+                return ResponseEntity.ok(employeeService.getEmployeeSelector().getItems(page, size,
+                                sessionEmployeeService.isShowDeleted()));
         }
 
         @PutMapping("/{id}")
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
         public Employee actionUpdate(@PathVariable("id") long id, @RequestBody Employee employee) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
+                Author author = sessionEmployeeService.getAuthor();
 
                 employee.setId(id);
                 return employeeService.updateEmployeeData(employee, author);
@@ -71,17 +66,14 @@ public class EmployeeController {
         @GetMapping("/{id}")
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
         public Employee actionGet(@PathVariable("id") long id) {
-                return employeeSelector.getEmployeeById(id, sessionEmployeeService.isShowDeleted())
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                return null;
         }
 
         @DeleteMapping("/{id}")
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
         public Employee actionDelete(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
-                Employee employee = employeeSelector.getEmployeeById(id, true)
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                Author author = sessionEmployeeService.getAuthor();
+                Employee employee = employeeService.getEmployeeById(id);
                 employee = employeeService.deleteEmployee(employee, author);
                 return employee;
         }
@@ -89,10 +81,8 @@ public class EmployeeController {
         @PostMapping("/{id}")
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
         public Employee actionRestore(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
-                Employee employee = employeeSelector.getEmployeeById(id, true)
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                Author author = sessionEmployeeService.getAuthor();
+                Employee employee = employeeService.getEmployeeById(id);
                 employee = employeeService.restoreEmployee(employee, author);
                 return employee;
         }
@@ -101,11 +91,9 @@ public class EmployeeController {
         @ResponseStatus(HttpStatus.CREATED)
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
         public Employee actionInvite(@PathVariable("id") long id) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
+                Author author = sessionEmployeeService.getAuthor();
 
-                Employee employee = employeeSelector.getEmployeeById(id, true)
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                Employee employee = employeeService.getEmployeeById(id);
                 userService.createUserFromEmployee(employee, author);
 
                 return employee;
@@ -114,8 +102,7 @@ public class EmployeeController {
         @GetMapping("{id}/access")
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
         public EmployeeAccess actionGetAccess(@PathVariable("id") long id) {
-                Employee employee = employeeSelector.getEmployeeById(id, sessionEmployeeService.isShowDeleted())
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                Employee employee = employeeService.getEmployeeById(id);
                 User user = userService.getUserByEmployee(employee);
 
                 UserPermission[] permissions = user.getPermissions();
@@ -127,11 +114,9 @@ public class EmployeeController {
         @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
         public EmployeeAccess putMethodName(@PathVariable("id") long id,
                         @RequestBody EmployeeAccess entity) {
-                Author author = sessionEmployeeService.getCurrentAuthor()
-                                .orElseThrow(() -> new RuntimeException("Unauthorized"));
+                Author author = sessionEmployeeService.getAuthor();
 
-                Employee employee = employeeSelector.getEmployeeById(id, true)
-                                .orElseThrow(() -> new NotFoundException("Employee not found"));
+                Employee employee = employeeService.getEmployeeById(id);
                 User user = userService.updateUserPermissionsByEmployee(employee, entity.permissions(), author);
 
                 return new EmployeeAccess(user.getPermissions());

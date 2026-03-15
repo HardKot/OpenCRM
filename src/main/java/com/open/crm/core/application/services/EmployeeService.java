@@ -1,9 +1,8 @@
 package com.open.crm.core.application.services;
 
-import java.util.List;
 import java.util.Objects;
 
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +16,7 @@ import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,6 +27,10 @@ public class EmployeeService {
     private final InvestigationLogCreator investigationLogCreator;
     private final IInvestigationLogRepository investigationLogRepository;
     private final IUserService userService;
+
+    @Qualifier("employeeSelectorData")
+    @Getter
+    private final SelectorData<Employee> employeeSelector;
 
     @Transactional
     public Employee createEmployee(Employee employee, Author author) {
@@ -110,6 +114,11 @@ public class EmployeeService {
         userService.enabledByEmployee(employee);
         investigationLogRepository.save(log);
         return employee;
+    }
+
+    public Employee getEmployeeById(Long id) throws NotFoundException {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Employee not found with ID: " + id));
     }
 
 }

@@ -41,30 +41,6 @@ public class InvestigationLogCreator {
         return log;
     }
 
-    public InvestigationLog deleteClientLog(Client client, Author author) {
-        InvestigationLog log = new InvestigationLog();
-        log.setAuthor(author);
-        log.setDetails(LogDetails.builder()
-                .action("DELETE")
-                .entityId(client.getId())
-                .entityName("CLIENT")
-                .build());
-
-        return log;
-    }
-
-    public InvestigationLog restoreClientLog(Client client, Author author) {
-        InvestigationLog log = new InvestigationLog();
-        log.setAuthor(author);
-        log.setDetails(LogDetails.builder()
-                .action("RESTORE")
-                .entityId(client.getId())
-                .entityName("CLIENT")
-                .build());
-
-        return log;
-    }
-
     public InvestigationLog mergeClientLog(Client client, Client[] others, Author author) {
         InvestigationLog log = new InvestigationLog();
         log.setAuthor(author);

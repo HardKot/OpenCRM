@@ -23,31 +23,31 @@ import lombok.Setter;
 @Setter
 public class Client extends BaseEntity {
 
-    private String firstname;
+    private String firstname = "";
 
-    private String lastname;
+    private String lastname = "";
 
-    private String patronymic;
+    private String patronymic = "";
 
-    private String email;
+    private String email = "";
 
-    private String phoneNumber;
+    private String phoneNumber = "";
+
+    private long balance = 0;
 
     public Client merge(Client other) {
-        if (nameIsEmpty(firstname))
+        if (firstname.isEmpty())
             this.firstname = other.getFirstname();
-        if (nameIsEmpty(lastname))
+        if (lastname.isEmpty())
             this.lastname = other.getLastname();
-        if (nameIsEmpty(patronymic))
+        if (patronymic.isEmpty())
             this.patronymic = other.getPatronymic();
-        if (nameIsEmpty(email))
+        if (email.isEmpty())
             this.email = other.getEmail();
-        if (nameIsEmpty(phoneNumber))
+        if (phoneNumber.isEmpty())
             this.phoneNumber = other.getPhoneNumber();
-        return this;
-    }
 
-    private boolean nameIsEmpty(@Nullable String name) {
-        return Objects.isNull(name) || name.isBlank();
+        balance += other.getBalance();
+        return this;
     }
 }

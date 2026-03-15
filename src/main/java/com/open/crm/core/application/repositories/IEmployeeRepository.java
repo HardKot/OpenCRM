@@ -1,15 +1,17 @@
 package com.open.crm.core.application.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
+import com.open.crm.core.application.common.IRepository;
 import com.open.crm.core.entities.employee.Employee;
 
-public interface IEmployeeRepository extends JpaRepository<Employee, Long>, PagingAndSortingRepository<Employee, Long> {
-    long countByIsDeletedFalse();
+public interface IEmployeeRepository extends IRepository<Employee> {
+    Optional<Employee> findByEmail(String email);
+
+    long countByIsDeleted(boolean isDeleted);
 
     List<Employee> findAllByIsDeleted(PageRequest pageable, boolean isDeleted);
 }
