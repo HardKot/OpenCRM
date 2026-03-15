@@ -58,9 +58,17 @@ public class User extends BaseAdminEntity implements UserDetails {
     @Column(name = "permission")
     private Set<UserPermission> permissions = Set.of();
 
+    @Column(name = "is_enabled", nullable = false)
+    private boolean isEnabled = true;
+
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
     public UserPermission[] getPermissions() {

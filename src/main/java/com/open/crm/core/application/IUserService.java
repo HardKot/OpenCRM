@@ -6,6 +6,7 @@ public interface IUserService {
 
     void updateUserEmail(Employee employee, String email);
 
-    void createUserFromEmployee(Employee employee);
+    void enabledByEmployee(Employee employee);
 
+    void disabledByEmployee(Employee employee);
 }

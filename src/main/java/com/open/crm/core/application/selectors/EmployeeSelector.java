@@ -20,12 +20,12 @@ public class EmployeeSelector {
         if (includeDeleted) {
             return employeeRepository.count();
         }
-        return employeeRepository.countByDeletedFalse();
+        return employeeRepository.countByIsDeletedFalse();
     }
 
     public List<Employee> getPageEmployees(int page, int size, boolean includeDeleted) {
         return employeeRepository
-                .findAllByDeleted(PageRequest.of(page, size), includeDeleted);
+                .findAllByIsDeleted(PageRequest.of(page, size), includeDeleted);
     }
 
     public Optional<Employee> getEmployeeById(long id, boolean includeDeleted) {

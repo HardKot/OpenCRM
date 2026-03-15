@@ -1,9 +1,9 @@
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
+    tenant_id UUID NOT NULL,
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
     patronymic VARCHAR(255) NOT NULL,
-    tenant_id UUID NOT NULL,
     email VARCHAR(255) DEFAULT '',
     phone_number VARCHAR(255) DEFAULT '',
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
@@ -13,10 +13,10 @@ CREATE TABLE clients (
 
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
+    tenant_id UUID NOT NULL,
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
     patronymic VARCHAR(255) NOT NULL,
-    tenant_id UUID NOT NULL,
     position VARCHAR(255) NOT NULL,
     phone_number VARCHAR(255) DEFAULT '',
     email VARCHAR(255) DEFAULT '',
@@ -27,10 +27,11 @@ CREATE TABLE employees (
 
 CREATE TABLE investigation_logs (
     id SERIAL PRIMARY KEY,
-    author_id INTEGER NOT NULL,
     tenant_id UUID NOT NULL,
+    author_entity_id BIGINT,
+    author_entity_name VARCHAR(255) NOT NULL,
     details JSONB,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO
@@ -51,17 +52,17 @@ VALUES (
 
 INSERT INTO
     investigation_logs (
-        employee_id,
+        author_entity_name,
         tenant_id,
         details
     )
 VALUES (
-        1,
+        'SYSTEM',
         '${tenantId}',
         '{"description": "Создание организации" }'
     ),
     (
-        1,
+        'SYSTEM',
         '${tenantId}',
         '{"description": "Создание владельца организации", "action": "CREATE", "entity": "EMPLOYEE", "entityId": 1 }'
     );

@@ -1,18 +1,22 @@
-package com.open.crm.core.application.investigationLog;
+package com.open.crm.core.application;
 
+import java.util.Arrays;
+
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import com.open.crm.core.application.repositories.IInvestigationLogRepository;
 import com.open.crm.core.entities.client.Client;
+import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import com.open.crm.core.entities.investigationLog.LogDetails;
 
 import lombok.RequiredArgsConstructor;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class ClientInvestigationLog {
-
+public class InvestigationLogCreator {
     public InvestigationLog updateClientLog(Client client, Author author) {
         InvestigationLog log = new InvestigationLog();
         log.setAuthor(author);
@@ -69,9 +73,38 @@ public class ClientInvestigationLog {
                 .entityId(client.getId())
                 .entityName("CLIENT")
                 .description("Merged with clients: "
-                        + java.util.Arrays.toString(java.util.Arrays.stream(others).map(Client::getId).toArray()))
+                        + Arrays.toString(Arrays.stream(others).map(Client::getId).toArray()))
                 .build());
 
+        return log;
+    }
+
+    public InvestigationLog createEmployeeLog(Employee employee, Author author) {
+        InvestigationLog log = new InvestigationLog();
+        log.setAuthor(author);
+        log.setDetails(LogDetails.builder().action("CREATE").entityName("").entityId(employee.getId()).build());
+        return log;
+    }
+
+    public InvestigationLog updateEmployeeLog(Employee employee, Author author) {
+        InvestigationLog log = new InvestigationLog();
+        log.setAuthor(author);
+        log.setDetails(LogDetails.builder().action("UPDATE").entityName("EMPLOYEE").entityId(employee.getId()).build());
+        return log;
+    }
+
+    public InvestigationLog inviteEmployeeLog(Employee employee, Author author) {
+        InvestigationLog log = new InvestigationLog();
+        log.setAuthor(author);
+        log.setDetails(LogDetails.builder().action("INVITE").entityName("EMPLOYEE").entityId(employee.getId()).build());
+        return log;
+    }
+
+    public InvestigationLog updateAccessEmployeeLog(Employee employee, Author author) {
+        InvestigationLog log = new InvestigationLog();
+        log.setAuthor(author);
+        log.setDetails(
+                LogDetails.builder().action("UPDATE_ACCESS").entityName("EMPLOYEE").entityId(employee.getId()).build());
         return log;
     }
 }

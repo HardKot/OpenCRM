@@ -1,5 +1,7 @@
 package com.open.crm.admin.application;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -26,14 +28,17 @@ import com.open.crm.admin.entities.user.UserEntity;
 import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.core.application.IUserService;
+import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.NotFoundException;
+import com.open.crm.core.application.repositories.IInvestigationLogRepository;
 import com.open.crm.core.entities.employee.Employee;
+import com.open.crm.core.entities.investigationLog.Author;
+import com.open.crm.core.entities.investigationLog.InvestigationLog;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional("adminTransactionManager")
 public class UserService implements UserDetailsService, IUserService {
 
     private final IUserRepository userRepository;
@@ -44,6 +49,8 @@ public class UserService implements UserDetailsService, IUserService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final InvestigationLogCreator investigationLogCreator;
+    private final IInvestigationLogRepository investigationLogRepository;
     private final ISecurityGateway securityGateway;
 
     private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -64,6 +71,22 @@ public class UserService implements UserDetailsService, IUserService {
         });
     }
 
+    @Override
+    public void enabledByEmployee(Employee employee) {
+        userRepository.findByEmployeeId(employee.getId(), employee.getTenantId()).ifPresent(user -> {
+            user.setEnabled(true);
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void disabledByEmployee(Employee employee) {
+        userRepository.findByEmployeeId(employee.getId(), employee.getTenantId()).ifPresent(user -> {
+            user.setEnabled(false);
+            userRepository.save(user);
+        });
+    }
+
     public User updateUserEmail(User user, String email) throws UserException {
         if (userRepository.existsByEmail(email))
             throw new UserException("Email is already taken");
@@ -73,10 +96,13 @@ public class UserService implements UserDetailsService, IUserService {
         return updatedUser;
     }
 
-    @Override
-    public void createUserFromEmployee(Employee employee) throws UserException, NotFoundException {
+    public User createUserFromEmployee(Employee employee, Author author) throws UserException, NotFoundException {
         if (userRepository.existsEmployeeByEmail(employee.getEmail(), employee.getTenantId())) {
             throw new UserException("User already exists for employee with id: " + employee.getId());
+        }
+
+        if (employee.isDeleted()) {
+            throw new UserException("Cannot create user for deleted employee with id: " + employee.getId());
         }
 
         Tenant tenant = tenantRepository.findById(employee.getTenantId())
@@ -88,6 +114,10 @@ public class UserService implements UserDetailsService, IUserService {
         data.setTenant(tenant);
         data.setEntityId(employee.getId());
         createUser(data);
+        InvestigationLog log = investigationLogCreator.inviteEmployeeLog(employee, author);
+        investigationLogRepository.save(log);
+
+        return data;
     }
 
     public User createOwnerUser(Tenant tenant, String email, long entityId) throws UserException {
@@ -138,17 +168,30 @@ public class UserService implements UserDetailsService, IUserService {
         if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
             throw new UserException("Cannot change permissions for admin");
         }
-        user.setPermissions(new java.util.HashSet<>(java.util.Arrays.asList(permissions)));
+        user.setPermissions(new HashSet<>(Arrays.asList(permissions)));
 
         securityGateway.refreshAccessUser(user);
 
         return userRepository.save(user);
     }
 
-    public User updateUserPermissions(UUID userId, UserPermission[] permissions) throws UserException {
+    public User updateUserPermissionsByEmployee(Employee employee, UserPermission[] permissions, Author author)
+            throws UserException {
+        User user = getUserByEmployee(employee);
+        User updatedUser = updateUserPermissions(user, permissions);
+
+        InvestigationLog log = investigationLogCreator.updateAccessEmployeeLog(employee, author);
+        investigationLogRepository.save(log);
+
+        return updatedUser;
+    }
+
+    public User updateUserPermissions(UUID userId, UserPermission[] permissions, Author author) throws UserException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
-        return updateUserPermissions(user, permissions);
+        user = updateUserPermissions(user, permissions);
+
+        return user;
     }
 
     public User updatePassword(User user, String password) throws UserException {

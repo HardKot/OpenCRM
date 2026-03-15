@@ -9,7 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import com.open.crm.core.entities.employee.Employee;
 
 public interface IEmployeeRepository extends JpaRepository<Employee, Long>, PagingAndSortingRepository<Employee, Long> {
-    long countByDeletedFalse();
+    long countByIsDeletedFalse();
 
-    List<Employee> findAllByDeleted(PageRequest pageable, boolean deleted);
+    List<Employee> findAllByIsDeleted(PageRequest pageable, boolean isDeleted);
 }

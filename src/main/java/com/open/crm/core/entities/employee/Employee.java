@@ -1,7 +1,5 @@
 package com.open.crm.core.entities.employee;
 
-import org.hibernate.annotations.SQLDelete;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.open.crm.core.entities.common.BaseEntity;
 
