@@ -1,5 +1,6 @@
 package com.open.crm.controllers;
 
+import com.open.crm.admin.application.UserService;
 import java.util.Objects;
 
 import org.apache.catalina.connector.Response;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,8 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.open.crm.admin.application.UseCreateTenant;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.components.services.SessionService;
 import com.open.crm.controllers.dto.ApplicationErrorDto;
+import com.open.crm.controllers.dto.ChangePasswordDto;
 import com.open.crm.controllers.dto.LoginUserRequest;
 import com.open.crm.controllers.dto.LoginUserResponse;
 import com.open.crm.controllers.dto.TokenLoginUserResponse;
@@ -43,9 +48,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    private final UserService userService;
 
     private final UseCreateTenant useCreateTenant;
 
@@ -54,6 +60,7 @@ public class AuthController {
     private final TokenService tokenService;
 
     private final IUserRepository userRepository;
+    private final SessionService sessionEmployeeService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginUserResponse> actionLogin(@RequestBody LoginUserRequest entity,
@@ -73,6 +80,30 @@ public class AuthController {
                 user.getPermissions(),
                 user.getEntityId(), user.getEntityName(), user.getRole());
 
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/password/level")
+    public String actionGetPasswordLevel(@RequestBody String dto) {
+        PasswordType passwordType = userService.getPasswordType(dto);
+        return passwordType.name();
+
+    }
+
+    @PostMapping("/password")
+    public ResponseEntity<LoginUserResponse> actionChangePassword(@RequestBody ChangePasswordDto dto)
+            throws UserException {
+        User user = sessionEmployeeService.getUser();
+
+        if (!userService.matchPassword(dto.password(), user)) {
+            throw new UserException("Current password is incorrect");
+        }
+
+        user = userService.updatePassword(user, dto.newPassword());
+
+        LoginUserResponse loginResponse = new LoginUserResponse(true, user.getId(), user.getTenant().getId(),
+                user.getPermissions(),
+                user.getEntityId(), user.getEntityName(), user.getRole());
         return ResponseEntity.ok(loginResponse);
     }
 

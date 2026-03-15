@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.open.crm.components.errors.SessionException;
 import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.core.application.errors.ApplicationException;
 import com.open.crm.core.application.errors.NotFoundException;
@@ -23,4 +24,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApplicationErrorDto(ex.getMessage()));
     }
 
+    @ExceptionHandler({ SessionException.class })
+    public ResponseEntity<ApplicationErrorDto> handleSessionException(SessionException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApplicationErrorDto(ex.getMessage()));
+    }
 }

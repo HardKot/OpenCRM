@@ -194,6 +194,10 @@ public class UserService implements UserDetailsService, IUserService {
     }
 
     public User updatePassword(User user, String password) throws UserException {
+        if (matchPassword(password, user)) {
+            throw new UserException("New password cannot be the same as the old password");
+        }
+
         PasswordType passwordType = getPasswordType(password);
         if (passwordType == PasswordType.WEAK) {
             throw new UserException("Password is too weak");
@@ -242,4 +246,7 @@ public class UserService implements UserDetailsService, IUserService {
         return passwordEncoder.matches(password, hash);
     }
 
+    public boolean matchPassword(String password, User user) {
+        return passwordEncoder.matches(password, user.getPassword());
+    }
 }

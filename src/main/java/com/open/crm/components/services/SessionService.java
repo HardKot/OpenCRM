@@ -26,7 +26,7 @@ public class SessionService {
 
     private final IEmployeeRepository employeeRepository;
 
-    public User getUser() {
+    public User getUser() throws SessionException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Object principal = authentication.getPrincipal();
@@ -38,7 +38,7 @@ public class SessionService {
         throw new SessionException("Unauthorized");
     }
 
-    public Employee getEmployee() {
+    public Employee getEmployee() throws SessionException {
         User user = getUser();
         if (!user.isEmployeeUser()) {
             throw new SessionException("Current user is not an employee");
@@ -48,11 +48,11 @@ public class SessionService {
                 .orElseThrow(() -> new SessionException("Employee not found for current user"));
     }
 
-    public boolean isShowDeleted() {
+    public boolean isShowDeleted() throws SessionException {
         return false;
     }
 
-    public Author getAuthor() {
+    public Author getAuthor() throws SessionException {
         User user = getUser();
 
         Author author = new Author();
@@ -67,11 +67,11 @@ public class SessionService {
         return author;
     }
 
-    public Tenant getTenant() {
+    public Tenant getTenant() throws SessionException {
         return TenantContext.getCurrentTenant();
     }
 
-    public ClientInfoCleaner getClientInfoCleaner() {
+    public ClientInfoCleaner getClientInfoCleaner() throws SessionException {
         User user = getUser();
 
         boolean showName = user.hasPermission(UserPermission.CLIENT_NAME_SHOW);
