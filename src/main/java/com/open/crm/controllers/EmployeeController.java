@@ -48,9 +48,9 @@ public class EmployeeController {
     @GetMapping
     @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
     public ResponseEntity<List<Employee>> actionGetAll(
-            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "100") int size) {
-        return ResponseEntity.ok(employeeService.getEmployeeSelector().getItems(page, size,
+        return ResponseEntity.ok(employeeService.getEmployeeSelector().getItems(page - 1, size,
                 sessionEmployeeService.isShowDeleted()));
     }
 

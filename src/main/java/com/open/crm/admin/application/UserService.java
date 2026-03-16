@@ -30,6 +30,7 @@ import com.open.crm.core.application.IUserService;
 import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.repositories.IInvestigationLogRepository;
+import com.open.crm.core.application.services.InvestigationLogService;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
@@ -49,7 +50,7 @@ public class UserService implements UserDetailsService, IUserService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final InvestigationLogCreator investigationLogCreator;
-    private final IInvestigationLogRepository investigationLogRepository;
+    private final InvestigationLogService investigationLogService;
     private final ISecurityGateway securityGateway;
 
     private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -114,7 +115,7 @@ public class UserService implements UserDetailsService, IUserService {
         data.setEntityId(employee.getId());
         createUser(data);
         InvestigationLog log = investigationLogCreator.inviteEmployeeLog(employee, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
 
         return data;
     }
@@ -180,7 +181,7 @@ public class UserService implements UserDetailsService, IUserService {
         User updatedUser = updateUserPermissions(user, permissions);
 
         InvestigationLog log = investigationLogCreator.updateAccessEmployeeLog(employee, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
 
         return updatedUser;
     }

@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class ClientService {
     private final IClientRepository clientRepository;
     private final InvestigationLogCreator investigationLogCreator;
-    private final IInvestigationLogRepository investigationLogRepository;
+    private final InvestigationLogService investigationLogService;
 
     @Qualifier("clientSelectorData")
     private final SelectorData<Client> clientSelector;
@@ -40,7 +40,7 @@ public class ClientService {
 
         client = clientRepository.save(client);
         InvestigationLog log = investigationLogCreator.createClientLog(client, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
 
         return client;
     }
@@ -68,7 +68,7 @@ public class ClientService {
 
         Client updatedClient = clientRepository.save(existingClient);
         InvestigationLog log = investigationLogCreator.updateClientLog(updatedClient, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
 
         return clearClientInfo(updatedClient, cleaner);
     }
@@ -82,7 +82,7 @@ public class ClientService {
         client.setDeleted(true);
         Client deletedClient = clientRepository.save(client);
         InvestigationLog log = investigationLogCreator.updateClientLog(deletedClient, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
         return clearClientInfo(deletedClient, cleaner);
     }
 
@@ -95,7 +95,7 @@ public class ClientService {
         client.setDeleted(false);
         Client restoredClient = clientRepository.save(client);
         InvestigationLog log = investigationLogCreator.updateClientLog(restoredClient, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
         return clearClientInfo(restoredClient, cleaner);
     }
 
@@ -141,7 +141,7 @@ public class ClientService {
         }
         Client mergedClient = clientRepository.save(targetClient);
         InvestigationLog log = investigationLogCreator.mergeClientLog(mergedClient, sourceClients, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
         return mergedClient;
     }
 
@@ -153,7 +153,7 @@ public class ClientService {
         client.setBalance(newBalance);
         Client updatedClient = clientRepository.save(client);
         InvestigationLog log = investigationLogCreator.updateClientBalanceLog(updatedClient, author);
-        investigationLogRepository.save(log);
+        investigationLogService.saveLog(log);
         return updatedClient;
     }
 

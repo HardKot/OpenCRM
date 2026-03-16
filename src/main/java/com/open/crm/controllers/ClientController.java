@@ -31,98 +31,100 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequestMapping("/api/client")
 @RequiredArgsConstructor
 public class ClientController {
-    private final ClientService clientService;
-    private final SessionService sessionEmployeeService;
+        private final ClientService clientService;
+        private final SessionService sessionEmployeeService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-    public Client actionCreateClient(@RequestBody Client client) {
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+        public Client actionCreateClient(@RequestBody Client client) {
 
-        return clientService.createClient(client, sessionEmployeeService.getAuthor(),
-                sessionEmployeeService.getClientInfoCleaner());
-    }
-
-    @GetMapping
-    @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
-    public List<Client> actionGetClients(@RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "100") int size) {
-
-        return clientService.getClients(page, size, sessionEmployeeService.isShowDeleted(),
-                sessionEmployeeService.getClientInfoCleaner());
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
-    public Client actionGetClient(@PathVariable("id") long id) {
-        return clientService.getClientById(id, sessionEmployeeService.isShowDeleted(),
-                sessionEmployeeService.getClientInfoCleaner());
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-    public Client actionUpdateClient(@PathVariable("id") long id, @RequestBody Client data) {
-        data.setId(id);
-        Client entity = clientService.updateClient(data, sessionEmployeeService.getAuthor(),
-                sessionEmployeeService.getClientInfoCleaner());
-
-        if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
-            entity = clientService.manualUpdateClientBalance(entity, data.getBalance(),
-                    sessionEmployeeService.getAuthor());
+                return clientService.createClient(client, sessionEmployeeService.getAuthor(),
+                                sessionEmployeeService.getClientInfoCleaner());
         }
 
-        return entity;
-    }
+        @GetMapping
+        @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
+        public List<Client> actionGetClients(@RequestParam(name = "page", defaultValue = "1") int page,
+                        @RequestParam(name = "size", defaultValue = "100") int size) {
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-    public Client actionDeleteClient(@PathVariable("id") long id) {
-        Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-        clientService.deleteClient(entity, sessionEmployeeService.getAuthor(),
-                sessionEmployeeService.getClientInfoCleaner());
+                return clientService.getClients(page - 1, size, sessionEmployeeService.isShowDeleted(),
+                                sessionEmployeeService.getClientInfoCleaner());
+        }
 
-        return entity;
-    }
+        @GetMapping("/{id}")
+        @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
+        public Client actionGetClient(@PathVariable("id") long id) {
+                return clientService.getClientById(id, sessionEmployeeService.isShowDeleted(),
+                                sessionEmployeeService.getClientInfoCleaner());
+        }
 
-    @PostMapping("/{id}")
-    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-    public Client actionRestoreClient(@PathVariable("id") long id) {
-        Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-        clientService.restoreClient(entity, sessionEmployeeService.getAuthor(),
-                sessionEmployeeService.getClientInfoCleaner());
+        @PutMapping("/{id}")
+        @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+        public Client actionUpdateClient(@PathVariable("id") long id, @RequestBody Client data) {
+                data.setId(id);
+                Client entity = clientService.updateClient(data, sessionEmployeeService.getAuthor(),
+                                sessionEmployeeService.getClientInfoCleaner());
 
-        return entity;
-    }
+                if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
+                        entity = clientService.manualUpdateClientBalance(entity, data.getBalance(),
+                                        sessionEmployeeService.getAuthor());
+                }
 
-    @PutMapping("/{id}/merge")
-    @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-    public Client actionMergeClient(@PathVariable("id") long id, @RequestBody Long[] ids) {
-        Client targetClient = clientService.getClientById(id, false, sessionEmployeeService.getClientInfoCleaner());
-        Client[] sourceClients = Arrays.stream(ids)
-                .map(sourceId -> clientService.getClientById(sourceId, false,
-                        sessionEmployeeService.getClientInfoCleaner()))
-                .toArray(Client[]::new);
+                return entity;
+        }
 
-        targetClient = clientService.mergeClients(targetClient, sourceClients, sessionEmployeeService.getAuthor(),
-                sessionEmployeeService.getClientInfoCleaner());
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+        public Client actionDeleteClient(@PathVariable("id") long id) {
+                Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
+                clientService.deleteClient(entity, sessionEmployeeService.getAuthor(),
+                                sessionEmployeeService.getClientInfoCleaner());
 
-        return targetClient;
-    }
+                return entity;
+        }
 
-    @GetMapping("/{id}/duplicate")
-    @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
-    public Client[] getMethodName(@PathVariable("id") long id) {
-        Client client = clientService.getClientById(id, false,
-                sessionEmployeeService.getClientInfoCleaner());
+        @PostMapping("/{id}")
+        @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+        public Client actionRestoreClient(@PathVariable("id") long id) {
+                Client entity = clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
+                clientService.restoreClient(entity, sessionEmployeeService.getAuthor(),
+                                sessionEmployeeService.getClientInfoCleaner());
 
-        List<Client> duplicates = clientService.getDuplicateClients(client,
-                sessionEmployeeService.getClientInfoCleaner());
-        return duplicates.toArray(new Client[0]);
-    }
+                return entity;
+        }
 
-    @ExceptionHandler({ ClientException.class })
-    public ResponseEntity<ApplicationErrorDto> handleClientException(ClientException ex) {
-        ApplicationErrorDto error = new ApplicationErrorDto(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+        @PutMapping("/{id}/merge")
+        @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
+        public Client actionMergeClient(@PathVariable("id") long id, @RequestBody Long[] ids) {
+                Client targetClient = clientService.getClientById(id, false,
+                                sessionEmployeeService.getClientInfoCleaner());
+                Client[] sourceClients = Arrays.stream(ids)
+                                .map(sourceId -> clientService.getClientById(sourceId, false,
+                                                sessionEmployeeService.getClientInfoCleaner()))
+                                .toArray(Client[]::new);
+
+                targetClient = clientService.mergeClients(targetClient, sourceClients,
+                                sessionEmployeeService.getAuthor(),
+                                sessionEmployeeService.getClientInfoCleaner());
+
+                return targetClient;
+        }
+
+        @GetMapping("/{id}/duplicate")
+        @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
+        public Client[] getMethodName(@PathVariable("id") long id) {
+                Client client = clientService.getClientById(id, false,
+                                sessionEmployeeService.getClientInfoCleaner());
+
+                List<Client> duplicates = clientService.getDuplicateClients(client,
+                                sessionEmployeeService.getClientInfoCleaner());
+                return duplicates.toArray(new Client[0]);
+        }
+
+        @ExceptionHandler({ ClientException.class })
+        public ResponseEntity<ApplicationErrorDto> handleClientException(ClientException ex) {
+                ApplicationErrorDto error = new ApplicationErrorDto(ex.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
 }
