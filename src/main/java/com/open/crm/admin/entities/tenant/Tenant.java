@@ -1,7 +1,6 @@
 package com.open.crm.admin.entities.tenant;
 
 import com.open.crm.admin.entities.common.BaseAdminEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -16,13 +15,12 @@ import lombok.Setter;
 @Setter
 public class Tenant extends BaseAdminEntity {
 
-    @Column(nullable = false)
-    private Boolean active = true;
+  @Column(nullable = false)
+  private Boolean active = true;
 
-    @Column(name = "is_ready", nullable = false)
-    private boolean ready = false;
+  @Column(name = "is_ready", nullable = false)
+  private boolean ready = false;
 
-    @Column(name = "schema_name", nullable = false, unique = true)
-    private String schemaName;
-
+  @Column(name = "schema_name", nullable = false, unique = true)
+  private String schemaName;
 }

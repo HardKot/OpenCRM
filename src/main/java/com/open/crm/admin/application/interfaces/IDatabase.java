@@ -4,18 +4,17 @@ import com.open.crm.admin.entities.tenant.Tenant;
 
 public interface IDatabase {
 
-    void copySchema(String from, String to) throws Exception;
+  void copySchema(String from, String to) throws Exception;
 
-    void schemaChangeTenant(String schema, Tenant tenant) throws Exception;
+  void schemaChangeTenant(String schema, Tenant tenant) throws Exception;
 
-    void setValue(String table, String query, Tenant tenant) throws Exception;
+  void setValue(String table, String query, Tenant tenant) throws Exception;
 
-    void dropTimestamp(String schema) throws Exception;
+  void dropTimestamp(String schema) throws Exception;
 
-    String getTemplateTenantSchemaName();
+  String getTemplateTenantSchemaName();
 
-    void setContextTenant(Tenant tenant);
+  void setContextTenant(Tenant tenant);
 
-    void clearContextTenant();
-
+  void clearContextTenant();
 }

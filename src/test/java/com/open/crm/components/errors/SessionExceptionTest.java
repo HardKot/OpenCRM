@@ -7,17 +7,19 @@ import org.junit.jupiter.api.Test;
 
 public class SessionExceptionTest {
 
-    @Test
-    public void testConstructor() {
-        String message = "Test message";
-        SessionException exception = new SessionException(message);
-        assertEquals(message, exception.getMessage());
-    }
+  @Test
+  public void testConstructor() {
+    String message = "Test message";
+    SessionException exception = new SessionException(message);
+    assertEquals(message, exception.getMessage());
+  }
 
-    @Test
-    public void testThrow() {
-        assertThrows(SessionException.class, () -> {
-            throw new SessionException("Unauthorized");
+  @Test
+  public void testThrow() {
+    assertThrows(
+        SessionException.class,
+        () -> {
+          throw new SessionException("Unauthorized");
         });
-    }
+  }
 }

@@ -1,12 +1,17 @@
 package com.open.crm.security;
 
+import com.open.crm.admin.application.interfaces.ITenantRepository;
+import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.entities.tenant.Tenant;
+import com.open.crm.admin.entities.user.User;
+import com.open.crm.config.JwtProperties;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -15,148 +20,150 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import com.open.crm.admin.application.interfaces.ITenantRepository;
-import com.open.crm.admin.application.interfaces.IUserRepository;
-import com.open.crm.admin.entities.tenant.Tenant;
-import com.open.crm.admin.entities.user.User;
-import com.open.crm.config.JwtProperties;
-
-import lombok.RequiredArgsConstructor;
-
 @Service
 @RequiredArgsConstructor
 public class TokenService {
 
-    private final JwtProperties jwtProperties;
+  private final JwtProperties jwtProperties;
 
-    private final JwtDecoder jwtDecoder;
+  private final JwtDecoder jwtDecoder;
 
-    private final JwtEncoder jwtEncoder;
+  private final JwtEncoder jwtEncoder;
 
-    private final JwsHeader jwtHeaders;
+  private final JwsHeader jwtHeaders;
 
-    private final IUserRepository userRepository;
+  private final IUserRepository userRepository;
 
-    private final ITenantRepository tenantRepository;
+  private final ITenantRepository tenantRepository;
 
-    private final Set<String> blockedToken = HashSet.newHashSet(0);
-    private final Set<UUID> promiseUserToken = HashSet.newHashSet(0);
+  private final Set<String> blockedToken = HashSet.newHashSet(0);
+  private final Set<UUID> promiseUserToken = HashSet.newHashSet(0);
 
-    public Jwt decodeToken(String token) throws TokenException {
-        Jwt jwt = jwtDecoder.decode(token);
+  public Jwt decodeToken(String token) throws TokenException {
+    Jwt jwt = jwtDecoder.decode(token);
 
-        if (Objects.isNull(jwt)) {
-            throw new TokenException("Invalid token");
-        }
-
-        Optional<TokenType> tokenTypeOpt = getType(jwt);
-        Optional<User> userOpt = getUserFromToken(jwt);
-
-        if (Objects.isNull(jwt) || Objects.isNull(jwt.getId()) || tokenTypeOpt.isEmpty()) {
-            throw new TokenException("Invalid token");
-        }
-
-        if (blockedToken.contains(jwt.getId())) {
-            throw new TokenException("Token is blocked");
-        }
-
-        if (tokenTypeOpt.get().equals(TokenType.ACCESS) && userOpt.isPresent()
-                && promiseUserToken.contains(userOpt.get().getId())) {
-            throw new TokenException("Token is need to be refreshed");
-        }
-
-        return jwt;
+    if (Objects.isNull(jwt)) {
+      throw new TokenException("Invalid token");
     }
 
-    public Optional<TokenType> getType(Jwt jwt) {
-        String typeStr = jwt.getClaimAsString(CLAIM_TYPE);
-        if (Objects.isNull(typeStr))
-            return Optional.empty();
+    Optional<TokenType> tokenTypeOpt = getType(jwt);
+    Optional<User> userOpt = getUserFromToken(jwt);
 
-        try {
-            return Optional.of(TokenType.fromValue(typeStr));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
+    if (Objects.isNull(jwt) || Objects.isNull(jwt.getId()) || tokenTypeOpt.isEmpty()) {
+      throw new TokenException("Invalid token");
     }
 
-    public Optional<Tenant> getTenantIdFromToken(Jwt jwt) {
-        try {
-            String tenantIdStr = jwt.getClaimAsString(CLAIM_TENANT_ID);
-            UUID tenantId = UUID.fromString(tenantIdStr);
-
-            return tenantRepository.findById(tenantId);
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
+    if (blockedToken.contains(jwt.getId())) {
+      throw new TokenException("Token is blocked");
     }
 
-    public Optional<User> getUserFromToken(Jwt jwt) {
-        String email = jwt.getSubject();
-        return userRepository.findByEmail(email);
+    if (tokenTypeOpt.get().equals(TokenType.ACCESS)
+        && userOpt.isPresent()
+        && promiseUserToken.contains(userOpt.get().getId())) {
+      throw new TokenException("Token is need to be refreshed");
     }
 
-    public TokenData generateTokenPairs(User user) {
-        Jwt refreshToken = generateRefreshToken(user);
-        Jwt accessToken = generateAccessToken(user, refreshToken);
+    return jwt;
+  }
 
-        return new TokenData(accessToken, refreshToken, user.getId(), user.getTenant().getId(),
-                user.getPermissions(),
-                user.getEntityId(), user.getEntityName(), user.getRole());
+  public Optional<TokenType> getType(Jwt jwt) {
+    String typeStr = jwt.getClaimAsString(CLAIM_TYPE);
+    if (Objects.isNull(typeStr)) return Optional.empty();
+
+    try {
+      return Optional.of(TokenType.fromValue(typeStr));
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
     }
+  }
 
-    public TokenData refreshTokne(String refreshToken) throws TokenException {
-        Jwt decodedRefreshToken = decodeToken(refreshToken);
+  public Optional<Tenant> getTenantIdFromToken(Jwt jwt) {
+    try {
+      String tenantIdStr = jwt.getClaimAsString(CLAIM_TENANT_ID);
+      UUID tenantId = UUID.fromString(tenantIdStr);
 
-        String email = decodedRefreshToken.getSubject();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new TokenException("User not found"));
-        blockedToken.add(decodedRefreshToken.getId());
-
-        return generateTokenPairs(user);
+      return tenantRepository.findById(tenantId);
+    } catch (IllegalArgumentException e) {
+      return Optional.empty();
     }
+  }
 
-    public void blockToken(Jwt jwt) {
-        blockedToken.add(jwt.getId());
-    }
+  public Optional<User> getUserFromToken(Jwt jwt) {
+    String email = jwt.getSubject();
+    return userRepository.findByEmail(email);
+  }
 
-    private Jwt generateRefreshToken(User user) {
-        UUID tokenId = UUID.randomUUID();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .id(tokenId.toString())
-                .subject(user.getEmail())
-                .claim(CLAIM_TYPE, TokenType.REFRESH.getValue())
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusMillis(jwtProperties.getRefreshExpires()))
-                .build();
+  public TokenData generateTokenPairs(User user) {
+    Jwt refreshToken = generateRefreshToken(user);
+    Jwt accessToken = generateAccessToken(user, refreshToken);
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
-    }
+    return new TokenData(
+        accessToken,
+        refreshToken,
+        user.getId(),
+        user.getTenant().getId(),
+        user.getPermissions(),
+        user.getEntityId(),
+        user.getEntityName(),
+        user.getRole());
+  }
 
-    private Jwt generateAccessToken(User user, Jwt refreshToken) {
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .id(refreshToken.getId())
-                .subject(user.getEmail())
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusMillis(jwtProperties.getAccessExpires()))
-                .claim(CLAIM_TYPE, TokenType.ACCESS.getValue())
-                .claim(CLAIM_USER_ID, user.getId())
-                .claim(CLAIM_AUTHORITIES, user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
-                .claim(CLAIM_TENANT_ID, user.getTenant().getId())
-                .build();
+  public TokenData refreshTokne(String refreshToken) throws TokenException {
+    Jwt decodedRefreshToken = decodeToken(refreshToken);
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
-    }
+    String email = decodedRefreshToken.getSubject();
+    User user =
+        userRepository.findByEmail(email).orElseThrow(() -> new TokenException("User not found"));
+    blockedToken.add(decodedRefreshToken.getId());
 
-    public void addRefreshUserTokens(User user) {
-        promiseUserToken.add(user.getId());
-    }
+    return generateTokenPairs(user);
+  }
 
-    private static final String CLAIM_TYPE = "type";
+  public void blockToken(Jwt jwt) {
+    blockedToken.add(jwt.getId());
+  }
 
-    private static final String CLAIM_AUTHORITIES = "authorities";
+  private Jwt generateRefreshToken(User user) {
+    UUID tokenId = UUID.randomUUID();
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
+            .id(tokenId.toString())
+            .subject(user.getEmail())
+            .claim(CLAIM_TYPE, TokenType.REFRESH.getValue())
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plusMillis(jwtProperties.getRefreshExpires()))
+            .build();
 
-    private static final String CLAIM_TENANT_ID = "tenantId";
+    return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
+  }
 
-    private static final String CLAIM_USER_ID = "userId";
+  private Jwt generateAccessToken(User user, Jwt refreshToken) {
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
+            .id(refreshToken.getId())
+            .subject(user.getEmail())
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plusMillis(jwtProperties.getAccessExpires()))
+            .claim(CLAIM_TYPE, TokenType.ACCESS.getValue())
+            .claim(CLAIM_USER_ID, user.getId())
+            .claim(
+                CLAIM_AUTHORITIES,
+                user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
+            .claim(CLAIM_TENANT_ID, user.getTenant().getId())
+            .build();
 
+    return jwtEncoder.encode(JwtEncoderParameters.from(jwtHeaders, claims));
+  }
+
+  public void addRefreshUserTokens(User user) {
+    promiseUserToken.add(user.getId());
+  }
+
+  private static final String CLAIM_TYPE = "type";
+
+  private static final String CLAIM_AUTHORITIES = "authorities";
+
+  private static final String CLAIM_TENANT_ID = "tenantId";
+
+  private static final String CLAIM_USER_ID = "userId";
 }

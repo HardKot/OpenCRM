@@ -10,13 +10,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final TenantSprngInterceptor tenantInterceptor;
+  private final TenantSprngInterceptor tenantInterceptor;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tenantInterceptor)
-            .addPathPatterns("/**")
-            .excludePathPatterns("/auth/**", "/health", "/actuator/**");
-    }
-
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry
+        .addInterceptor(tenantInterceptor)
+        .addPathPatterns("/**")
+        .excludePathPatterns("/auth/**", "/health", "/actuator/**");
+  }
 }

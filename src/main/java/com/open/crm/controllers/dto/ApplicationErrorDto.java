@@ -1,4 +1,3 @@
 package com.open.crm.controllers.dto;
 
-public record ApplicationErrorDto(String message) {
-}
+public record ApplicationErrorDto(String message) {}

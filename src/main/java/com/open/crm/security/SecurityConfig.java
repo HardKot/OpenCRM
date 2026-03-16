@@ -1,11 +1,18 @@
 package com.open.crm.security;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetSequenceKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.open.crm.config.JwtProperties;
 import java.util.Base64;
-
 import javax.crypto.spec.SecretKeySpec;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,24 +23,11 @@ import org.springframework.security.config.annotation.web.configurers.LogoutConf
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.open.crm.config.JwtProperties;
-
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.*;
-
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -41,66 +35,73 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+  @Bean
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+  }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource,
-            JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
-        return http
-                .authorizeHttpRequests(request -> request.requestMatchers("/auth/**", "/login", "/error")
-                        .permitAll()
-                        .requestMatchers("/api-docs/**", "/swagger-ui/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .securityContext(ctx -> ctx.requireExplicitSave(false))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(LogoutConfigurer::permitAll)
-                .cors(cors -> cors.disable())
-                .csrf(csrf -> csrf.disable())
-                .build();
-    }
+  @Bean
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      CorsConfigurationSource corsConfigurationSource,
+      JwtAuthenticationFilter jwtAuthenticationFilter)
+      throws Exception {
+    return http.authorizeHttpRequests(
+            request ->
+                request
+                    .requestMatchers("/auth/**", "/login", "/error")
+                    .permitAll()
+                    .requestMatchers("/api-docs/**", "/swagger-ui/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .securityContext(ctx -> ctx.requireExplicitSave(false))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+        .formLogin(AbstractHttpConfigurer::disable)
+        .logout(LogoutConfigurer::permitAll)
+        .cors(cors -> cors.disable())
+        .csrf(csrf -> csrf.disable())
+        .build();
+  }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public JwtDecoder jwtAccessDecoder(JwtProperties jwtProperties) {
-        byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
-        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256"))
-                .macAlgorithm(MacAlgorithm.HS256)
-                .build();
-    }
+  @Bean
+  public JwtDecoder jwtAccessDecoder(JwtProperties jwtProperties) {
+    byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
+    return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(keyBytes, "HmacSHA256"))
+        .macAlgorithm(MacAlgorithm.HS256)
+        .build();
+  }
 
-    @Bean
-    public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
-        byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
-        OctetSequenceKey jwk = new OctetSequenceKey.Builder(keyBytes).keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.HS256)
-                .keyID("hmac-main")
-                .build();
-        return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
-    }
+  @Bean
+  public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
+    byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
+    OctetSequenceKey jwk =
+        new OctetSequenceKey.Builder(keyBytes)
+            .keyUse(KeyUse.SIGNATURE)
+            .algorithm(JWSAlgorithm.HS256)
+            .keyID("hmac-main")
+            .build();
+    return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
+  }
 
-    @Bean
-    public JwsHeader jwtHeaders() {
-        return JwsHeader.with(MacAlgorithm.HS256).build();
-    }
+  @Bean
+  public JwsHeader jwtHeaders() {
+    return JwsHeader.with(MacAlgorithm.HS256).build();
+  }
 
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(
-            CustomPermissionEvaluator permissionEvaluator) {
-        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
-        handler.setPermissionEvaluator(permissionEvaluator);
-        return handler;
-    }
-
+  @Bean
+  public MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+      CustomPermissionEvaluator permissionEvaluator) {
+    DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+    handler.setPermissionEvaluator(permissionEvaluator);
+    return handler;
+  }
 }

@@ -13,10 +13,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class Author {
-    @Column(name = "author_entity_id")
-    private Long entityId;
+  @Column(name = "author_entity_id")
+  private Long entityId;
 
-    @Column(name = "author_entity_name")
-    @Enumerated(EnumType.STRING)
-    private AuthorEntityName entityName;
+  @Column(name = "author_entity_name")
+  @Enumerated(EnumType.STRING)
+  private AuthorEntityName entityName;
 }

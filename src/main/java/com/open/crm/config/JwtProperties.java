@@ -1,10 +1,9 @@
 package com.open.crm.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "jwt")
@@ -12,10 +11,9 @@ import lombok.Setter;
 @Setter
 public class JwtProperties {
 
-    private String secret;
+  private String secret;
 
-    private Long accessExpires;
+  private Long accessExpires;
 
-    private Long refreshExpires;
-
+  private Long refreshExpires;
 }

@@ -1,17 +1,7 @@
 package com.open.crm.admin.entities.user;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import com.open.crm.admin.entities.common.BaseAdminEntity;
 import com.open.crm.admin.entities.tenant.Tenant;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -23,9 +13,16 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users", schema = "public")
@@ -34,79 +31,82 @@ import lombok.Setter;
 @Setter
 public class User extends BaseAdminEntity implements UserDetails {
 
-    @Column(nullable = false, unique = true)
-    private String email = "";
+  @Column(nullable = false, unique = true)
+  private String email = "";
 
-    @Column(nullable = false)
-    private String password = "";
+  @Column(nullable = false)
+  private String password = "";
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
-    private Tenant tenant;
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
+  private Tenant tenant;
 
-    @Column(nullable = true, name = "entity_name")
-    @Enumerated(EnumType.STRING)
-    private UserEntity entityName;
+  @Column(nullable = true, name = "entity_name")
+  @Enumerated(EnumType.STRING)
+  private UserEntity entityName;
 
-    @Column(nullable = true, name = "entity_id")
-    private long entityId;
+  @Column(nullable = true, name = "entity_id")
+  private long entityId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role = UserRole.ROLE_EMPLOYEE;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private UserRole role = UserRole.ROLE_EMPLOYEE;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_permissions", schema = "public", joinColumns = @JoinColumn(name = "user_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "permission")
-    private Set<UserPermission> permissions = Set.of();
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "user_permissions",
+      schema = "public",
+      joinColumns = @JoinColumn(name = "user_id"))
+  @Enumerated(EnumType.STRING)
+  @Column(name = "permission")
+  private Set<UserPermission> permissions = Set.of();
 
-    @Column(name = "is_enabled", nullable = false)
-    private boolean isEnabled = true;
+  @Column(name = "is_enabled", nullable = false)
+  private boolean isEnabled = true;
 
-    @Override
-    public String getUsername() {
-        return email;
+  @Override
+  public String getUsername() {
+    return email;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return isEnabled;
+  }
+
+  public boolean isEmployeeUser() {
+    return Objects.equals(entityName, UserEntity.EMPLOYEE);
+  }
+
+  public UserPermission[] getPermissions() {
+    if (role.equals(UserRole.ROLE_OWNER)) {
+      return UserPermission.values();
     }
 
-    @Override
-    public boolean isEnabled() {
-        return isEnabled;
+    if (role.equals(UserRole.ROLE_ADMIN)) {
+      return UserPermission.values();
     }
 
-    public boolean isEmployeeUser() {
-        return Objects.equals(entityName, UserEntity.EMPLOYEE);
+    return permissions.toArray(new UserPermission[0]);
+  }
+
+  public boolean hasPermission(UserPermission permission) {
+    if (role.equals(UserRole.ROLE_OWNER)) {
+      return true;
     }
 
-    public UserPermission[] getPermissions() {
-        if (role.equals(UserRole.ROLE_OWNER)) {
-            return UserPermission.values();
-        }
-
-        if (role.equals(UserRole.ROLE_ADMIN)) {
-            return UserPermission.values();
-        }
-
-        return permissions.toArray(new UserPermission[0]);
+    if (role.equals(UserRole.ROLE_ADMIN)) {
+      return true;
     }
 
-    public boolean hasPermission(UserPermission permission) {
-        if (role.equals(UserRole.ROLE_OWNER)) {
-            return true;
-        }
+    return permissions.contains(permission);
+  }
 
-        if (role.equals(UserRole.ROLE_ADMIN)) {
-            return true;
-        }
-
-        return permissions.contains(permission);
-    }
-
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        Set<SimpleGrantedAuthority> authorities = permissions.stream()
-                .map(it -> new SimpleGrantedAuthority(it.name()))
-                .collect(Collectors.toSet());
-        authorities.add(new SimpleGrantedAuthority(role.name()));
-        return authorities;
-    }
-
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    Set<SimpleGrantedAuthority> authorities =
+        permissions.stream()
+            .map(it -> new SimpleGrantedAuthority(it.name()))
+            .collect(Collectors.toSet());
+    authorities.add(new SimpleGrantedAuthority(role.name()));
+    return authorities;
+  }
 }

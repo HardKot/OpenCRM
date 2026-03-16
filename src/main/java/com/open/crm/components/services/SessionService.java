@@ -1,12 +1,5 @@
 package com.open.crm.components.services;
 
-import java.util.Optional;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import org.springframework.stereotype.Service;
-
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.admin.entities.user.UserPermission;
@@ -17,65 +10,68 @@ import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.AuthorEntityName;
 import com.open.crm.tenancy.TenantContext;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class SessionService {
 
-    private final IEmployeeRepository employeeRepository;
+  private final IEmployeeRepository employeeRepository;
 
-    public User getUser() throws SessionException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+  public User getUser() throws SessionException {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        Object principal = authentication.getPrincipal();
+    Object principal = authentication.getPrincipal();
 
-        if (principal instanceof User) {
-            return (User) principal;
-        }
-
-        throw new SessionException("Unauthorized");
+    if (principal instanceof User) {
+      return (User) principal;
     }
 
-    public Employee getEmployee() throws SessionException {
-        User user = getUser();
-        if (!user.isEmployeeUser()) {
-            throw new SessionException("Current user is not an employee");
-        }
+    throw new SessionException("Unauthorized");
+  }
 
-        return employeeRepository.findById(user.getEntityId())
-                .orElseThrow(() -> new SessionException("Employee not found for current user"));
+  public Employee getEmployee() throws SessionException {
+    User user = getUser();
+    if (!user.isEmployeeUser()) {
+      throw new SessionException("Current user is not an employee");
     }
 
-    public boolean isShowDeleted() throws SessionException {
-        return false;
+    return employeeRepository
+        .findById(user.getEntityId())
+        .orElseThrow(() -> new SessionException("Employee not found for current user"));
+  }
+
+  public boolean isShowDeleted() throws SessionException {
+    return false;
+  }
+
+  public Author getAuthor() throws SessionException {
+    User user = getUser();
+
+    Author author = new Author();
+    author.setEntityName(AuthorEntityName.SYSTEM);
+
+    if (user.isEmployeeUser()) {
+      Employee employee = getEmployee();
+      author.setEntityId(employee.getId());
+      author.setEntityName(AuthorEntityName.EMPLOYEE);
     }
 
-    public Author getAuthor() throws SessionException {
-        User user = getUser();
+    return author;
+  }
 
-        Author author = new Author();
-        author.setEntityName(AuthorEntityName.SYSTEM);
+  public Tenant getTenant() throws SessionException {
+    return TenantContext.getCurrentTenant();
+  }
 
-        if (user.isEmployeeUser()) {
-            Employee employee = getEmployee();
-            author.setEntityId(employee.getId());
-            author.setEntityName(AuthorEntityName.EMPLOYEE);
-        }
+  public ClientInfoCleaner getClientInfoCleaner() throws SessionException {
+    User user = getUser();
 
-        return author;
-    }
-
-    public Tenant getTenant() throws SessionException {
-        return TenantContext.getCurrentTenant();
-    }
-
-    public ClientInfoCleaner getClientInfoCleaner() throws SessionException {
-        User user = getUser();
-
-        boolean showName = user.hasPermission(UserPermission.CLIENT_NAME_SHOW);
-        boolean showContact = user.hasPermission(UserPermission.CLIENT_CONTACT_SHOW);
-        return new ClientInfoCleaner(!showName, !showContact);
-    }
+    boolean showName = user.hasPermission(UserPermission.CLIENT_NAME_SHOW);
+    boolean showContact = user.hasPermission(UserPermission.CLIENT_CONTACT_SHOW);
+    return new ClientInfoCleaner(!showName, !showContact);
+  }
 }

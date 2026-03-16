@@ -1,22 +1,20 @@
 package com.open.crm.core.entities.investigationLog;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.TenantId;
-import org.hibernate.type.SqlTypes;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.TenantId;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "investigation_logs")
@@ -25,22 +23,21 @@ import lombok.Setter;
 @NoArgsConstructor
 public class InvestigationLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private Author author;
+  private Author author;
 
-    @TenantId
-    @Column(name = "tenant_id", nullable = false)
-    private UUID tenantId;
+  @TenantId
+  @Column(name = "tenant_id", nullable = false)
+  private UUID tenantId;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "details", columnDefinition = "jsonb")
-    private LogDetails details;
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "details", columnDefinition = "jsonb")
+  private LogDetails details;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 }

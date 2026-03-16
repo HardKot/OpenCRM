@@ -6,18 +6,17 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum TokenType {
+  ACCESS("access"),
+  REFRESH("refresh");
 
-    ACCESS("access"), REFRESH("refresh");
+  private final String value;
 
-    private final String value;
-
-    public static TokenType fromValue(String value) {
-        for (TokenType type : values()) {
-            if (type.value.equalsIgnoreCase(value)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown token type: " + value);
+  public static TokenType fromValue(String value) {
+    for (TokenType type : values()) {
+      if (type.value.equalsIgnoreCase(value)) {
+        return type;
+      }
     }
-
+    throw new IllegalArgumentException("Unknown token type: " + value);
+  }
 }
