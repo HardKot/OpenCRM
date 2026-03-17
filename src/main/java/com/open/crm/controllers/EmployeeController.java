@@ -4,9 +4,11 @@ import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.admin.entities.user.UserPermission;
+import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.controllers.dto.EmployeeAccess;
+import com.open.crm.controllers.dto.EmployeeDto;
 import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.services.EmployeeService;
 import com.open.crm.core.entities.employee.Employee;
@@ -29,79 +31,83 @@ public class EmployeeController {
   private final UserService userService;
 
   private final SessionService sessionEmployeeService;
+  private final IEmployeeMapper employeeMapper;
 
   @PostMapping
   @Transactional
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public Employee actionCreate(@RequestBody Employee employee) {
+  public EmployeeDto actionCreate(@RequestBody EmployeeDto employee) {
     Author author = sessionEmployeeService.getAuthor();
 
-    Employee createdEmployee = employeeService.createEmployee(employee, author);
+    Employee createdEmployee =
+        employeeService.createEmployee(employeeMapper.toEntity(employee), author);
 
-    return createdEmployee;
+    return employeeMapper.toDto(createdEmployee);
   }
 
   @GetMapping
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public ResponseEntity<List<Employee>> actionGetAll(
+  public List<EmployeeDto> actionGetAll(
       @RequestParam(name = "page", defaultValue = "1") int page,
       @RequestParam(name = "size", defaultValue = "100") int size) {
-    return ResponseEntity.ok(
-        employeeService
-            .getEmployeeSelector()
-            .getItems(page - 1, size, sessionEmployeeService.isShowDeleted()));
+    return employeeService
+        .getEmployeeSelector()
+        .getItems(page - 1, size, sessionEmployeeService.isShowDeleted())
+        .stream()
+        .map(employeeMapper::toDto)
+        .toList();
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public Employee actionUpdate(@PathVariable("id") long id, @RequestBody Employee data) {
+  public EmployeeDto actionUpdate(@PathVariable("id") long id, @RequestBody EmployeeDto data) {
     Author author = sessionEmployeeService.getAuthor();
+    Employee employee = employeeMapper.toEntity(data);
+    employee.setId(id);
+    employee = employeeService.updateEmployeeData(employee, author);
 
-    data.setId(id);
-    Employee employee = employeeService.updateEmployeeData(data, author);
-
-    if (!data.getEmail().equals(employee.getEmail())) {
-      employee = employeeService.updateEmail(employee, data.getEmail(), author);
+    if (!data.email().equals(employee.getEmail())) {
+      employee = employeeService.updateEmail(employee, data.email(), author);
     }
 
-    return employee;
+    return employeeMapper.toDto(employee);
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public Employee actionGet(@PathVariable("id") long id) {
-    return employeeService.getEmployeeById(id);
+  public EmployeeDto actionGet(@PathVariable("id") long id) {
+    return employeeMapper.toDto(employeeService.getEmployeeById(id));
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public Employee actionDelete(@PathVariable("id") long id) {
+  public EmployeeDto actionDelete(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
     Employee employee = employeeService.getEmployeeById(id);
     employee = employeeService.deleteEmployee(employee, author);
-    return employee;
+    return employeeMapper.toDto(employee);
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public Employee actionRestore(@PathVariable("id") long id) {
+  public EmployeeDto actionRestore(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
     Employee employee = employeeService.getEmployeeById(id);
     employee = employeeService.restoreEmployee(employee, author);
-    return employee;
+    return employeeMapper.toDto(employee);
   }
 
   @PostMapping("/{id}/invite")
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-  public Employee actionInvite(@PathVariable("id") long id) {
+  public EmployeeDto actionInvite(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
 
     Employee employee = employeeService.getEmployeeById(id);
     userService.createUserFromEmployee(employee, author);
 
-    return employee;
+    return employeeMapper.toDto(employee);
   }
 
   @GetMapping("{id}/access")
