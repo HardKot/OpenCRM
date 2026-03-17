@@ -1,6 +1,8 @@
 package com.open.crm.core.application;
 
 import com.open.crm.core.entities.client.Client;
+import com.open.crm.core.entities.commodity.Commodity;
+import com.open.crm.core.entities.commodity.CommodityCategory;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
@@ -107,6 +109,64 @@ public class InvestigationLogCreator {
             .entityId(client.getId())
             .entityName("CLIENT")
             .description("New balance: " + client.getBalance())
+            .build());
+
+    return log;
+  }
+
+  public InvestigationLog createCommodityCategoryCreationLog(
+      CommodityCategory category, Author author) {
+    InvestigationLog log = new InvestigationLog();
+    log.setAuthor(author);
+    log.setDetails(
+        LogDetails.builder()
+            .action("CREATE")
+            .entityId(category.getId())
+            .entityName("COMMODITY_CATEGORY")
+            .description("Created category: " + category.getName())
+            .build());
+
+    return log;
+  }
+
+  public InvestigationLog createCommodityCategoryUpdateLog(
+      CommodityCategory category, Author author) {
+    InvestigationLog log = new InvestigationLog();
+    log.setAuthor(author);
+    log.setDetails(
+        LogDetails.builder()
+            .action("UPDATE")
+            .entityId(category.getId())
+            .entityName("COMMODITY_CATEGORY")
+            .description("Updated category: " + category.getName())
+            .build());
+
+    return log;
+  }
+
+  public InvestigationLog createCommodityCreationLog(Commodity commodity, Author author) {
+    InvestigationLog log = new InvestigationLog();
+    log.setAuthor(author);
+    log.setDetails(
+        LogDetails.builder()
+            .action("CREATE")
+            .entityId(commodity.getId())
+            .entityName("COMMODITY")
+            .description("Created commodity: " + commodity.getName())
+            .build());
+
+    return log;
+  }
+
+  public InvestigationLog createCommodityUpdateLog(Commodity commodity, Author author) {
+    InvestigationLog log = new InvestigationLog();
+    log.setAuthor(author);
+    log.setDetails(
+        LogDetails.builder()
+            .action("UPDATE")
+            .entityId(commodity.getId())
+            .entityName("COMMODITY")
+            .description("Updated commodity: " + commodity.getName())
             .build());
 
     return log;

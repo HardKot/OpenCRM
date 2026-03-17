@@ -35,6 +35,32 @@ CREATE TABLE investigation_logs (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE commodity_categories (
+    id SERIAL PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    description VARCHAR(255) DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    parent_category_id INTEGER,
+    FOREIGN KEY (parent_category_id) REFERENCES commodity_categories (id)
+);
+
+CREATE TABLE commodities (
+    id SERIAL PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    category_id INTEGER,
+    cost INTEGER NOT NULL,
+    description VARCHAR(255) DEFAULT '',
+    FOREIGN KEY (category_id) REFERENCES commodity_categories (id)
+);
+
 INSERT INTO
     employees (
         firstname,

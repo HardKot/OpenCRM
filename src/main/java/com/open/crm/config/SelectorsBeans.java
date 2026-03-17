@@ -1,6 +1,8 @@
 package com.open.crm.config;
 
 import com.open.crm.core.application.repositories.IClientRepository;
+import com.open.crm.core.application.repositories.ICommodityCategoryRepository;
+import com.open.crm.core.application.repositories.ICommodityRepository;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.services.SelectorData;
 import com.open.crm.core.entities.employee.Employee;
@@ -19,5 +21,16 @@ public class SelectorsBeans {
   @Bean("clientSelectorData")
   public SelectorData<?> clientSelectorData(IClientRepository clientRepository) {
     return new SelectorData<>(clientRepository);
+  }
+
+  @Bean("commoditySelectorData")
+  public SelectorData<?> commoditySelectorData(ICommodityRepository commodityRepository) {
+    return new SelectorData<>(commodityRepository);
+  }
+
+  @Bean("commodityCategorySelectorData")
+  public SelectorData<?> commodityCategorySelectorData(
+      ICommodityCategoryRepository commodityCategoryRepository) {
+    return new SelectorData<>(commodityCategoryRepository);
   }
 }
