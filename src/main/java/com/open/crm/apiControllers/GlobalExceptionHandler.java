@@ -1,7 +1,7 @@
-package com.open.crm.controllers;
+package com.open.crm.apiControllers;
 
+import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.components.errors.SessionException;
-import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.core.application.errors.ApplicationException;
 import com.open.crm.core.application.errors.NotFoundException;
 import org.springframework.http.HttpStatus;

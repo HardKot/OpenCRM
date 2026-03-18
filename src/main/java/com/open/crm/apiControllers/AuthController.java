@@ -1,19 +1,20 @@
-package com.open.crm.controllers;
+package com.open.crm.apiControllers;
 
 import com.open.crm.admin.application.UseCreateTenant;
 import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
+import com.open.crm.apiControllers.dto.ApplicationErrorDto;
+import com.open.crm.apiControllers.dto.ChangePasswordDto;
+import com.open.crm.apiControllers.dto.LoginUserRequest;
+import com.open.crm.apiControllers.dto.LoginUserResponse;
+import com.open.crm.apiControllers.dto.RegisterTenantRequest;
+import com.open.crm.apiControllers.dto.RegisterTenantResponse;
+import com.open.crm.apiControllers.dto.TokenLoginUserResponse;
 import com.open.crm.components.services.SessionService;
-import com.open.crm.controllers.dto.ApplicationErrorDto;
-import com.open.crm.controllers.dto.ChangePasswordDto;
-import com.open.crm.controllers.dto.LoginUserRequest;
-import com.open.crm.controllers.dto.LoginUserResponse;
-import com.open.crm.controllers.dto.RegisterTenantRequest;
-import com.open.crm.controllers.dto.RegisterTenantResponse;
-import com.open.crm.controllers.dto.TokenLoginUserResponse;
 import com.open.crm.security.TokenData;
 import com.open.crm.security.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -100,7 +101,7 @@ public class AuthController {
       throw new UserException("Current password is incorrect");
     }
 
-    user = userService.updatePassword(user, dto.newPassword());
+    UserResult userResult = userService.updatePassword(user, dto.newPassword());
 
     LoginUserResponse loginResponse =
         new LoginUserResponse(

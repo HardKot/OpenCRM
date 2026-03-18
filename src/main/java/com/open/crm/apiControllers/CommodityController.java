@@ -1,7 +1,7 @@
-package com.open.crm.controllers;
+package com.open.crm.apiControllers;
 
+import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.components.services.SessionService;
-import com.open.crm.controllers.dto.ApplicationErrorDto;
 import com.open.crm.core.application.errors.CommodityException;
 import com.open.crm.core.application.services.CommodityService;
 import com.open.crm.core.entities.commodity.Commodity;

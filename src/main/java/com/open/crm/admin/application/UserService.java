@@ -5,6 +5,7 @@ import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.ISecurityGateway;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
+import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -65,9 +67,25 @@ public class UserService implements UserDetailsService, IUserService {
   public void updateUserEmail(Employee employee, String email) {
     userRepository
         .findByEmployeeId(employee.getId(), employee.getTenantId())
-        .ifPresent(
-            user -> {
-              updateUserEmail(user, email);
+        .map(user -> updateUserEmail(user, email))
+        .ifPresentOrElse(
+            result -> {
+              switch (result) {
+                case UserResult.InvalidData(String message) -> throw new UserException(message);
+                case UserResult.NoUniqueEmail() ->
+                    throw new UserException("Email is already in use: " + email);
+                case UserResult.IsDeleted() ->
+                    throw new UserException(
+                        "Cannot update email for deleted employee with id: " + employee.getId());
+                case UserResult.NotFound() ->
+                    throw new NotFoundException(
+                        "User not found for employee with id: " + employee.getId());
+                case UserResult.Ok(User value) -> {}
+              }
+            },
+            () -> {
+              throw new NotFoundException(
+                  "User not found for employee with id: " + employee.getId());
             });
   }
 
@@ -93,22 +111,22 @@ public class UserService implements UserDetailsService, IUserService {
             });
   }
 
-  public User updateUserEmail(User user, String email) throws UserException {
-    if (userRepository.existsByEmail(email)) throw new UserException("Email is already taken");
+  public UserResult updateUserEmail(User user, String email) {
+    if (userRepository.existsByEmail(email)) return new UserResult.NoUniqueEmail();
     user.setEmail(email);
     User updatedUser = userRepository.save(user);
     securityGateway.refreshAccessUser(updatedUser);
-    return updatedUser;
+    return new UserResult.Ok(updatedUser);
   }
 
-  public User createUserFromEmployee(Employee employee, Author author)
+  public UserResult createUserFromEmployee(Employee employee, Author author)
       throws UserException, NotFoundException {
     if (userRepository.existsEmployeeByEmail(employee.getEmail(), employee.getTenantId())) {
-      throw new UserException("User already exists for employee with id: " + employee.getId());
+      return new UserResult.NoUniqueEmail();
     }
 
     if (employee.isDeleted()) {
-      throw new UserException(
+      return new UserResult.InvalidData(
           "Cannot create user for deleted employee with id: " + employee.getId());
     }
 
@@ -126,10 +144,10 @@ public class UserService implements UserDetailsService, IUserService {
     InvestigationLog log = investigationLogCreator.inviteEmployeeLog(employee, author);
     investigationLogService.saveLog(log);
 
-    return data;
+    return new UserResult.Ok(data);
   }
 
-  public User createOwnerUser(Tenant tenant, String email, long entityId) throws UserException {
+  public UserResult createOwnerUser(Tenant tenant, String email, long entityId) {
     User data = new User();
     data.setEmail(email);
     data.setEntityName(UserEntity.EMPLOYEE);
@@ -139,23 +157,19 @@ public class UserService implements UserDetailsService, IUserService {
     return createUser(data);
   }
 
-  public User getUserByEmployee(Employee employee) throws UserException {
-    return userRepository
-        .findByEmployeeId(employee.getId(), employee.getTenantId())
-        .orElseThrow(
-            () ->
-                new NotFoundException("User not found for employee with id: " + employee.getId()));
+  public Optional<User> getUserByEmployee(Employee employee) {
+
+    return userRepository.findByEmployeeId(employee.getId(), employee.getTenantId());
   }
 
-  private User createUser(User data) throws UserException {
+  private UserResult createUser(User data) {
     if (Objects.isNull(data.getEmail()) || data.getEmail().isBlank())
-      throw new UserException("Email cannot be empty");
+      return new UserResult.InvalidData("Email cannot be empty");
     if (data.getEmail().length() > 255)
-      throw new UserException("Email cannot be longer than 255 characters");
+      return new UserResult.InvalidData("Email cannot be longer than 255 characters");
     if (!EMAIL_REGEX.matcher(data.getEmail()).matches())
-      throw new UserException("Email is not valid");
-    if (userRepository.existsByEmail(data.getEmail()))
-      throw new UserException("Email is already taken");
+      return new UserResult.InvalidData("Email is not valid");
+    if (userRepository.existsByEmail(data.getEmail())) return new UserResult.NoUniqueEmail();
 
     String password = generatePassword();
     data.setPassword(passwordEncoder.encode(password));
@@ -169,55 +183,68 @@ public class UserService implements UserDetailsService, IUserService {
             "email/welcome-email",
             Map.of("username", data.getUsername(), "password", password)));
 
-    return data;
+    return new UserResult.Ok(data);
   }
 
-  public User updateUserPermission(Employee employee, UserPermission[] permissions)
-      throws UserException {
-    User user = getUserByEmployee(employee);
-    return updateUserPermissions(user, permissions);
+  public UserResult updateUserPermission(Employee employee, UserPermission[] permissions) {
+    return getUserByEmployee(employee)
+        .<UserResult>map(user -> updateUserPermissions(user, permissions))
+        .orElseGet(UserResult.NotFound::new);
   }
 
-  public User updateUserPermissions(User user, UserPermission[] permissions) {
+  public UserResult updateUserPermissions(User user, UserPermission[] permissions) {
     if (user.getRole().equals(UserRole.ROLE_OWNER)) {
-      throw new UserException("Cannot change permissions for owner");
+      return new UserResult.InvalidData("Cannot change permissions for owner");
     }
 
     if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
-      throw new UserException("Cannot change permissions for admin");
+      return new UserResult.InvalidData("Cannot change permissions for admin");
     }
     user.setPermissions(new HashSet<>(Arrays.asList(permissions)));
 
     securityGateway.refreshAccessUser(user);
 
-    return userRepository.save(user);
+    user = userRepository.save(user);
+
+    return new UserResult.Ok(user);
   }
 
-  public User updateUserPermissionsByEmployee(
-      Employee employee, UserPermission[] permissions, Author author) throws UserException {
-    User user = getUserByEmployee(employee);
-    User updatedUser = updateUserPermissions(user, permissions);
+  public UserResult updateUserPermissionsByEmployee(
+      Employee employee, UserPermission[] permissions, Author author) {
 
-    InvestigationLog log = investigationLogCreator.updateAccessEmployeeLog(employee, author);
-    investigationLogService.saveLog(log);
+    UserResult result =
+        getUserByEmployee(employee)
+            .<UserResult>map(user -> updateUserPermissions(user, permissions))
+            .orElseGet(UserResult.NotFound::new);
 
-    return updatedUser;
+    if (result instanceof UserResult.Ok) {
+      InvestigationLog log = investigationLogCreator.updateAccessEmployeeLog(employee, author);
+      investigationLogService.saveLog(log);
+    }
+
+    return result;
   }
 
-  public User updateUserPermissions(UUID userId, UserPermission[] permissions, Author author)
-      throws UserException {
-    User user =
+  public UserResult updateUserPermissions(
+      UUID userId, UserPermission[] permissions, Author author) {
+    UserResult result =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
-    user = updateUserPermissions(user, permissions);
+            .<UserResult>map(UserResult.Ok::new)
+            .orElse(new UserResult.NotFound());
 
-    return user;
+    if (result instanceof UserResult.Ok) {
+      result = updateUserPermissions(((UserResult.Ok) result).value(), permissions);
+    } else {
+      return result;
+    }
+
+    return result;
   }
 
-  public User updatePassword(User user, String password) throws UserException {
+  public UserResult updatePassword(User user, String password) {
     if (matchPassword(password, user)) {
-      throw new UserException("New password cannot be the same as the old password");
+      return new UserResult.InvalidData("New password cannot be the same as the old password");
     }
 
     PasswordType passwordType = getPasswordType(password);
@@ -225,7 +252,7 @@ public class UserService implements UserDetailsService, IUserService {
       throw new UserException("Password is too weak");
     }
     user.setPassword(passwordEncoder.encode(password));
-    return userRepository.save(user);
+    return new UserResult.Ok(userRepository.save(user));
   }
 
   public String generatePassword() {

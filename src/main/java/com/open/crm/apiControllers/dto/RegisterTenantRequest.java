@@ -1,4 +1,4 @@
-package com.open.crm.controllers.dto;
+package com.open.crm.apiControllers.dto;
 
 import jakarta.validation.constraints.Email;
 

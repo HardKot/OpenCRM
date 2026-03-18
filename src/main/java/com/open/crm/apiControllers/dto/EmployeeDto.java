@@ -1,4 +1,4 @@
-package com.open.crm.controllers.dto;
+package com.open.crm.apiControllers.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -11,4 +11,5 @@ public record EmployeeDto(
     String patronymic,
     String position,
     String email,
-    String phoneNumber) {}
+    String phoneNumber)
+    implements ApiResponse {}

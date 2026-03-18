@@ -1,6 +1,5 @@
 package com.open.crm.core.entities.commodity;
 
-
 import com.open.crm.core.entities.common.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

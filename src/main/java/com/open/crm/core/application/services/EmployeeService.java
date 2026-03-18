@@ -5,10 +5,12 @@ import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
+import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,14 +25,14 @@ public class EmployeeService {
   private final InvestigationLogCreator investigationLogCreator;
 
   private final InvestigationLogService investigationLogService;
-  ;
+
   private final IUserService userService;
 
   @Qualifier("employeeSelectorData") @Getter
   private final SelectorData<Employee> employeeSelector;
 
   @Transactional
-  public Employee createEmployee(Employee employee, Author author) {
+  public ResultApp<Employee> createEmployee(Employee employee, Author author) {
     employee.setId(null);
     employee.setCreatedAt(null);
     employee.setUpdatedAt(null);
@@ -39,21 +41,21 @@ public class EmployeeService {
     employee = employeeRepository.save(employee);
     InvestigationLog log = investigationLogCreator.createEmployeeLog(employee, author);
     investigationLogService.saveLog(log);
-    return employee;
+    return new ResultApp.Ok<>(employee);
   }
 
   @Transactional
-  public Employee updateEmployeeData(Employee employee, Author author)
-      throws EmployeeException, NotFoundException {
+  public ResultApp<Employee> updateEmployeeData(Employee employee, Author author) {
     if (Objects.isNull(employee.getId())) {
-      throw new EmployeeException("Employee ID cannot be null for update");
+      return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
     }
 
-    Employee existingEmployee =
-        employeeRepository
-            .findById(employee.getId())
-            .orElseThrow(
-                () -> new NotFoundException("Employee not found with ID: " + employee.getId()));
+    Optional<Employee> existingEmployeeOpt = employeeRepository.findById(employee.getId());
+    if (existingEmployeeOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+
+    Employee existingEmployee = existingEmployeeOpt.get();
 
     existingEmployee.setFirstname(employee.getFirstname());
     existingEmployee.setLastname(employee.getLastname());
@@ -67,20 +69,20 @@ public class EmployeeService {
     InvestigationLog log = investigationLogCreator.updateEmployeeLog(existingEmployee, author);
     investigationLogService.saveLog(log);
 
-    return existingEmployee;
+    return new ResultApp.Ok<>(existingEmployee);
   }
 
-  public Employee updateEmail(Employee employee, String email, Author author)
+  public ResultApp<Employee> updateEmail(Employee employee, String email, Author author)
       throws EmployeeException, NotFoundException {
     if (Objects.isNull(employee.getId())) {
-      throw new EmployeeException("Employee ID cannot be null for update");
+      return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
     }
 
-    Employee existingEmployee =
-        employeeRepository
-            .findById(employee.getId())
-            .orElseThrow(
-                () -> new NotFoundException("Employee not found with ID: " + employee.getId()));
+    Optional<Employee> existingEmployeeOpt = employeeRepository.findById(employee.getId());
+    if (existingEmployeeOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    Employee existingEmployee = existingEmployeeOpt.get();
 
     existingEmployee.setEmail(email);
 
@@ -90,7 +92,7 @@ public class EmployeeService {
     InvestigationLog log = investigationLogCreator.updateEmployeeLog(existingEmployee, author);
     investigationLogService.saveLog(log);
 
-    return existingEmployee;
+    return new ResultApp.Ok<>(existingEmployee);
   }
 
   public Employee deleteEmployee(Employee employee, Author author)

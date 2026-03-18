@@ -1,4 +1,4 @@
-package com.open.crm.controllers.dto;
+package com.open.crm.apiControllers.dto;
 
 import com.open.crm.admin.entities.user.UserPermission;
 
