@@ -3,11 +3,13 @@ package com.open.crm.apiControllers;
 import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.ClientException;
+import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.services.ClientService;
 import com.open.crm.core.entities.client.Client;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,80 +57,143 @@ public class ClientController {
 
   @GetMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
-  public Client actionGetClient(@PathVariable("id") long id) {
-    return clientService.getClientById(
-        id, sessionEmployeeService.isShowDeleted(), sessionEmployeeService.getClientInfoCleaner());
+  public ResponseEntity<?> actionGetClient(@PathVariable("id") long id) {
+    Optional<Client> result =
+        clientService.getClientById(
+            id,
+            sessionEmployeeService.isShowDeleted(),
+            sessionEmployeeService.getClientInfoCleaner());
+    if (result.isPresent()) {
+      return ResponseEntity.ok(result.get());
+    } else {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    }
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-  public Client actionUpdateClient(@PathVariable("id") long id, @RequestBody Client data) {
+  public ResponseEntity<?> actionUpdateClient(
+      @PathVariable("id") long id, @RequestBody Client data) {
     data.setId(id);
-    Client entity =
+    ResultApp<Client> result =
         clientService.updateClient(
             data,
             sessionEmployeeService.getAuthor(),
             sessionEmployeeService.getClientInfoCleaner());
-
-    if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
-      entity =
-          clientService.manualUpdateClientBalance(
-              entity, data.getBalance(), sessionEmployeeService.getAuthor());
+    if (result instanceof ResultApp.Ok<Client> ok) {
+      Client entity = ok.value();
+      if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
+        var balanceResult =
+            clientService.manualUpdateClientBalance(
+                entity, data.getBalance(), sessionEmployeeService.getAuthor());
+        if (balanceResult instanceof ResultApp.Ok<Client> okBalance) {
+          entity = okBalance.value();
+        } else if (balanceResult instanceof ResultApp.InvalidData invalid) {
+          return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+        } else if (balanceResult instanceof ResultApp.NotFound) {
+          return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+        } else {
+          return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+        }
+      }
+      return ResponseEntity.ok(entity);
+    } else if (result instanceof ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
     }
-
-    return entity;
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-  public Client actionDeleteClient(@PathVariable("id") long id) {
-    Client entity =
+  public ResponseEntity<?> actionDeleteClient(@PathVariable("id") long id) {
+    Optional<Client> getResult =
         clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-    clientService.deleteClient(
-        entity, sessionEmployeeService.getAuthor(), sessionEmployeeService.getClientInfoCleaner());
-
-    return entity;
+    if (!getResult.isPresent()) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    }
+    var result =
+        clientService.deleteClient(
+            getResult.get(),
+            sessionEmployeeService.getAuthor(),
+            sessionEmployeeService.getClientInfoCleaner());
+    if (result instanceof ResultApp.Ok okDel) {
+      return ResponseEntity.ok(okDel.value());
+    } else if (result instanceof ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-  public Client actionRestoreClient(@PathVariable("id") long id) {
-    Client entity =
+  public ResponseEntity<?> actionRestoreClient(@PathVariable("id") long id) {
+    var getResult =
         clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-    clientService.restoreClient(
-        entity, sessionEmployeeService.getAuthor(), sessionEmployeeService.getClientInfoCleaner());
-
-    return entity;
+    if (!getResult.isPresent()) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    }
+    var result =
+        clientService.restoreClient(
+            getResult.get(),
+            sessionEmployeeService.getAuthor(),
+            sessionEmployeeService.getClientInfoCleaner());
+    if (result instanceof ResultApp.Ok<Client> okRestore) {
+      return ResponseEntity.ok(okRestore.value());
+    } else if (result instanceof ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PutMapping("/{id}/merge")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-  public Client actionMergeClient(@PathVariable("id") long id, @RequestBody Long[] ids) {
-    Client targetClient =
+  public ResponseEntity<?> actionMergeClient(@PathVariable("id") long id, @RequestBody Long[] ids) {
+    Optional<Client> targetResult =
         clientService.getClientById(id, false, sessionEmployeeService.getClientInfoCleaner());
+    if (!targetResult.isPresent()) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    }
     Client[] sourceClients =
         Arrays.stream(ids)
-            .map(
+            .<Optional<Client>>map(
                 sourceId ->
                     clientService.getClientById(
                         sourceId, false, sessionEmployeeService.getClientInfoCleaner()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .toArray(Client[]::new);
-
-    targetClient =
+    var result =
         clientService.mergeClients(
-            targetClient,
+            targetResult.get(),
             sourceClients,
             sessionEmployeeService.getAuthor(),
             sessionEmployeeService.getClientInfoCleaner());
-
-    return targetClient;
+    if (result instanceof ResultApp.Ok<Client> okMerge) {
+      return ResponseEntity.ok(okMerge.value());
+    } else if (result instanceof ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @GetMapping("/{id}/duplicate")
   @PreAuthorize("hasPermission(null, 'CLIENT_READ')")
   public Client[] getMethodName(@PathVariable("id") long id) {
-    Client client =
+    Optional<Client> clientResult =
         clientService.getClientById(id, false, sessionEmployeeService.getClientInfoCleaner());
+    Client client = clientResult.orElseThrow(() -> new RuntimeException("Client not found"));
 
     List<Client> duplicates =
         clientService.getDuplicateClients(client, sessionEmployeeService.getClientInfoCleaner());

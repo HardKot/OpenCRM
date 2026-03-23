@@ -25,60 +25,135 @@ public class CommodityController {
   private final SessionService sessionEmployeeService;
 
   @PostMapping
-  public Commodity actionCreateCommodity(@RequestBody Commodity entity) {
-    return commodityService.createCommodity(entity, sessionEmployeeService.getAuthor());
+  public ResponseEntity<?> actionCreateCommodity(@RequestBody Commodity entity) {
+    var result = commodityService.createCommodity(entity, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PutMapping("/{id}")
-  public Commodity actionUpdateCommodity(
+  public ResponseEntity<?> actionUpdateCommodity(
       @PathVariable("id") long id, @RequestBody Commodity entity) {
     entity.setId(id);
-    return commodityService.updateCommodity(entity, sessionEmployeeService.getAuthor());
+    var result = commodityService.updateCommodity(entity, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @DeleteMapping("/{id}")
-  public Commodity actionHiddenCommodity(@PathVariable("id") long id) {
+  public ResponseEntity<?> actionHiddenCommodity(@PathVariable("id") long id) {
     Commodity commodity = new Commodity();
     commodity.setId(id);
-    return commodityService.deleteCommodity(commodity, sessionEmployeeService.getAuthor());
+    var result = commodityService.deleteCommodity(commodity, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/{id}")
-  public Commodity actionShowCommodity(@PathVariable("id") long id) {
+  public ResponseEntity<?> actionShowCommodity(@PathVariable("id") long id) {
     Commodity commodity = new Commodity();
     commodity.setId(id);
-    return commodityService.restoreCommodity(commodity, sessionEmployeeService.getAuthor());
+    var result = commodityService.restoreCommodity(commodity, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/category")
-  public CommodityCategory actionCreateCategory(@RequestBody CommodityCategory category) {
-    return commodityService.createCategory(category, sessionEmployeeService.getAuthor());
+  public ResponseEntity<?> actionCreateCategory(@RequestBody CommodityCategory category) {
+    var result = commodityService.createCategory(category, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PutMapping("/category/{id}")
-  public CommodityCategory actionUpdateCategory(
+  public ResponseEntity<?> actionUpdateCategory(
       @PathVariable("id") long id, @RequestBody CommodityCategory entity) {
     entity.setId(id);
-
-    return commodityService.updateCategory(entity, sessionEmployeeService.getAuthor());
+    var result = commodityService.updateCategory(entity, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/category/{id}")
-  public CommodityCategory actionShowCategoryString(@PathVariable("id") long id) {
+  public ResponseEntity<?> actionShowCategoryString(@PathVariable("id") long id) {
     CommodityCategory category = new CommodityCategory();
     category.setId(id);
-    CommodityCategory entity =
-        commodityService.restoreCategory(category, sessionEmployeeService.getAuthor());
-    return entity;
+    var result = commodityService.restoreCategory(category, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @DeleteMapping("/category/{id}")
-  public CommodityCategory actionDeleteCategory(@PathVariable("id") long id) {
+  public ResponseEntity<?> actionDeleteCategory(@PathVariable("id") long id) {
     CommodityCategory category = new CommodityCategory();
     category.setId(id);
-    CommodityCategory entity =
-        commodityService.deleteCategory(category, sessionEmployeeService.getAuthor());
-    return entity;
+    var result = commodityService.deleteCategory(category, sessionEmployeeService.getAuthor());
+    if (result instanceof com.open.crm.core.application.results.ResultApp.Ok ok) {
+      return ResponseEntity.ok(ok.value());
+    } else if (result
+        instanceof com.open.crm.core.application.results.ResultApp.InvalidData invalid) {
+      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
+    } else if (result instanceof com.open.crm.core.application.results.ResultApp.NotFound) {
+      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
+    } else {
+      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @ExceptionHandler({CommodityException.class})

@@ -123,44 +123,83 @@ public class EmployeeController {
 
   @GetMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public EmployeeDto actionGet(@PathVariable("id") long id) {
-    return employeeMapper.toDto(employeeService.getEmployeeById(id));
+  public ResponseEntity<ApiResponse> actionGet(@PathVariable("id") long id) {
+    return employeeService
+        .getEmployeeById(id)
+        .<ResponseEntity<ApiResponse>>map(
+            employee -> ResponseEntity.ok(employeeMapper.toDto(employee)))
+        .orElseGet(
+            () ->
+                ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApplicationErrorDto("Employee not found")));
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public EmployeeDto actionDelete(@PathVariable("id") long id) {
+  public ResponseEntity<ApiResponse> actionDelete(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
-    Employee employee = employeeService.getEmployeeById(id);
-    employee = employeeService.deleteEmployee(employee, author);
-    return employeeMapper.toDto(employee);
+    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
+    if (employeeOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(new ApplicationErrorDto("Employee not found"));
+    }
+    ResultApp<Employee> result = employeeService.deleteEmployee(employeeOpt.get(), author);
+    if (result instanceof ResultApp.Ok<Employee> ok) {
+      return ResponseEntity.ok(employeeMapper.toDto(ok.value()));
+    } else if (result instanceof ResultApp.InvalidData<Employee> invalid) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(new ApplicationErrorDto(invalid.message()));
+    } else {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public EmployeeDto actionRestore(@PathVariable("id") long id) {
+  public ResponseEntity<ApiResponse> actionRestore(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
-    Employee employee = employeeService.getEmployeeById(id);
-    employee = employeeService.restoreEmployee(employee, author);
-    return employeeMapper.toDto(employee);
+    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
+    if (employeeOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(new ApplicationErrorDto("Employee not found"));
+    }
+    ResultApp<Employee> result = employeeService.restoreEmployee(employeeOpt.get(), author);
+    if (result instanceof ResultApp.Ok<Employee> ok) {
+      return ResponseEntity.ok(employeeMapper.toDto(ok.value()));
+    } else if (result instanceof ResultApp.InvalidData<Employee> invalid) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(new ApplicationErrorDto(invalid.message()));
+    } else {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ApplicationErrorDto("Unknown error"));
+    }
   }
 
   @PostMapping("/{id}/invite")
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-  public EmployeeDto actionInvite(@PathVariable("id") long id) {
+  public ResponseEntity<EmployeeDto> actionInvite(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
 
-    Employee employee = employeeService.getEmployeeById(id);
+    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
+    if (employeeOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    Employee employee = employeeOpt.get();
     userService.createUserFromEmployee(employee, author);
 
-    return employeeMapper.toDto(employee);
+    return ResponseEntity.ok(employeeMapper.toDto(employee));
   }
 
   @GetMapping("{id}/access")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
   public ResponseEntity<EmployeeAccess> actionGetAccess(@PathVariable("id") long id) {
-    Employee employee = employeeService.getEmployeeById(id);
+    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
+    if (employeeOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    Employee employee = employeeOpt.get();
 
     Optional<User> userOpt = userService.getUserByEmployee(employee);
     if (userOpt.isEmpty()) {
@@ -178,7 +217,11 @@ public class EmployeeController {
       @PathVariable("id") long id, @RequestBody EmployeeAccess entity) {
     Author author = sessionEmployeeService.getAuthor();
 
-    Employee employee = employeeService.getEmployeeById(id);
+    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
+    if (employeeOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    Employee employee = employeeOpt.get();
     UserResult userResult =
         userService.updateUserPermissionsByEmployee(employee, entity.permissions(), author);
 

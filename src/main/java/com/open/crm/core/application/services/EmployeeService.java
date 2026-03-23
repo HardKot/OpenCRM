@@ -1,8 +1,6 @@
 package com.open.crm.core.application.services;
 
 import com.open.crm.core.application.IUserService;
-import com.open.crm.core.application.errors.EmployeeException;
-import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.results.ResultApp;
@@ -14,6 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +30,7 @@ public class EmployeeService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
   public ResultApp<Employee> createEmployee(Employee employee, Author author) {
     employee.setId(null);
     employee.setCreatedAt(null);
@@ -44,6 +44,7 @@ public class EmployeeService {
   }
 
   @Transactional
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
   public ResultApp<Employee> updateEmployeeData(Employee employee, Author author) {
     if (Objects.isNull(employee.getId())) {
       return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
@@ -70,8 +71,8 @@ public class EmployeeService {
     return new ResultApp.Ok<>(existingEmployee);
   }
 
-  public ResultApp<Employee> updateEmail(Employee employee, String email, Author author)
-      throws EmployeeException, NotFoundException {
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+  public ResultApp<Employee> updateEmail(Employee employee, String email, Author author) {
     if (Objects.isNull(employee.getId())) {
       return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
     }
@@ -92,10 +93,11 @@ public class EmployeeService {
     return new ResultApp.Ok<>(existingEmployee);
   }
 
-  public Employee deleteEmployee(Employee employee, Author author)
-      throws EmployeeException, NotFoundException {
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+  public ResultApp<Employee> deleteEmployee(Employee employee, Author author) {
     if (employee.isDeleted()) {
-      throw new EmployeeException("Employee with ID: " + employee.getId() + " is already deleted");
+      return new ResultApp.InvalidData<>(
+          "Employee with ID: " + employee.getId() + " is already deleted");
     }
 
     employee.setDeleted(true);
@@ -104,24 +106,24 @@ public class EmployeeService {
     eventPublisher.publishEvent(new DeleteEmployeeEvent(employee, author));
     userService.disabledByEmployee(employee);
 
-    return employee;
+    return new ResultApp.Ok<>(employee);
   }
 
-  public Employee restoreEmployee(Employee employee, Author author)
-      throws EmployeeException, NotFoundException {
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
+  public ResultApp<Employee> restoreEmployee(Employee employee, Author author) {
     if (!employee.isDeleted()) {
-      throw new EmployeeException("Employee with ID: " + employee.getId() + " is not deleted");
+      return new ResultApp.InvalidData<>(
+          "Employee with ID: " + employee.getId() + " is not deleted");
     }
     employee.setDeleted(false);
     employeeRepository.save(employee);
     eventPublisher.publishEvent(new RestoreEmployeeEvent(employee, author));
     userService.enabledByEmployee(employee);
-    return employee;
+    return new ResultApp.Ok<>(employee);
   }
 
-  public Employee getEmployeeById(Long id) throws NotFoundException {
-    return employeeRepository
-        .findById(id)
-        .orElseThrow(() -> new NotFoundException("Employee not found with ID: " + id));
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
+  public Optional<Employee> getEmployeeById(Long id) {
+    return employeeRepository.findById(id);
   }
 }

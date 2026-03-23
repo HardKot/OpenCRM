@@ -1,9 +1,9 @@
 package com.open.crm.core.application.services;
 
-import com.open.crm.core.application.errors.CommodityException;
 import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.ICommodityCategoryRepository;
 import com.open.crm.core.application.repositories.ICommodityRepository;
+import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.entities.commodity.Commodity;
 import com.open.crm.core.entities.commodity.CommodityCategory;
 import com.open.crm.core.entities.investigationLog.Author;
@@ -22,59 +22,60 @@ public class CommodityService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
-  public CommodityCategory createCategory(CommodityCategory category, Author author)
-      throws CommodityException {
+  public ResultApp<CommodityCategory> createCategory(CommodityCategory category, Author author) {
     category.setId(null);
     category.setCommodities(List.of());
     category.setSubCategories(List.of());
 
     if (commodityCategoryRepository.existsByName(category.getName())) {
-      throw new CommodityException("Category with the same name already exists");
+      return new ResultApp.InvalidData<>("Category with the same name already exists");
     }
 
     if (Objects.nonNull(category.getParentCategory())) {
-      CommodityCategory parenCategory =
-          commodityCategoryRepository
-              .findById(category.getParentCategory().getId())
-              .orElseThrow(() -> new CommodityException("Parent category not found"));
+      var parentOpt = commodityCategoryRepository.findById(category.getParentCategory().getId());
+      if (parentOpt.isEmpty()) {
+        return new ResultApp.NotFound<>();
+      }
+      CommodityCategory parenCategory = parentOpt.get();
       if (parenCategory.isDeleted()) {
-        throw new CommodityException("Parent category is deleted");
+        return new ResultApp.InvalidData<>("Parent category is deleted");
       }
       category.setParentCategory(parenCategory);
     }
 
     category = commodityCategoryRepository.save(category);
     eventPublisher.publishEvent(new CreateCommodityCategoryEvent(category, author));
-    return category;
+    return new ResultApp.Ok<>(category);
   }
 
   @Transactional
-  public CommodityCategory updateCategory(CommodityCategory category, Author author)
-      throws CommodityException {
-    CommodityCategory existingCategory =
-        commodityCategoryRepository
-            .findById(category.getId())
-            .orElseThrow(() -> new CommodityException("Category not found"));
+  public ResultApp<CommodityCategory> updateCategory(CommodityCategory category, Author author) {
+    var existingOpt = commodityCategoryRepository.findById(category.getId());
+    if (existingOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    CommodityCategory existingCategory = existingOpt.get();
 
     if (existingCategory.isDeleted()) {
-      throw new CommodityException("Cannot update a deleted category");
+      return new ResultApp.InvalidData<>("Cannot update a deleted category");
     }
 
     if (!existingCategory.getName().equals(category.getName())
         && commodityCategoryRepository.existsByName(category.getName())) {
-      throw new CommodityException("Category with the same name already exists");
+      return new ResultApp.InvalidData<>("Category with the same name already exists");
     }
 
     existingCategory.setName(category.getName());
     existingCategory.setDescription(category.getDescription());
 
     if (Objects.nonNull(category.getParentCategory())) {
-      CommodityCategory parentCategory =
-          commodityCategoryRepository
-              .findById(category.getParentCategory().getId())
-              .orElseThrow(() -> new CommodityException("Parent category not found"));
+      var parentOpt = commodityCategoryRepository.findById(category.getParentCategory().getId());
+      if (parentOpt.isEmpty()) {
+        return new ResultApp.NotFound<>();
+      }
+      CommodityCategory parentCategory = parentOpt.get();
       if (parentCategory.isDeleted()) {
-        throw new CommodityException("Parent category is deleted");
+        return new ResultApp.InvalidData<>("Parent category is deleted");
       }
       existingCategory.setParentCategory(parentCategory);
     } else {
@@ -82,12 +83,12 @@ public class CommodityService {
     }
 
     if (recursiveDetectCycle(existingCategory, existingCategory.getParentCategory())) {
-      throw new CommodityException("Cannot set parent category: cycle detected");
+      return new ResultApp.InvalidData<>("Cannot set parent category: cycle detected");
     }
 
     existingCategory = commodityCategoryRepository.save(existingCategory);
     eventPublisher.publishEvent(new UpdateCommodityCategoryEvent(existingCategory, author));
-    return existingCategory;
+    return new ResultApp.Ok<>(existingCategory);
   }
 
   private boolean recursiveDetectCycle(CommodityCategory category, CommodityCategory parent) {
@@ -101,79 +102,81 @@ public class CommodityService {
   }
 
   @Transactional
-  public CommodityCategory deleteCategory(CommodityCategory category, Author author)
-      throws CommodityException {
-    CommodityCategory existsCategory =
-        commodityCategoryRepository
-            .findById(category.getId())
-            .orElseThrow(() -> new CommodityException("Category not found"));
+  public ResultApp<CommodityCategory> deleteCategory(CommodityCategory category, Author author) {
+    var existsOpt = commodityCategoryRepository.findById(category.getId());
+    if (existsOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    CommodityCategory existsCategory = existsOpt.get();
 
     if (existsCategory.isDeleted()) {
-      throw new CommodityException("Category is already deleted");
+      return new ResultApp.InvalidData<>("Category is already deleted");
     }
 
     existsCategory.softDelete();
     existsCategory = commodityCategoryRepository.save(existsCategory);
     eventPublisher.publishEvent(new DeleteCommodityCategoryEvent(existsCategory, author));
-    return existsCategory;
+    return new ResultApp.Ok<>(existsCategory);
   }
 
   @Transactional
-  public CommodityCategory restoreCategory(CommodityCategory category, Author author)
-      throws CommodityException {
-    CommodityCategory existsCategory =
-        commodityCategoryRepository
-            .findById(category.getId())
-            .orElseThrow(() -> new CommodityException("Category not found"));
+  public ResultApp<CommodityCategory> restoreCategory(CommodityCategory category, Author author) {
+    var existsOpt = commodityCategoryRepository.findById(category.getId());
+    if (existsOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    CommodityCategory existsCategory = existsOpt.get();
 
     if (!existsCategory.isDeleted()) {
-      throw new CommodityException("Category is not deleted");
+      return new ResultApp.InvalidData<>("Category is not deleted");
     }
 
     existsCategory.restore();
     existsCategory = commodityCategoryRepository.save(existsCategory);
     eventPublisher.publishEvent(new RestoreCommodityCategoryEvent(existsCategory, author));
-    return existsCategory;
+    return new ResultApp.Ok<>(existsCategory);
   }
 
   @Transactional
-  public Commodity createCommodity(Commodity commodity, Author author) throws CommodityException {
+  public ResultApp<Commodity> createCommodity(Commodity commodity, Author author) {
     commodity.setId(null);
 
     if (commodityRepository.existsByName(commodity.getName())) {
-      throw new CommodityException("Commodity with the same name already exists");
+      return new ResultApp.InvalidData<>("Commodity with the same name already exists");
     }
 
     if (Objects.nonNull(commodity.getCategory())) {
-      CommodityCategory category =
-          commodityCategoryRepository
-              .findById(commodity.getCategory().getId())
-              .orElseThrow(() -> new CommodityException("Category not found"));
+      var categoryOpt = commodityCategoryRepository.findById(commodity.getCategory().getId());
+      if (categoryOpt.isEmpty()) {
+        return new ResultApp.NotFound<>();
+      }
+      CommodityCategory category = categoryOpt.get();
       if (category.isDeleted()) {
-        throw new CommodityException("Category is deleted");
+        return new ResultApp.InvalidData<>("Category is deleted");
       }
       commodity.setCategory(category);
     }
 
     commodity = commodityRepository.save(commodity);
     eventPublisher.publishEvent(new CreateCommodityEvent(commodity, author));
-    return commodity;
+    return new ResultApp.Ok<>(commodity);
   }
 
   @Transactional
-  public Commodity updateCommodity(Commodity commodity, Author author) throws CommodityException {
-    Commodity existingCommodity =
-        commodityRepository
-            .findById(commodity.getId())
-            .orElseThrow(() -> new CommodityException("Commodity not found"));
+  public ResultApp<Commodity> updateCommodity(Commodity commodity, Author author) {
+    var existingOpt = commodityRepository.findById(commodity.getId());
+    if (existingOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    Commodity existingCommodity = existingOpt.get();
 
     if (existingCommodity.isDeleted()) {
-      throw new CommodityException("Cannot update a deleted commodity");
+      return new ResultApp.InvalidData<>("Cannot update a deleted commodity");
     }
 
     if (!existingCommodity.getName().equals(commodity.getName())
         && commodityRepository.existsByName(commodity.getName())) {
-      throw new CommodityException("Commodity with the same name already exists");
+      return new ResultApp.InvalidData<>("Commodity with the same name already exists");
     }
 
     existingCommodity.setName(commodity.getName());
@@ -181,12 +184,13 @@ public class CommodityService {
     existingCommodity.setCost(commodity.getCost());
 
     if (Objects.nonNull(commodity.getCategory())) {
-      CommodityCategory category =
-          commodityCategoryRepository
-              .findById(commodity.getCategory().getId())
-              .orElseThrow(() -> new CommodityException("Category not found"));
+      var categoryOpt = commodityCategoryRepository.findById(commodity.getCategory().getId());
+      if (categoryOpt.isEmpty()) {
+        return new ResultApp.NotFound<>();
+      }
+      CommodityCategory category = categoryOpt.get();
       if (category.isDeleted()) {
-        throw new CommodityException("Category is deleted");
+        return new ResultApp.InvalidData<>("Category is deleted");
       }
       existingCommodity.setCategory(category);
     } else {
@@ -195,37 +199,39 @@ public class CommodityService {
 
     existingCommodity = commodityRepository.save(existingCommodity);
     eventPublisher.publishEvent(new UpdateCommodityEvent(existingCommodity, author));
-    return existingCommodity;
+    return new ResultApp.Ok<>(existingCommodity);
   }
 
   @Transactional
-  public Commodity deleteCommodity(Commodity commodity, Author author) throws CommodityException {
-    Commodity existingCommodity =
-        commodityRepository
-            .findById(commodity.getId())
-            .orElseThrow(() -> new CommodityException("Commodity not found"));
+  public ResultApp<Commodity> deleteCommodity(Commodity commodity, Author author) {
+    var existingOpt = commodityRepository.findById(commodity.getId());
+    if (existingOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    Commodity existingCommodity = existingOpt.get();
 
     if (existingCommodity.isDeleted()) {
-      throw new CommodityException("Commodity is already deleted");
+      return new ResultApp.InvalidData<>("Commodity is already deleted");
     }
     existingCommodity.softDelete();
     existingCommodity = commodityRepository.save(existingCommodity);
     eventPublisher.publishEvent(new DeleteCommodityEvent(existingCommodity, author));
-    return existingCommodity;
+    return new ResultApp.Ok<>(existingCommodity);
   }
 
   @Transactional
-  public Commodity restoreCommodity(Commodity commodity, Author author) throws CommodityException {
-    Commodity existingCommodity =
-        commodityRepository
-            .findById(commodity.getId())
-            .orElseThrow(() -> new CommodityException("Commodity not found"));
+  public ResultApp<Commodity> restoreCommodity(Commodity commodity, Author author) {
+    var existingOpt = commodityRepository.findById(commodity.getId());
+    if (existingOpt.isEmpty()) {
+      return new ResultApp.NotFound<>();
+    }
+    Commodity existingCommodity = existingOpt.get();
     if (!existingCommodity.isDeleted()) {
-      throw new CommodityException("Commodity is not deleted");
+      return new ResultApp.InvalidData<>("Commodity is not deleted");
     }
     existingCommodity.restore();
     existingCommodity = commodityRepository.save(existingCommodity);
     eventPublisher.publishEvent(new RestoreCommodityEvent(existingCommodity, author));
-    return existingCommodity;
+    return new ResultApp.Ok<>(existingCommodity);
   }
 }
