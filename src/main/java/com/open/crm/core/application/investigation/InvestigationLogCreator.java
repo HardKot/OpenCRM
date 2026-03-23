@@ -1,4 +1,4 @@
-package com.open.crm.core.application;
+package com.open.crm.core.application.investigation;
 
 import com.open.crm.core.entities.client.Client;
 import com.open.crm.core.entities.commodity.Commodity;

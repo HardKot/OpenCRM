@@ -1,19 +1,19 @@
 package com.open.crm.core.application.services;
 
 import com.open.crm.core.application.IUserService;
-import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.errors.NotFoundException;
+import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
-import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,14 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
 
   private final IEmployeeRepository employeeRepository;
-  private final InvestigationLogCreator investigationLogCreator;
-
-  private final InvestigationLogService investigationLogService;
-
   private final IUserService userService;
 
-  @Qualifier("employeeSelectorData") @Getter
+  @Qualifier("employeeSelectorData")
+  @Getter
   private final SelectorData<Employee> employeeSelector;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public ResultApp<Employee> createEmployee(Employee employee, Author author) {
@@ -39,8 +38,8 @@ public class EmployeeService {
     employee.setDeleted(false);
 
     employee = employeeRepository.save(employee);
-    InvestigationLog log = investigationLogCreator.createEmployeeLog(employee, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new CreateEmployeeEvent(employee, author));
+
     return new ResultApp.Ok<>(employee);
   }
 
@@ -66,8 +65,7 @@ public class EmployeeService {
 
     employeeRepository.save(existingEmployee);
 
-    InvestigationLog log = investigationLogCreator.updateEmployeeLog(existingEmployee, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new UpdateEmployeeEvent(existingEmployee, author));
 
     return new ResultApp.Ok<>(existingEmployee);
   }
@@ -89,8 +87,7 @@ public class EmployeeService {
     employeeRepository.save(existingEmployee);
     userService.updateUserEmail(existingEmployee, email);
 
-    InvestigationLog log = investigationLogCreator.updateEmployeeLog(existingEmployee, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new UpdateEmployeeEvent(existingEmployee, author));
 
     return new ResultApp.Ok<>(existingEmployee);
   }
@@ -104,9 +101,8 @@ public class EmployeeService {
     employee.setDeleted(true);
     employeeRepository.save(employee);
 
-    InvestigationLog log = investigationLogCreator.updateEmployeeLog(employee, author);
+    eventPublisher.publishEvent(new DeleteEmployeeEvent(employee, author));
     userService.disabledByEmployee(employee);
-    investigationLogService.saveLog(log);
 
     return employee;
   }
@@ -118,9 +114,8 @@ public class EmployeeService {
     }
     employee.setDeleted(false);
     employeeRepository.save(employee);
-    InvestigationLog log = investigationLogCreator.updateEmployeeLog(employee, author);
+    eventPublisher.publishEvent(new RestoreEmployeeEvent(employee, author));
     userService.enabledByEmployee(employee);
-    investigationLogService.saveLog(log);
     return employee;
   }
 

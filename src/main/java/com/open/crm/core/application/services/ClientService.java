@@ -1,17 +1,17 @@
 package com.open.crm.core.application.services;
 
-import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.ClientException;
 import com.open.crm.core.application.errors.NotFoundException;
+import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IClientRepository;
 import com.open.crm.core.entities.client.Client;
 import com.open.crm.core.entities.investigationLog.Author;
-import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ClientService {
   private final IClientRepository clientRepository;
-  private final InvestigationLogCreator investigationLogCreator;
-  private final InvestigationLogService investigationLogService;
+  private final ApplicationEventPublisher eventPublisher;
 
-  @Qualifier("clientSelectorData") private final SelectorData<Client> clientSelector;
+  @Qualifier("clientSelectorData")
+  private final SelectorData<Client> clientSelector;
 
   @Transactional
   public Client createClient(Client client, Author author, ClientInfoCleaner cleaner) {
@@ -34,9 +34,7 @@ public class ClientService {
     client.setUpdatedAt(null);
 
     client = clientRepository.save(client);
-    InvestigationLog log = investigationLogCreator.createClientLog(client, author);
-    investigationLogService.saveLog(log);
-
+    eventPublisher.publishEvent(new CreateClientEvent(client, author));
     return client;
   }
 
@@ -65,9 +63,7 @@ public class ClientService {
     }
 
     Client updatedClient = clientRepository.save(existingClient);
-    InvestigationLog log = investigationLogCreator.updateClientLog(updatedClient, author);
-    investigationLogService.saveLog(log);
-
+    eventPublisher.publishEvent(new UpdateClientEvent(updatedClient, author));
     return clearClientInfo(updatedClient, cleaner);
   }
 
@@ -80,8 +76,7 @@ public class ClientService {
     }
     client.setDeleted(true);
     Client deletedClient = clientRepository.save(client);
-    InvestigationLog log = investigationLogCreator.updateClientLog(deletedClient, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new DeleteClientEvent(deletedClient, author));
     return clearClientInfo(deletedClient, cleaner);
   }
 
@@ -93,8 +88,7 @@ public class ClientService {
     }
     client.setDeleted(false);
     Client restoredClient = clientRepository.save(client);
-    InvestigationLog log = investigationLogCreator.updateClientLog(restoredClient, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new RestoreClientEvent(restoredClient, author));
     return clearClientInfo(restoredClient, cleaner);
   }
 
@@ -146,9 +140,7 @@ public class ClientService {
       clientRepository.save(existingSourceClient);
     }
     Client mergedClient = clientRepository.save(targetClient);
-    InvestigationLog log =
-        investigationLogCreator.mergeClientLog(mergedClient, sourceClients, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new MergeClientEvent(mergedClient, sourceClients, author));
     return mergedClient;
   }
 
@@ -161,8 +153,7 @@ public class ClientService {
     }
     client.setBalance(newBalance);
     Client updatedClient = clientRepository.save(client);
-    InvestigationLog log = investigationLogCreator.updateClientBalanceLog(updatedClient, author);
-    investigationLogService.saveLog(log);
+    eventPublisher.publishEvent(new UpdateClientBalanceEvent(updatedClient, author));
     return updatedClient;
   }
 

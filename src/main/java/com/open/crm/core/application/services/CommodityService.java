@@ -1,7 +1,7 @@
 package com.open.crm.core.application.services;
 
-import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.CommodityException;
+import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.ICommodityCategoryRepository;
 import com.open.crm.core.application.repositories.ICommodityRepository;
 import com.open.crm.core.entities.commodity.Commodity;
@@ -10,6 +10,7 @@ import com.open.crm.core.entities.investigationLog.Author;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommodityService {
   private final ICommodityRepository commodityRepository;
   private final ICommodityCategoryRepository commodityCategoryRepository;
-  private final InvestigationLogService investigationLogService;
-  private final InvestigationLogCreator investigationLogCreator;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public CommodityCategory createCategory(CommodityCategory category, Author author)
@@ -44,9 +44,7 @@ public class CommodityService {
     }
 
     category = commodityCategoryRepository.save(category);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityCategoryCreationLog(category, author));
-
+    eventPublisher.publishEvent(new CreateCommodityCategoryEvent(category, author));
     return category;
   }
 
@@ -88,9 +86,7 @@ public class CommodityService {
     }
 
     existingCategory = commodityCategoryRepository.save(existingCategory);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityCategoryUpdateLog(existingCategory, author));
-
+    eventPublisher.publishEvent(new UpdateCommodityCategoryEvent(existingCategory, author));
     return existingCategory;
   }
 
@@ -118,9 +114,7 @@ public class CommodityService {
 
     existsCategory.softDelete();
     existsCategory = commodityCategoryRepository.save(existsCategory);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityCategoryUpdateLog(existsCategory, author));
-
+    eventPublisher.publishEvent(new DeleteCommodityCategoryEvent(existsCategory, author));
     return existsCategory;
   }
 
@@ -138,9 +132,7 @@ public class CommodityService {
 
     existsCategory.restore();
     existsCategory = commodityCategoryRepository.save(existsCategory);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityCategoryUpdateLog(existsCategory, author));
-
+    eventPublisher.publishEvent(new RestoreCommodityCategoryEvent(existsCategory, author));
     return existsCategory;
   }
 
@@ -164,9 +156,7 @@ public class CommodityService {
     }
 
     commodity = commodityRepository.save(commodity);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityCreationLog(commodity, author));
-
+    eventPublisher.publishEvent(new CreateCommodityEvent(commodity, author));
     return commodity;
   }
 
@@ -204,8 +194,7 @@ public class CommodityService {
     }
 
     existingCommodity = commodityRepository.save(existingCommodity);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityUpdateLog(existingCommodity, author));
+    eventPublisher.publishEvent(new UpdateCommodityEvent(existingCommodity, author));
     return existingCommodity;
   }
 
@@ -221,8 +210,7 @@ public class CommodityService {
     }
     existingCommodity.softDelete();
     existingCommodity = commodityRepository.save(existingCommodity);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityUpdateLog(existingCommodity, author));
+    eventPublisher.publishEvent(new DeleteCommodityEvent(existingCommodity, author));
     return existingCommodity;
   }
 
@@ -237,8 +225,7 @@ public class CommodityService {
     }
     existingCommodity.restore();
     existingCommodity = commodityRepository.save(existingCommodity);
-    investigationLogService.saveLog(
-        investigationLogCreator.createCommodityUpdateLog(existingCommodity, author));
+    eventPublisher.publishEvent(new RestoreCommodityEvent(existingCommodity, author));
     return existingCommodity;
   }
 }

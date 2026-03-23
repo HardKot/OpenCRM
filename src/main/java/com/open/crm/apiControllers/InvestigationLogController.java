@@ -1,6 +1,6 @@
 package com.open.crm.apiControllers;
 
-import com.open.crm.core.application.services.InvestigationLogService;
+import com.open.crm.core.application.investigation.InvestigationLogService;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

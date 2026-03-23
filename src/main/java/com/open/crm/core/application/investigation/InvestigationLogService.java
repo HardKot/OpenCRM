@@ -1,4 +1,4 @@
-package com.open.crm.core.application.services;
+package com.open.crm.core.application.investigation;
 
 import com.open.crm.core.application.repositories.IInvestigationLogRepository;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;

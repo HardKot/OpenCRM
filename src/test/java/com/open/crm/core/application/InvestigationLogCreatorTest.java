@@ -2,6 +2,7 @@ package com.open.crm.core.application;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.open.crm.core.application.investigation.InvestigationLogCreator;
 import com.open.crm.core.entities.client.Client;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
