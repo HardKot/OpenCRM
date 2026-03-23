@@ -13,12 +13,11 @@ import com.open.crm.admin.entities.user.UserEntity;
 import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.core.application.IUserService;
-import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.errors.NotFoundException;
-import com.open.crm.core.application.services.InvestigationLogService;
+import com.open.crm.core.application.investigation.events.InviteEmployeeEvent;
+import com.open.crm.core.application.investigation.events.UpdateAccessEmployeeEvent;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
-import com.open.crm.core.entities.investigationLog.InvestigationLog;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,9 +45,6 @@ public class UserService implements UserDetailsService, IUserService {
   private final PasswordEncoder passwordEncoder;
 
   private final ApplicationEventPublisher eventPublisher;
-
-  private final InvestigationLogCreator investigationLogCreator;
-  private final InvestigationLogService investigationLogService;
   private final ISecurityGateway securityGateway;
 
   private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -141,8 +137,8 @@ public class UserService implements UserDetailsService, IUserService {
     data.setTenant(tenant);
     data.setEntityId(employee.getId());
     createUser(data);
-    InvestigationLog log = investigationLogCreator.inviteEmployeeLog(employee, author);
-    investigationLogService.saveLog(log);
+
+    eventPublisher.publishEvent(new InviteEmployeeEvent(employee, author));
 
     return new UserResult.Ok(data);
   }
@@ -218,8 +214,7 @@ public class UserService implements UserDetailsService, IUserService {
             .orElseGet(UserResult.NotFound::new);
 
     if (result instanceof UserResult.Ok) {
-      InvestigationLog log = investigationLogCreator.updateAccessEmployeeLog(employee, author);
-      investigationLogService.saveLog(log);
+      eventPublisher.publishEvent(new UpdateAccessEmployeeEvent(employee, author));
     }
 
     return result;

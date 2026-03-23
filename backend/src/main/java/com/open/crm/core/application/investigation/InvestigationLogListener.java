@@ -19,6 +19,27 @@ public class InvestigationLogListener {
     investigationLogService.saveLog(log);
   }
 
+  @TransactionalEventListener
+  public void onInviteEmployee(InviteEmployeeEvent event) {
+    InvestigationLog log =
+        investigationLogCreator.inviteEmployeeLog(event.employee(), event.author());
+    investigationLogService.saveLog(log);
+  }
+
+  @TransactionalEventListener
+  public void onUpdateEmployee(UpdateEmployeeEvent event) {
+    InvestigationLog log =
+        investigationLogCreator.updateEmployeeLog(event.employee(), event.author());
+    investigationLogService.saveLog(log);
+  }
+
+  @TransactionalEventListener
+  public void onUpdateAccessEmployee(UpdateAccessEmployeeEvent event) {
+    InvestigationLog log =
+        investigationLogCreator.updateAccessEmployeeLog(event.employee(), event.author());
+    investigationLogService.saveLog(log);
+  }
+
   // Commodity events
   @TransactionalEventListener
   public void onCreateCommodity(CreateCommodityEvent event) {
