@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import com.open.crm.admin.application.interfaces.ISecurityGateway;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
-import com.open.crm.core.application.InvestigationLogCreator;
 import com.open.crm.core.application.repositories.IInvestigationLogRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -28,8 +27,6 @@ public class UserServiceTest {
   @Mock private PasswordEncoder passwordEncoder;
 
   @Mock private ApplicationEventPublisher eventPublisher;
-
-  @Mock private InvestigationLogCreator investigationLogCreator;
 
   @Mock private IInvestigationLogRepository investigationLogRepository;
 

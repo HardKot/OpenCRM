@@ -1,2 +1,3 @@
 // Точка входа для инициализации приложения (например, провайдеры, store, роутер)
-export { };
+export { store } from './store';
+export type { RootState, AppDispatch } from './store';

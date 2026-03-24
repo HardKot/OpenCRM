@@ -1,31 +1,23 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import { HomePage } from './pages/home';
-import { AboutPage } from './pages/about';
+import { HomePage } from '#pages/home';
+import { AboutPage } from '#pages/about';
+import { LoginPage } from '#pages/LoginPage';
+import { CircularProgress } from '@mui/material';
+import { View } from '#shared/ui';
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="App">
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/about">About</Link></li>
-        </ul>
-      </nav>
-      {children}
-    </div>
-  );
-}
+
 
 function App() {
   return (
-    <AppLayout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-      </Routes>
-    </AppLayout>
+      <Suspense fallback={<View display="flex" justifyContent="center" p={4}><CircularProgress /></View>}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </Suspense>
   );
 }
 
