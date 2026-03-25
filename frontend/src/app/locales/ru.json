@@ -1,0 +1,13 @@
+{
+    "application": {
+        "name": "Open CRM Система"
+    },
+    "login": {
+        "title": "Вход в систему",
+        "email": "Электронная почта",
+        "password": "Пароль",
+        "submit": "Войти",
+        "forgotPassword": "Забыли пароль?",
+        "required": "Это поле обязательно"
+    }
+}
