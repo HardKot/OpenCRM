@@ -12,26 +12,28 @@ export interface RequestOptions {
     contentType?: string;
 }
 
-interface Definition<Result, Arg> {
-    type: 'query' | 'mutation';
+
+interface DefinitionOptions<Result, Arg> {
+    errorTransform?: (error: any) => string;
+    dataTransform?: (data: any) => Result;
     query: (arg: Arg) => RequestOptions;
 }
 
-export class EndpointBuilder {
-    query<Result, Arg>(definition: { query: (arg: Arg) => RequestOptions }): Definition<Result, Arg> {
-        return {
-            type: 'query',
-            query: definition.query
-        }
-    }
-    
-    mutation<Result, Arg>(definition: { query: (arg: Arg) => RequestOptions }): Definition<Result, Arg> {
-        return {
-            type: 'mutation',
-            query: definition.query
-        }
+
+interface Definition<Result, Arg> {
+    query: (arg: Arg) => RequestOptions;
+    errorTransform?: (error: any) => string;
+    dataTransform?: (data: any) => Result;
+}
+
+export function createEndpoint<Result, Arg>(definition: DefinitionOptions<Result, Arg>): Definition<Result, Arg> {
+    return {
+        query: definition.query,
+        errorTransform: definition.errorTransform,
+        dataTransform: definition.dataTransform
     }
 }
+
 
 type EndpointsMap = Record<string, Definition<any, any>>;
 
@@ -45,12 +47,15 @@ interface CreateApiOptions<Definitions extends EndpointsMap> {
     baseUrl?: string;
     contentType?: string;
     headers?: Record<string, string>;
-    endpoints: (builder: EndpointBuilder) => Definitions;
+    endpoints: (builder: typeof createEndpoint) => Definitions;
+}
+
+function isHttpMethod(method: string): method is HttpMethod {
+    return ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
 }
 
 export function createApi<Definitions extends EndpointsMap>(options: CreateApiOptions<Definitions>): Api<Definitions> {
-    const builder = new EndpointBuilder();
-    const endpointDefinitions = options.endpoints(builder);
+    const endpointDefinitions = options.endpoints(createEndpoint);
     
     const { baseUrl = "", contentType: defaultContentType, headers: defaultHeaders } = options;
     const apiObj: any = {};
@@ -61,7 +66,10 @@ export function createApi<Definitions extends EndpointsMap>(options: CreateApiOp
             
             apiObj[key] = async (arg: any) => {
                 const config = def.query(arg);
-                const method = (config.method || ((def.type === 'query') ? 'GET' : 'POST')).toUpperCase() as HttpMethod;
+                const { errorTransform, dataTransform } = def
+                let method: HttpMethod | string = config.method?.toUpperCase() ?? 'GET';
+                if (!isHttpMethod(method)) throw new Error(`Invalid HTTP method: ${method}`);
+                
                 
                 let path = config.url;
                 if (!path.startsWith('/')) path = '/' + path;
@@ -81,7 +89,9 @@ export function createApi<Definitions extends EndpointsMap>(options: CreateApiOp
                    url: finalUrl,
                    body: config.body,
                    params: config.params,
-                   headers: requestHeaders
+                   headers: requestHeaders,
+                   errorTransform,
+                   dataTransform
                 });
             }
         }

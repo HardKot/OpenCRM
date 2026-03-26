@@ -5,6 +5,8 @@ export interface IRequestOptions {
     body?: unknown,
     params?: Record<string, string>,
     headers?: Record<string, string>,
+    errorTransform?: (error: any) => any,
+    dataTransform?: (data: any) => any
 }
 
 
@@ -12,11 +14,11 @@ export interface IResponse<T> {
     status: number,
     data: T | null,
     hasError: boolean,
-    errorMessage?: string
+    errorMessage?: any
 }
 
 
-async function request<T>(endpoint: string, method: string, headers: Record<string, string>, body: unknown, params: Record<string, string>): Promise<IResponse<T>> {
+async function request<T>(endpoint: string, method: string, headers: Record<string, string>, body: unknown, params: Record<string, string>, errorTransform?: (error: any) => any, dataTransform?: (data: any) => any): Promise<IResponse<T>> {
     try {
         endpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint
         endpoint = endpoint.includes('?') ? endpoint.split('?')[0] : endpoint
@@ -38,36 +40,49 @@ async function request<T>(endpoint: string, method: string, headers: Record<stri
         });
 
         if (response.ok) {
+            let data = await response.json();
+            if (dataTransform) {
+                data = dataTransform(data);
+            }
             return ({
                 status: response.status,
-                data: await response.json(),
+                data: data,
                 hasError: false
             })
+        }
+
+        let errorMessage = await response.json();
+        if (errorTransform) {
+             errorMessage = errorTransform(errorMessage);
         }
 
         return ({
             status: response.status,
             data: null,
             hasError: true,
-            errorMessage: await response.text()
+            errorMessage: errorMessage
         })
     } catch (error) {
+        let errorMessage: any = (error as Error).message;
+        if (errorTransform) {
+            errorMessage = errorTransform(error);
+        }
         return ({
             status: -1,
             data: null,
             hasError: true,
-            errorMessage: (error as Error).message
+            errorMessage: errorMessage
         })
     }
 }
 
 
 const api = Object.freeze({
-    GET: <T>(options: IRequestOptions) => request<T>(options.url, 'GET', options.headers ?? {}, null, options.params ?? {}),
-    POST: <T>(options: IRequestOptions) => request<T>(options.url, 'POST', options.headers ?? {}, options.body, options.params ?? {}),
-    DELETE: <T>(options: IRequestOptions) => request<T>(options.url, 'DELETE', options.headers ?? {}, null, options.params ?? {}),
-    PUT: <T>(options: IRequestOptions) => request<T>(options.url, 'PUT', options.headers ?? {}, options.body, options.params ?? {}),
-    PATCH: <T>(options: IRequestOptions) => request<T>(options.url, 'PATCH', options.headers ?? {}, options.body, options.params ?? {})
+    GET: <T>(options: IRequestOptions) => request<T>(options.url, 'GET', options.headers ?? {}, null, options.params ?? {}, options.errorTransform, options.dataTransform),
+    POST: <T>(options: IRequestOptions) => request<T>(options.url, 'POST', options.headers ?? {}, options.body, options.params ?? {}, options.errorTransform, options.dataTransform),
+    DELETE: <T>(options: IRequestOptions) => request<T>(options.url, 'DELETE', options.headers ?? {}, null, options.params ?? {}, options.errorTransform, options.dataTransform),
+    PUT: <T>(options: IRequestOptions) => request<T>(options.url, 'PUT', options.headers ?? {}, options.body, options.params ?? {}, options.errorTransform, options.dataTransform),
+    PATCH: <T>(options: IRequestOptions) => request<T>(options.url, 'PATCH', options.headers ?? {}, options.body, options.params ?? {}, options.errorTransform, options.dataTransform)
 })
 
 

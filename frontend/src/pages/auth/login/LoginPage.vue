@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { createLoginSchema, type ILoginForm } from './LoginSchema'
 import { AuthApi } from '@/shared/api'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const isPasswordVisible = ref(false)
 
@@ -24,13 +24,26 @@ const passwordError = computed(() => errors.value.password)
 
 const error = ref('')
 
+const localeErrorMessage = (message: string) => {
+    if (te(`login.${message}`)) {
+        return t(`login.${message}`)
+    } else if (te(`errors.${message}`)) {
+        return t(`errors.${message}`)
+    } else {
+        return t('login.error')
+    }
+}
+
 const handleLogin = handleSubmit(async (values) => {
     error.value = ''
     try {
-        const {} = await AuthApi.login(values);
-        
+        const { hasError, errorMessage } = await AuthApi.login(values);
+        if (hasError) {
+            error.value = localeErrorMessage(errorMessage ?? 'errors.Unknown error')
+        }
+
     } catch (e) {
-        error.value = t('login.error')
+        error.value = t('errors.Unknown error')
     }
 })
 </script>

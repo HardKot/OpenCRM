@@ -2,12 +2,24 @@
     "application": {
         "name": "Open CRM Система"
     },
+
+    "errors": {
+        "Failed to fetch": "Не удалось подключиться к серверу",
+        "Unauthorized": "Пользователь не авторизован",
+        "Forbidden": "Доступ запрещён",
+        "Not Found": "Ресурс не найден",
+        "Internal Server Error": "Внутренняя ошибка сервера",
+        "Bad Request": "Неверный запрос",
+        "Unknown Error": "Неизвестная ошибка"
+    },
+
     "login": {
         "title": "Вход в систему",
         "email": "Электронная почта",
         "password": "Пароль",
         "submit": "Войти",
         "forgotPassword": "Забыли пароль?",
-        "required": "Это поле обязательно"
+        "required": "Это поле обязательно",
+        "Invalid email or password": "Неверный email или пароль"
     }
 }

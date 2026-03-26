@@ -17,16 +17,17 @@ interface LoginResponse {
 
 const AuthApi = createApi({
     baseUrl: '/auth',
-    endpoints: (builder) => ({
-        login: builder.mutation<LoginResponse, LoginRequest>({
+    endpoints: (create) => ({
+        login: create<LoginResponse, LoginRequest>({
             query: (body) => ({
                 method: 'POST',
                 url: '/login',
                 body
-            })
+            }),
+            errorTransform: (error) => error.message || 'Login failed',
         }),
         
-        logout: builder.mutation<void, void>({
+        logout: create<void, void>({
             query: () => ({
                 method: 'POST',
                 url: '/logout'
