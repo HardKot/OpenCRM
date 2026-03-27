@@ -1,30 +1,52 @@
-import React, { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useSelector } from 'react-redux';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Text, TextInput, View } from '#shared/ui';
-import { LoginByUsernameProps } from '../model/types/loginSchema';
-import { loginByUsername } from '../model/services/loginByUsername';
-import { useAppDispatch } from '#shared/hooks/reduxHooks'; // assuming this exists or I'll define standard dispatch
-import { getLoginError } from '../model/selectors/getLoginError';
-import { getLoginIsLoading } from '../model/selectors/getLoginIsLoading';
+import { LoginSchema, loginSchema } from '../model/loginSchema';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useLoginByUsername, useI18n, Utils, ITranslation,  } from '#shared/index';
+import { IconButton, InputAdornment } from '@mui/material';
 
 export interface LoginFormProps {
-    className?: string;
     onSuccess?: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ className, onSuccess }) => {
-    const dispatch = useAppDispatch();
-    const { control, handleSubmit } = useForm<LoginByUsernameProps>();
-    const error = useSelector(getLoginError);
-    const isLoading = useSelector(getLoginIsLoading);
+const ErrorDictionary: Record<string, string> = {
+    "Invalid email or password": 'authByUsername.invalidCredentials',
+    "Unknown Error": 'authByUsername.unknownError',
+}
 
-    const onSubmit = useCallback(async (data: LoginByUsernameProps) => {
-        const result = await dispatch(loginByUsername(data));
-        if (result.meta.requestStatus === 'fulfilled') {
-            onSuccess?.();
-        }
-    }, [dispatch, onSuccess]);
+const getErrorMessage = (error: any, t: ITranslation) => {
+    let errorKey = "";
+    if (Utils.isIError(error)) errorKey = error.error;
+
+    if (!errorKey) errorKey = 'authByUsername.unknownError';
+    const translationKey = ErrorDictionary[errorKey] ?? 'authByUsername.unknownError';
+    return t(translationKey, { defaultValue: t('authByUsername.unknownError') });
+}
+
+export const LoginForm = ({ onSuccess }: LoginFormProps) => {
+    const { t } = useI18n();
+    const [loginByUsername, { isError, error }] = useLoginByUsername();
+
+    const [isShowPassword, setIsShowPassword] = useState(false);
+    const { control, handleSubmit, formState } = useForm({
+        resolver: yupResolver(loginSchema(t)),
+        mode: 'onBlur',
+    });
+
+
+    const errorMessage = getErrorMessage(error, t);
+   
+  
+    const onSubmit = useCallback(async ({ username, password }: LoginSchema) => {
+        await loginByUsername({
+            username,
+            password,
+        });
+        onSuccess?.();
+    }, [onSuccess]);
+
 
     return (
         <View 
@@ -35,39 +57,47 @@ export const LoginForm: React.FC<LoginFormProps> = ({ className, onSuccess }) =>
             gap={2}
             width="100%"
             maxWidth={400}
-            className={className}
         >
             <Text variant="h5" align="center" gutterBottom>
-                Вход в систему
+                {t('authByUsername.title')}
             </Text>
             
-            {error && (
-                <Text color="error" align="center">
-                    {error}
-                </Text>
-            )}
 
             <TextInput.Form
                 control={control}
                 name="username"
-                label="Имя пользователя"
+                label={t('authByUsername.username')}
                 autoFocus
+                
             />
 
             <TextInput.Form
                 control={control}
                 name="password"
-                label="Пароль"
-                type="password"
+                label={t('authByUsername.password')}
+                type={isShowPassword ? "text" : "password" }
+                right={<Button.Icon
+                    onClick={() => setIsShowPassword(!isShowPassword)}
+                    icon={isShowPassword ? "VisibilityOff" : "Visibility"}
+                    color='inherit'
+                />}
             />
+
+            {
+                isError && (
+                    <Text color="error" align="center">
+                        {errorMessage}
+                    </Text>
+                )
+            }
 
             <Button
                 variant="contained"
                 type="submit"
                 fullWidth
-                loading={isLoading}
+                loading={formState.isSubmitting}
             >
-                Войти
+                {t('authByUsername.submit')}
             </Button>
         </View>
     );

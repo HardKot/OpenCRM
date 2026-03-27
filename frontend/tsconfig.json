@@ -30,6 +30,6 @@
     }
   },
   "include": [
-    "src",  "WebWorker"
+    "src",  "WebWorker", "vite-env.d.ts", 
   ]
 }

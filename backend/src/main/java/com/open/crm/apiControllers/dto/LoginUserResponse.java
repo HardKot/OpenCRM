@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record LoginUserResponse(
     boolean success,
+    String message,
     UUID userId,
     UUID tenantId,
     UserPermission[] permissions,

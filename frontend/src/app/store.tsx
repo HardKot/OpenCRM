@@ -1,24 +1,23 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { userReducer, UserSchema } from '#entities/User';
-import { loginReducer, LoginSchema } from '#features/AuthByUsername';
+import { userReducer } from '#entities/User';
+import { ApiMiddleware, ApiReducer } from '#shared/api';
+import { AppConfigReducer } from './config/AppConfigSlice';
 
-export interface StateSchema {
-    user: UserSchema;
-    login: LoginSchema;
-}
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    login: loginReducer,
+    appConfig: AppConfigReducer,
+    ...ApiReducer
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(ApiMiddleware),
   enhancers: (getDefaultEnhancers) => getDefaultEnhancers(),
   devTools: import.meta.env.DEV,
 })
 
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
+export type AppStore = typeof store
 
 export interface ThunkExtraArg {
     api: any; // Ideally AxiosInstance

@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -61,29 +62,38 @@ public class AuthController {
       @RequestBody LoginUserRequest entity,
       HttpServletRequest request,
       HttpServletResponse response) {
-    Authentication authentication =
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(entity.email(), entity.password()));
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
+    try {
+      Authentication authentication =
+          authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(entity.email(), entity.password()));
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
 
-    SecurityContextHolder.setContext(context);
-    HttpSession session = request.getSession(true);
-    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+      SecurityContextHolder.setContext(context);
+      HttpSession session = request.getSession(true);
+      session.setAttribute(
+          HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-    User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+      User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
 
-    LoginUserResponse loginResponse =
-        new LoginUserResponse(
-            true,
-            user.getId(),
-            user.getTenant().getId(),
-            user.getPermissions(),
-            user.getEntityId(),
-            user.getEntityName(),
-            user.getRole());
+      LoginUserResponse loginResponse =
+          new LoginUserResponse(
+              true,
+              "",
+              user.getId(),
+              user.getTenant().getId(),
+              user.getPermissions(),
+              user.getEntityId(),
+              user.getEntityName(),
+              user.getRole());
 
-    return ResponseEntity.ok(loginResponse);
+      return ResponseEntity.ok(loginResponse);
+    } catch (AuthenticationException error) {
+      return ResponseEntity.badRequest()
+          .body(
+              new LoginUserResponse(
+                  false, "Invalid email or password", null, null, null, null, null, null));
+    }
   }
 
   @PostMapping("/password/level")
@@ -106,6 +116,7 @@ public class AuthController {
     LoginUserResponse loginResponse =
         new LoginUserResponse(
             true,
+            "",
             user.getId(),
             user.getTenant().getId(),
             user.getPermissions(),
