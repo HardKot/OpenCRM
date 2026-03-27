@@ -40,18 +40,23 @@ const TextInputForm = <T extends FieldValues = FieldValues>(
         <Controller
             name={name}
             control={control}
-            render={({ field: { value, onChange, onBlur, ref }, fieldState: { error } }) => (
-                <TextInputBase
-                    {...(textFieldProps as TextFieldProps)}
-                    name={name}
-                    value={value ?? ''}
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    inputRef={ref}
-                    error={!!error}
-                    helperText={error ? error.message : textFieldProps.helperText}
-                />
-            )}
+            render={({ field: { value, onChange, onBlur, ref }, fieldState: { error } }) => {
+                // Don't show error if field is empty (required error is implicit)
+                const shouldShowError = Boolean(error) && Boolean(String(value ?? '').trim());
+                
+                return (
+                    <TextInputBase
+                        {...(textFieldProps as TextFieldProps)}
+                        name={name}
+                        value={value ?? ''}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        inputRef={ref}
+                        error={shouldShowError}
+                        helperText={shouldShowError ? error?.message : textFieldProps.helperText}
+                    />
+                );
+            }}
         />
     );
 };

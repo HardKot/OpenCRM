@@ -32,7 +32,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     const [isShowPassword, setIsShowPassword] = useState(false);
     const { control, handleSubmit, formState } = useForm({
         resolver: yupResolver(loginSchema(t)),
-        mode: 'onBlur',
     });
 
 
@@ -54,11 +53,12 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             onSubmit={handleSubmit(onSubmit)}
             display="flex"
             flexDirection="column"
+            alignItems={"center"}
             gap={2}
             width="100%"
             maxWidth={400}
         >
-            <Text variant="h5" align="center" gutterBottom>
+            <Text variant="h5" align="center" gutterBottom color="text.primary">
                 {t('authByUsername.title')}
             </Text>
             
@@ -76,20 +76,32 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
                 name="password"
                 label={t('authByUsername.password')}
                 type={isShowPassword ? "text" : "password" }
-                right={<Button.Icon
-                    onClick={() => setIsShowPassword(!isShowPassword)}
-                    icon={isShowPassword ? "VisibilityOff" : "Visibility"}
-                    color='inherit'
-                />}
+                right={
+                    <InputAdornment position="end" sx={{ mr: -0.5 }}>
+                        <IconButton
+                            onClick={() => setIsShowPassword(!isShowPassword)}
+                            edge="end"
+                            size="small"
+                        >
+                            {isShowPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        </IconButton>
+                    </InputAdornment>
+                }
             />
 
-            {
-                isError && (
-                    <Text color="error" align="center">
-                        {errorMessage}
-                    </Text>
-                )
-            }
+            <View minHeight={22} mt={-1} mb={-0.5} display="flex" alignItems="center" justifyContent="center">
+                <Text
+                    variant="caption"
+                    color="error"
+                    align="center"
+                    visibility={isError ? 'visible' : 'hidden'}
+                    lineHeight={1.1}
+                    width="100%"
+                    sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+                >
+                    {isError ? errorMessage : ' '}
+                </Text>
+            </View>
 
             <Button
                 variant="contained"

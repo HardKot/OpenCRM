@@ -1,0 +1,44 @@
+{
+    "application": {
+        "name": "Open CRM System"
+    },
+    "errors": {
+        "failedToFetch": "Failed to connect to the server",
+        "unauthorized": "User is not authorized",
+        "forbidden": "Access denied",
+        "notFound": "Resource not found",
+        "internalServerError": "Internal server error",
+        "badRequest": "Invalid request",
+        "unknownError": "Unknown error"
+    },
+    "authByUsername": {
+        "title": "Login",
+        "email": "Email",
+        "password": "Password",
+        "submit": "Sign In",
+        "username": "Username",
+        "forgotPassword": "Forgot password?",
+        "required": "This field is required",
+        "invalidCredentials": "Invalid email or password",
+        "unknownError": "An error occurred during login. Please try again.",
+        "validation": {
+            "username": {
+                "email": "Please enter a valid email",
+                "required": "Please enter a username"
+            },
+            "password": {
+                "required": "Please enter a password"
+            }
+        }
+    },
+    "settings": {
+        "language": "Language",
+        "language_system": "Automatic (system)",
+        "language_description": "Select the application interface language",
+        "theme": "Theme Mode",
+        "theme_light": "Light",
+        "theme_dark": "Dark",
+        "theme_system": "System",
+        "theme_description": "Choose display mode: light, dark, or automatically follow system settings"
+    }
+}

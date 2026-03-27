@@ -1,11 +1,35 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect, useMemo, useState } from "react";
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { appTheme } from "#app/theme";
+import { PaletteMode } from '@mui/material/styles';
+import { createAppTheme } from "#app/theme";
+import { useAppSelector } from "#shared/index";
 
 const ThemeProvider = ({ children }: PropsWithChildren) => {
+    const themeMode = useAppSelector(state => state.appConfig.theme);
+    const [currentMode, setCurrentMode] = useState<PaletteMode>('light');
+
+    useEffect(() => {
+        if (themeMode === 'system') {
+            // Detect system preference
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const isDark = mediaQuery.matches;
+            setCurrentMode(isDark ? 'dark' : 'light');
+
+            // Listen for system theme changes
+            const handler = (e: MediaQueryListEvent) => {
+                setCurrentMode(e.matches ? 'dark' : 'light');
+            };
+            mediaQuery.addEventListener('change', handler);
+            return () => mediaQuery.removeEventListener('change', handler);
+        } else {
+            setCurrentMode(themeMode);
+        }
+    }, [themeMode]);
+
+    const theme = useMemo(() => createAppTheme(currentMode), [currentMode]);
 
     return (
-        <MuiThemeProvider theme={appTheme} noSsr>
+        <MuiThemeProvider theme={theme} noSsr>
             {children}
         </MuiThemeProvider>
     )
