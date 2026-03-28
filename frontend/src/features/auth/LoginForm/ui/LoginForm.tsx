@@ -44,7 +44,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   
     const onSubmit = useCallback(async ({ username, password }: LoginSchema) => {
         await loginByUsername({
-            username,
+            email: username,
             password,
         }).unwrap();
         onSuccess?.();

@@ -21,7 +21,7 @@ export const ForgoutPasswordForm = ({ onSuccess }: ForgoutPasswordFormProps) => 
   
     const onSubmit = useCallback(async ({ username }: ForgoutPasswordSchema) => {
         await loginByUsername({
-            username,
+            email: username,
         }).unwrap();
 
         onSuccess?.();

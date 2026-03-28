@@ -8,4 +8,6 @@ export * from './MaskInput';
 export * from './Modal';
 export * from './Switch';
 export * from './Checkbox';
+export * from './AppBar';
+export * from './Avatar';
 export { Alert } from './Alert';

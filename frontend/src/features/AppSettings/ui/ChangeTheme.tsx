@@ -60,12 +60,14 @@ const ChangeTheme = () => {
     );
 };
 
+type ThemeOption = 'light' | 'dark' | 'system';
+
 const ChangeThemeCompact = () => {
     const dispatch = useAppDispatch();
     const theme = useAppSelector(state => state.appConfig.theme);
     const { t } = useI18n();
 
-    const handleThemeChange = (value: string) => {
+    const handleThemeChange = (value: ThemeOption) => {
         dispatch(setTheme(value));
     };
 
@@ -79,8 +81,6 @@ const ChangeThemeCompact = () => {
                     variant={theme === 'light' ? 'contained' : 'outlined'}
                     sx={{ fontSize: '0.75rem', px: 0.75, py: 0.5 }}
                 />
-            
-                
             </Tooltip>
             <Tooltip title={t('settings.theme_dark')}>
                 <Button.Icon

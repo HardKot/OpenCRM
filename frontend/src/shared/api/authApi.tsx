@@ -3,7 +3,7 @@ import { BaseFetchQuery } from "./api";
 import { Utils } from "#shared/index";
 
 interface LoginRequest {
-    username: string;
+    email: string;
     password: string;
 }
 
@@ -27,7 +27,7 @@ interface RegisterTenantResponse {
 }
 
 interface ForgoutPasswordRequest {
-    username: string;
+    email: string;
 }
 
 

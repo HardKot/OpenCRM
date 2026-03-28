@@ -1,6 +1,7 @@
 {
     "application": {
-        "name": "Open CRM Система"
+        "name": "Open CRM Система",
+        "shortName": "Open CRM"
     },
     "errors": {
         "failedToFetch": "Не удалось подключиться к серверу",

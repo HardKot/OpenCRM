@@ -10,12 +10,10 @@ const ThemeProvider = ({ children }: PropsWithChildren) => {
 
     useEffect(() => {
         if (themeMode === 'system') {
-            // Detect system preference
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             const isDark = mediaQuery.matches;
             setCurrentMode(isDark ? 'dark' : 'light');
 
-            // Listen for system theme changes
             const handler = (e: MediaQueryListEvent) => {
                 setCurrentMode(e.matches ? 'dark' : 'light');
             };
@@ -29,7 +27,7 @@ const ThemeProvider = ({ children }: PropsWithChildren) => {
     const theme = useMemo(() => createAppTheme(currentMode), [currentMode]);
 
     return (
-        <MuiThemeProvider theme={theme} noSsr>
+        <MuiThemeProvider theme={theme}>
             {children}
         </MuiThemeProvider>
     )

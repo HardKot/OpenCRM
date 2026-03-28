@@ -1,3 +1,4 @@
+import { AppConfigState } from "#app/config/AppConfigState";
 import { createAction } from "@reduxjs/toolkit";
 
 const setTheme = createAction<AppConfigState["theme"]>("appConfig/setTheme");

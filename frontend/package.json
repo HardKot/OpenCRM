@@ -10,12 +10,13 @@
     "@mui/material": "^7.3.9",
     "@reduxjs/toolkit": "^2.11.2",
     "i18n-js": "^4.5.3",
-    "eslint-plugin-react": "^18.3.1",
-    "eslint-plugin-react-dom": "^18.3.1",
-    "eslint-plugin-react-hook-form": "^7.72.0",
-    "eslint-plugin-react-imask": "^7.6.1",
-    "eslint-plugin-react-redux": "^9.2.0",
-    "eslint-plugin-react-router-dom": "^6.23.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.72.0",
+    "react-imask": "^7.6.1",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.23.1",
+    "redux-persist": "^6.0.0",
     "web-vitals": "^2.1.4",
     "yup": "^1.7.1"
   },
@@ -45,12 +46,30 @@
         "version": "detect"
       },
       "boundaries/elements": [
-        { "type": "app", "pattern": "app/*" },
-        { "type": "pages", "pattern": "pages/*" },
-        { "type": "widgets", "pattern": "widgets/*" },
-        { "type": "features", "pattern": "features/*" },
-        { "type": "entities", "pattern": "entities/*" },
-        { "type": "shared", "pattern": "shared/*" }
+        {
+          "type": "app",
+          "pattern": "app/*"
+        },
+        {
+          "type": "pages",
+          "pattern": "pages/*"
+        },
+        {
+          "type": "widgets",
+          "pattern": "widgets/*"
+        },
+        {
+          "type": "features",
+          "pattern": "features/*"
+        },
+        {
+          "type": "entities",
+          "pattern": "entities/*"
+        },
+        {
+          "type": "shared",
+          "pattern": "shared/*"
+        }
       ],
       "boundaries/ignore": [
         "**/*.test.*",
@@ -60,42 +79,85 @@
     "rules": {
       "no-undefined": "off",
       "@typescript-eslint/no-inferrable-types": "off",
-      "eslint-plugin-unicorn/no-useless-undefined": ["error", { "checkArguments": false }],
+      "eslint-plugin-unicorn/no-useless-undefined": [
+        "error",
+        {
+          "checkArguments": false
+        }
+      ],
       "@typescript-eslint/naming-convention": [
         "error",
         {
           "selector": "function",
-          "format": ["camelCase", "PascalCase"]
+          "format": [
+            "camelCase",
+            "PascalCase"
+          ]
         },
         {
           "selector": "variable",
-          "modifiers": ["const", "global"],
-          "format": ["UPPER_CASE", "PascalCase", "camelCase"]
+          "modifiers": [
+            "const",
+            "global"
+          ],
+          "format": [
+            "UPPER_CASE",
+            "PascalCase",
+            "camelCase"
+          ]
         },
         {
           "selector": "class",
-          "format": ["PascalCase"]
+          "format": [
+            "PascalCase"
+          ]
         },
         {
           "selector": "interface",
-          "format": ["PascalCase"]
+          "format": [
+            "PascalCase"
+          ]
         },
         {
           "selector": "typeAlias",
-          "format": ["PascalCase"]
+          "format": [
+            "PascalCase"
+          ]
         }
       ],
       "eslint-plugin-react/react-in-jsx-scope": "off",
-      "eslint-plugin-react/jsx-pascal-case": ["error", { "allowAllCaps": false }],
+      "eslint-plugin-react/jsx-pascal-case": [
+        "error",
+        {
+          "allowAllCaps": false
+        }
+      ],
       "eslint-plugin-react-hooks/rules-of-hooks": "error",
       "eslint-plugin-react-hooks/exhaustive-deps": "warn",
-      "max-lines-per-function": ["error", { "max": 50, "skipBlankLines": true, "skipComments": true }],
-      "max-statements": ["error", 10],
-      "complexity": ["error", 10],
+      "max-lines-per-function": [
+        "error",
+        {
+          "max": 50,
+          "skipBlankLines": true,
+          "skipComments": true
+        }
+      ],
+      "max-statements": [
+        "error",
+        10
+      ],
+      "complexity": [
+        "error",
+        10
+      ],
       "eslint-plugin-react/function-component-definition": [
         "error",
         {
-          "namedComponents": ["arrow-function", "function-declaration", "function-expression"],
+          "namedComponents": [
+            "arrow-function",
+            "function-declaration",
+            "function-expression"
+          ],
           "unnamedComponents": "arrow-function"
         }
       ],
@@ -106,7 +168,10 @@
             "pascalCase": true,
             "camelCase": true
           },
-          "ignore": ["\\.test\\.(tsx?|jsx?)$", "\\.spec\\.(tsx?|jsx?)$"]
+          "ignore": [
+            "\\.test\\.(tsx?|jsx?)$",
+            "\\.spec\\.(tsx?|jsx?)$"
+          ]
         }
       ],
       "boundaries/element-types": [
@@ -114,21 +179,65 @@
         {
           "default": "disallow",
           "rules": [
-            { "from": "app", "allow": ["pages", "widgets", "features", "entities", "shared"] },
-            { "from": "pages", "allow": ["widgets", "features", "entities", "shared"] },
-            { "from": "widgets", "allow": ["features", "entities", "shared"] },
-            { "from": "features", "allow": ["entities", "shared"] },
-            { "from": "entities", "allow": ["shared"] },
-            { "from": "shared", "allow": ["shared"] }
+            {
+              "from": "app",
+              "allow": [
+                "pages",
+                "widgets",
+                "features",
+                "entities",
+                "shared"
+              ]
+            },
+            {
+              "from": "pages",
+              "allow": [
+                "widgets",
+                "features",
+                "entities",
+                "shared"
+              ]
+            },
+            {
+              "from": "widgets",
+              "allow": [
+                "features",
+                "entities",
+                "shared"
+              ]
+            },
+            {
+              "from": "features",
+              "allow": [
+                "entities",
+                "shared"
+              ]
+            },
+            {
+              "from": "entities",
+              "allow": [
+                "shared"
+              ]
+            },
+            {
+              "from": "shared",
+              "allow": [
+                "shared"
+              ]
+            }
           ]
         }
+      ],
+      "boundaries/no-private": [
+        "error"
       ]
-      ,
-      "boundaries/no-private": ["error"]
     },
     "overrides": [
       {
-        "files": ["**/__tests__/**/*.{ts,tsx,js,jsx}", "**/*.{test,spec}.{ts,tsx,js,jsx}"],
+        "files": [
+          "**/__tests__/**/*.{ts,tsx,js,jsx}",
+          "**/*.{test,spec}.{ts,tsx,js,jsx}"
+        ],
         "env": {
           "jest": true
         },
@@ -171,7 +280,6 @@
     "eslint-plugin-unicorn": "^55.0.0",
     "jest": "^27.5.1",
     "prettier": "^3.8.1",
-    "eslint-plugin-react-refresh": "^0.18.0",
     "typescript": "^4.9.5",
     "vite": "^8.0.2"
   }
