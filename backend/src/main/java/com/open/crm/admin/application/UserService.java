@@ -260,6 +260,22 @@ public class UserService implements UserDetailsService, IUserService {
     return password.toString();
   }
 
+  public UserResult recreatePassword(User user) {
+    String password = generatePassword();
+    user.setPassword(passwordEncoder.encode(password));
+    User updatedUser = userRepository.save(user);
+
+    eventPublisher.publishEvent(
+        new ApplicationEmailEvent(
+            this,
+            user.getEmail(),
+            "Password Reset",
+            "email/reset-password-email",
+            Map.of("username", user.getUsername(), "password", password)));
+
+    return new UserResult.Ok(updatedUser);
+  }
+
   public PasswordType getPasswordType(String password) {
     int score = 0;
 

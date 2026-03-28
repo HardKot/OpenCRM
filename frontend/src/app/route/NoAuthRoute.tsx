@@ -1,12 +1,11 @@
-import { LoginPage } from "#pages/LoginPage";
+import { AuthPage } from "#pages/AuthPage";
 import { Route, Routes } from "react-router-dom";
 
 const NoAuthRoute = () => (
     <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/about" element={<LoginPage />} />
+        <Route path="/auth" element={<AuthPage />} />
 
-        <Route path="*" element={<LoginPage />} />
+        <Route path="*" element={<AuthPage />} />
     </Routes>
 )
 

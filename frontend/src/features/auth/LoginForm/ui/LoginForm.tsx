@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Text, TextInput, View } from '#shared/ui';
 import { LoginSchema, loginSchema } from '../model/loginSchema';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useLoginByUsername, useI18n, Utils, ITranslation,  } from '#shared/index';
+import { useLoginByUsername, useI18n, Utils, useTranslate, Adapter  } from '#shared/index';
 import { IconButton, InputAdornment } from '@mui/material';
 
 export interface LoginFormProps {
@@ -16,13 +16,11 @@ const ErrorDictionary: Record<string, string> = {
     "Unknown Error": 'authByUsername.unknownError',
 }
 
-const getErrorMessage = (error: any, t: ITranslation) => {
-    let errorKey = "";
-    if (Utils.isIError(error)) errorKey = error.error;
-
-    if (!errorKey) errorKey = 'authByUsername.unknownError';
-    const translationKey = ErrorDictionary[errorKey] ?? 'authByUsername.unknownError';
-    return t(translationKey, { defaultValue: t('authByUsername.unknownError') });
+const getErrorMessage = (error: any) => {
+    if (Utils.isIError(error)) return error.error;
+    if (Utils.isIMessage(error)) return error.message;
+    if (Utils.isString(error)) return error;
+    return 'authByUsername.unknownError';
 }
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
@@ -35,14 +33,20 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     });
 
 
-    const errorMessage = getErrorMessage(error, t);
+    const errorMessage = useTranslate(
+        Adapter.getErrorMessage(error, 'authByUsername.unknownError'),
+        { 
+            dict: ErrorDictionary, 
+            defaultKey: 'authByUsername.unknownError' 
+        }
+    );
    
   
     const onSubmit = useCallback(async ({ username, password }: LoginSchema) => {
         await loginByUsername({
             username,
             password,
-        });
+        }).unwrap();
         onSuccess?.();
     }, [onSuccess]);
 

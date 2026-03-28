@@ -4,3 +4,4 @@ export * from "./libs/Actions";
 
 export type { ITranslation } from "./libs/Types";
 export { Utils } from "./libs/Utils";
+export { Adapter } from "./libs/Adapter";

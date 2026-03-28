@@ -1,17 +1,27 @@
-import React from 'react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LoginForm } from '#features/AuthByUsername';
 import { ChangeLanguage, ChangeTheme } from '#features/AppSettings';
 import { View, Text } from '#shared/ui';
 import { useI18n } from '#shared/hooks';
+import { AuthPageMode } from '../model/AuthPageMode';
+import { Login } from './Login';
+import { ForgoutPassword } from './ForgoutPassword';
+import { CreateTenant } from './CreateTenant';
+import { ModeSwitcher } from './ModeSwitcher';
 
-const LoginPage: React.FC = () => {
-    const navigate = useNavigate();
+
+const ViewModes: { [key in AuthPageMode]: FC<{}> } = {
+    [AuthPageMode.LOGIN]: Login,
+    [AuthPageMode.FORGOT_PASSWORD]: ForgoutPassword,
+    [AuthPageMode.CREATE_TENANT]: CreateTenant,
+}
+
+const AuthPage = () => {
+    const [mode, setMode] = useState<AuthPageMode>(AuthPageMode.LOGIN);
+
     const { t } = useI18n();
 
-    const onSuccess = () => {
-        navigate('/');
-    };
+    const ViewMode = ViewModes[mode] ?? Login;
 
     return (
         <View 
@@ -51,10 +61,13 @@ const LoginPage: React.FC = () => {
                 <Text variant="h4" align="center" gutterBottom color="primary">
                     {t('application.name')}
                 </Text>
-                <LoginForm onSuccess={onSuccess} />
+
+                <ViewMode />
+
+                <ModeSwitcher mode={mode} onModeChange={setMode} />
             </View>
         </View>
     );
 };
 
-export default LoginPage;
+export { AuthPage };

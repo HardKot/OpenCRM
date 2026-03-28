@@ -9,6 +9,8 @@ import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.apiControllers.dto.ChangePasswordDto;
+import com.open.crm.apiControllers.dto.ForgoutPasswordDto;
+import com.open.crm.apiControllers.dto.ForgoutPasswrodResponse;
 import com.open.crm.apiControllers.dto.LoginUserRequest;
 import com.open.crm.apiControllers.dto.LoginUserResponse;
 import com.open.crm.apiControllers.dto.RegisterTenantRequest;
@@ -21,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -94,6 +97,17 @@ public class AuthController {
               new LoginUserResponse(
                   false, "Invalid email or password", null, null, null, null, null, null));
     }
+  }
+
+  @PostMapping("/forgoutPassword")
+  public ResponseEntity<ForgoutPasswrodResponse> actionForgoutPassword(
+      @RequestBody ForgoutPasswordDto dto) {
+    Optional<User> userOptional = userRepository.findByEmail(dto.email());
+    if (userOptional.isEmpty()) return ResponseEntity.ok(new ForgoutPasswrodResponse());
+
+    userService.recreatePassword(userOptional.get());
+
+    return ResponseEntity.ok(new ForgoutPasswrodResponse());
   }
 
   @PostMapping("/password/level")
@@ -193,7 +207,7 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
-  @PostMapping("/register/tenant")
+  @PostMapping("/tenant/register")
   public ResponseEntity<RegisterTenantResponse> registerTenant(
       @RequestBody RegisterTenantRequest request) {
     useCreateTenant.execute(new UseCreateTenant.Params(request.email()));

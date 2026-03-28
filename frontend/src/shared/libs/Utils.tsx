@@ -12,7 +12,7 @@ const Utils = Object.freeze({
     },
     isIError: (value: any): value is { error: string } => {
         return Utils.isObject(value) && 'error' in value && typeof value.error === 'string';
-    }
+    },
 });
 
 export { Utils }

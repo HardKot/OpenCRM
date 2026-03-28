@@ -1,2 +1,2 @@
 export { ApiReducer, ApiMiddleware } from "./combine"
-export { authApi, useLoginByUsername } from "./authApi"
+export { authApi, useLoginByUsername, useRegisterTenant, useForgoutPassword } from "./authApi"
