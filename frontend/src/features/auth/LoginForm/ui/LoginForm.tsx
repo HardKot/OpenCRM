@@ -6,6 +6,7 @@ import { LoginSchema, loginSchema } from '../model/loginSchema';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useLoginByUsername, useI18n, Utils, useTranslate, Adapter  } from '#shared/index';
 import { IconButton, InputAdornment } from '@mui/material';
+import { useHoldSession } from '#shared/api/authApi';
 
 export interface LoginFormProps {
     onSuccess?: () => void;
@@ -26,6 +27,7 @@ const getErrorMessage = (error: any) => {
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     const { t } = useI18n();
     const [loginByUsername, { isError, error }] = useLoginByUsername();
+    const [holdSession] = useHoldSession();
 
     const [isShowPassword, setIsShowPassword] = useState(false);
     const { control, handleSubmit, formState } = useForm({
@@ -47,6 +49,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             email: username,
             password,
         }).unwrap();
+        await holdSession();
         onSuccess?.();
     }, [onSuccess]);
 

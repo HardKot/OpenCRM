@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { UserState } from './UserState';
-import type { User } from './User';
 import { authApi } from '#shared/index';
 import { UserRole } from './UserRole';
 import { isUserPermission, isUserRole } from '../libs/typeGuards';
@@ -8,23 +7,14 @@ import { UserPermission } from './UserPermission';
 
 const initialState: UserState = {
     isAuth: false,
-    authData: null
+    authData: null,
+    entity: null,
 };
 
 export const userSlice = createSlice({
     name: 'user',
     initialState,
-    reducers: {
-        setAuthData: (state, action: PayloadAction<User>) => {
-            state.isAuth = true;
-            state.authData = action.payload;
-        },
-       
-        logout: (state) => {
-            state.authData = null;
-            state.isAuth = false;
-        },
-    },
+    reducers: {},
 
     extraReducers: (builder) => {
         builder
@@ -32,7 +22,7 @@ export const userSlice = createSlice({
                 authApi.endpoints.loginByUsername.matchFulfilled,
                 (state, action) => {
                     const authData = {
-                        username: action.meta.arg.originalArgs.username,
+                        username: action.meta.arg.originalArgs.email,
                         userId: action.payload.userId,
                         tenantId: action.payload.tenantId,
                         entityId: action.payload.entityId,
@@ -56,8 +46,29 @@ export const userSlice = createSlice({
                     state.isAuth = false;
                 }
             )
-
-
+            .addMatcher(
+                authApi.endpoints.holdSession.matchFulfilled,
+                (state, action) => {
+                    state.isAuth = true;
+                    state.authData = {
+                        username: action.payload.entity.email,
+                        userId: action.payload.userId,
+                        tenantId: action.payload.tenantId,
+                        entityId: action.payload.entity.id,
+                        role: UserRole.Employee,
+                        permissions: new Array<UserPermission>(),
+                    };
+                    state.entity = action.payload.entity;
+                }
+            )
+            .addMatcher(
+                authApi.endpoints.holdSession.matchRejected,
+                (state) => {
+                    state.authData = null;
+                    state.isAuth = false;
+                    state.entity = null;
+                }
+            )
     }
 });
 

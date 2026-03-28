@@ -10,6 +10,7 @@ interface User {
     role: UserRole;
 
     entityId: number;
+
 }
 
 export type { User }
