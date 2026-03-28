@@ -16,7 +16,6 @@ import com.open.crm.apiControllers.dto.LoginUserResponse;
 import com.open.crm.apiControllers.dto.RegisterTenantRequest;
 import com.open.crm.apiControllers.dto.RegisterTenantResponse;
 import com.open.crm.apiControllers.dto.TokenLoginUserResponse;
-import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.security.TokenData;
 import com.open.crm.security.TokenService;
@@ -187,8 +186,8 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/logout")
-  public ResponseEntity<Void> actionLogout(
+  @PostMapping(path = "/logout", headers = HttpHeaders.AUTHORIZATION)
+  public ResponseEntity<Void> actionLogoutApi(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
       HttpServletRequest request,
       HttpServletResponse response) {
@@ -198,6 +197,19 @@ public class AuthController {
       tokenService.blockToken(jwt);
     }
 
+    HttpSession session = request.getSession(false);
+    if (Objects.nonNull(session)) {
+      session.invalidate();
+    }
+
+    SecurityContextHolder.clearContext();
+
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<Void> actionLogout(
+      HttpServletRequest request, HttpServletResponse response) {
     HttpSession session = request.getSession(false);
     if (Objects.nonNull(session)) {
       session.invalidate();

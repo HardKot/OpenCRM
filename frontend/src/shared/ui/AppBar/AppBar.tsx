@@ -1,5 +1,5 @@
 import { useI18n } from '#shared/hooks';
-import { AppBar as MuiAppBar, TextField, Toolbar, Typography } from '@mui/material'
+import { Box, AppBar as MuiAppBar, TextField, Toolbar, Typography } from '@mui/material'
 import React from 'react';
 
 interface AppBarProps {
@@ -17,12 +17,16 @@ const AppBar = ({ Search, Navigation, Profile }: AppBarProps) => {
                     variant="h6"
                     noWrap
                     component="div"
+                    color='white'
                     sx={{ display: { xs: 'none', sm: 'block' } }}
                 >            
                 {t('application.shortName')}
                 </Typography>
-                {Search}
-                {Navigation}
+                <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }}}>
+                    {Search}
+                    {Navigation}
+
+                </Box>
                 {Profile}
             </Toolbar>
         </MuiAppBar>

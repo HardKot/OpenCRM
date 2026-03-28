@@ -10,4 +10,5 @@ export * from './Switch';
 export * from './Checkbox';
 export * from './AppBar';
 export * from './Avatar';
+export * from './Menu';
 export { Alert } from './Alert';

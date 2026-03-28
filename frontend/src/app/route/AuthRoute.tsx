@@ -1,17 +1,13 @@
 import { useSessionHoldEffect } from "#app/useSessionHoldEffect";
 import { Dashboard } from "#pages/Dashboard";
-import { AppBar } from "#shared/ui";
+import { ApplicationBar } from "#widgets/ApplicationBar";
 import { Route, Routes } from "react-router-dom";
 
 const AuthRoute = () => {
    useSessionHoldEffect();
    return (
       <>
-         <AppBar
-            Search={<></>}
-            Navigation={<></>}
-            Profile={<></>}
-         />
+         <ApplicationBar />
          <Routes>
             <Route path="/" Component={Dashboard} />
          </Routes>   

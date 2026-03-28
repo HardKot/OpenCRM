@@ -1,9 +1,9 @@
 import { createContext, PropsWithChildren, useContext } from "react";
-import { IEmployee } from "../model/IEmployee";
 import { TextPropsWithoutChildren, Text, Avatar } from "#shared/ui";
 import { PersonalLibs } from "#shared/libs/PersonalLibs";
+import { EmployeeDto } from "#shared/api/employeeApi";
 
-const EmployeeContext = createContext<Partial<IEmployee>>({});
+const EmployeeContext = createContext<Partial<EmployeeDto>>({});
 
 const useEmployeeContext = () => useContext(EmployeeContext);
 
@@ -14,12 +14,12 @@ const EmployeeId = (props: TextPropsWithoutChildren) => {
 }
 
 const EmployeeFullName = (props: TextPropsWithoutChildren) => {
-    const { firstname, lastname, paronymic } = useEmployeeContext();
+    const { firstname, lastname, patronymic } = useEmployeeContext();
     if (!firstname && !lastname) return null;
     return <Text {...props}>{PersonalLibs.getFullname({ 
         firstname,
         lastname,
-        paronymic
+        patronymic
      })}</Text>
 }
 
@@ -30,8 +30,8 @@ const EmployeePosition = (props: TextPropsWithoutChildren) => {
 }
 
 const EmployeeAvatar = () => {
-    const { firstname, lastname, paronymic } = useEmployeeContext();
-    const initials = PersonalLibs.getInitials({ firstname, lastname, paronymic });
+    const { firstname, lastname, patronymic } = useEmployeeContext();
+    const initials = PersonalLibs.getInitials({ firstname, lastname, patronymic });
     if (!initials) return null;
     return <Avatar.Text text={initials} />
 }
@@ -42,13 +42,23 @@ const EmployeeEmail = (props: TextPropsWithoutChildren) => {
     return <Text {...props}>{email}</Text>
 }
 
-const EmpoyeePhoneNumber = (props: TextPropsWithoutChildren) => {
-    const { phoneNumber } = useEmployeeContext();
-    if (!phoneNumber) return null;
-    return <Text {...props}>{phoneNumber}</Text>
+const EmployeePhone = (props: TextPropsWithoutChildren) => {
+    const { phone } = useEmployeeContext();
+    if (!phone) return null;
+    return <Text {...props}>{phone}</Text>
 }
 
-const EmployeeCard = ({ data, children }: PropsWithChildren<{data: IEmployee}>) => (
+const EmployeeShortName = (props: TextPropsWithoutChildren) => {
+    const { firstname, lastname, patronymic } = useEmployeeContext();
+    if (!firstname && !lastname && !patronymic) return null;
+    return <Text {...props}>{PersonalLibs.getShortName({ 
+        firstname,
+        lastname,
+        patronymic
+     })}</Text>
+}
+
+const EmployeeCard = ({ data, children }: PropsWithChildren<{data: EmployeeDto }>) => (
     <EmployeeContext.Provider value={data}>
         {children}
     </EmployeeContext.Provider>
@@ -59,6 +69,7 @@ EmployeeCard.FullName = EmployeeFullName;
 EmployeeCard.Position = EmployeePosition;
 EmployeeCard.Avatar = EmployeeAvatar;
 EmployeeCard.Email = EmployeeEmail;
-EmployeeCard.PhoneNumber = EmpoyeePhoneNumber;
+EmployeeCard.Phone = EmployeePhone;
+EmployeeCard.ShortName = EmployeeShortName;
 
 export { EmployeeCard }

@@ -98,6 +98,7 @@ const authApi = createApi({
 
 
 export const useLoginByUsername = authApi.useLoginByUsernameMutation;
+export const useLogout = authApi.useLogoutMutation;
 export const useRegisterTenant = authApi.useRegisterTenantMutation;
 export const useForgoutPassword = authApi.useForgoutPasswordMutation;
 export const useHoldSession = authApi.useLazyHoldSessionQuery;
