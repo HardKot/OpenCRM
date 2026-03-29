@@ -4,9 +4,8 @@ import {
     Select,
     MenuItem,
     FormHelperText,
-    Paper,
     Stack,
-    Button,
+    FormLabel,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector, setLanguage } from '#shared/index';
 import { useI18n } from '#shared/hooks';
@@ -21,8 +20,10 @@ const ChangeLanguage = () => {
     };
 
     return (
-        <Paper sx={{ p: 3 }}>
             <Stack spacing={2}>
+                <FormLabel sx={{ fontWeight: 600, mb: 1 }}>
+                    {t('settings.language')}
+                </FormLabel>
                 <FormControl fullWidth>
                     <InputLabel>{t('settings.language')}</InputLabel>
                     <Select
@@ -37,7 +38,6 @@ const ChangeLanguage = () => {
                     <FormHelperText>{t('settings.language_description')}</FormHelperText>
                 </FormControl>
             </Stack>
-        </Paper>
     );
 };
 

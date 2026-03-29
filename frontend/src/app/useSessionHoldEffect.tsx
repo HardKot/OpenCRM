@@ -5,6 +5,7 @@ const useSessionHoldEffect = () => {
     const [trigger] = useHoldSession();
 
     useEffect(() => {
+        trigger();
         const timer = setInterval(() => trigger(), 60000);
         return () => clearInterval(timer);
     }, [trigger]);

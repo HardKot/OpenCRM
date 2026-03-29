@@ -14,9 +14,21 @@ const createAppTheme = (mode: PaletteMode) => {
         main: '#ffea00',
         dark: '#b2a300',
       },
-      text: {
-        primary: 'rgb(26, 30, 35)'
-      }
+    },
+    components: {
+      MuiAppBar: {
+        defaultProps: {
+          color: 'primary',
+          enableColorOnDark: true,
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+          },
+        },
+      },
     },
   });
 };

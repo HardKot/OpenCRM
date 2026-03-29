@@ -39,6 +39,18 @@ interface HoldSession {
     entity: EmployeeDto
 }
 
+interface ChangePasswordRequest {
+    password: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
+interface PasswordGenerationResponse {
+    password: string;
+}
+
+type PasswordLevel = "WEAK" | "SIMPLE" | "MEDIUM" | "HARD";
+
 const authApi = createApi({
     reducerPath: "api/authApi",
     baseQuery: BaseFetchQuery({  }),
@@ -86,12 +98,39 @@ const authApi = createApi({
                 return { error: data.message }
             }
         }),
-
         holdSession: build.query<HoldSession, void>({
             query: () => ({
                 url: "/session/hold",
                 method: "GET",
             }),
+        }),
+
+        changePassword: build.mutation<LoginResponse, ChangePasswordRequest>({
+            query: (data) => ({
+                url: "/auth/password",
+                method: "POST",
+                body: data,
+            }),
+            transformErrorResponse: (response) => {
+                const { data } = response
+                if (!Utils.isIMessage(data)) return { error: "Unknown error" }
+                return { error: data.message }
+            }
+        }),
+        getPasswordLevel: build.query<PasswordLevel, string>({
+            query: (data) => ({
+                url: "/auth/password/level",
+                method: "POST",
+                body: data,
+            }),
+            transformResponse: (response: { level: PasswordLevel }) => response.level,
+        }),
+        generatePassword: build.query<string, void>({
+            query: () => ({
+                url: "/auth/password/generate",
+                method: "GET",
+            }),
+            transformResponse: (response: PasswordGenerationResponse) => response.password,
         })
     }),
 });
@@ -102,5 +141,8 @@ export const useLogout = authApi.useLogoutMutation;
 export const useRegisterTenant = authApi.useRegisterTenantMutation;
 export const useForgoutPassword = authApi.useForgoutPasswordMutation;
 export const useHoldSession = authApi.useLazyHoldSessionQuery;
+export const useChangePassword = authApi.useChangePasswordMutation;
+export const useGetPasswordLevel = authApi.useLazyGetPasswordLevelQuery;
+export const useGeneratePassword = authApi.useGeneratePasswordQuery;
 
 export { authApi }

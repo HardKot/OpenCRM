@@ -11,13 +11,13 @@ interface AppBarProps {
 const AppBar = ({ Search, Navigation, Profile }: AppBarProps) => {
     const { t } = useI18n();
     return (
-        <MuiAppBar position='static'>
+        <MuiAppBar position='static' color='primary' enableColorOnDark>
             <Toolbar>
                 <Typography
                     variant="h6"
                     noWrap
                     component="div"
-                    color='white'
+                    color='inherit'
                     sx={{ display: { xs: 'none', sm: 'block' } }}
                 >            
                 {t('application.shortName')}

@@ -9,14 +9,15 @@ import { ThemeProvider } from './providers/ThemeProvider';
 
 function App() {
   return (
-      <View>
-          <Suspense fallback={<View display="flex" justifyContent="center" p={4}><CircularProgress /></View>}>
-            <StoreProvider>
-              <ThemeProvider>
-              <Route /></ThemeProvider>
-            </StoreProvider>
-          </Suspense>
-      </View>
+      <StoreProvider>
+        <ThemeProvider>
+          <View minHeight="100vh" bgcolor="background.default">
+            <Suspense fallback={<View display="flex" justifyContent="center" p={4}><CircularProgress /></View>}>
+              <Route />
+            </Suspense>
+          </View>
+        </ThemeProvider>
+      </StoreProvider>
   );
 }
 

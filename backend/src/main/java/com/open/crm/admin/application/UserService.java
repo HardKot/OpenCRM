@@ -243,8 +243,8 @@ public class UserService implements UserDetailsService, IUserService {
     }
 
     PasswordType passwordType = getPasswordType(password);
-    if (passwordType == PasswordType.WEAK) {
-      throw new UserException("Password is too weak");
+    if (passwordType == PasswordType.WEAK || passwordType == PasswordType.SIMPLE) {
+      return new UserResult.InvalidData("Password is too weak");
     }
     user.setPassword(passwordEncoder.encode(password));
     return new UserResult.Ok(userRepository.save(user));

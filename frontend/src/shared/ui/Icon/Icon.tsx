@@ -21,7 +21,7 @@ interface IconProps {
     name: IconName;
 }
 
-const Icon = ({ size, color, name }: IconProps) => {
+const Icon = ({ size, color = 'inherit', name }: IconProps) => {
     const Components = Icons[name];
     if (!Components) {
         console.warn(`Icon with name "${name}" does not exist.`);

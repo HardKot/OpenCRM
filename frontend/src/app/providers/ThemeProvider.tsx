@@ -1,6 +1,7 @@
 import { PropsWithChildren, useEffect, useMemo, useState } from "react";
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { PaletteMode } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 import { createAppTheme } from "#app/theme";
 import { useAppSelector } from "#shared/index";
 
@@ -28,6 +29,7 @@ const ThemeProvider = ({ children }: PropsWithChildren) => {
 
     return (
         <MuiThemeProvider theme={theme}>
+            <CssBaseline />
             {children}
         </MuiThemeProvider>
     )

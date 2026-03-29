@@ -11,4 +11,6 @@ export * from './Checkbox';
 export * from './AppBar';
 export * from './Avatar';
 export * from './Menu';
+export * from './Tabs';
+export * from './Layout';
 export { Alert } from './Alert';

@@ -2,7 +2,11 @@ import { useLogout } from "#shared/api"
 import { AppBar, Menu } from "#shared/ui"
 import { UserPreview } from "./UserPreview"
 
-const ApplicationBar = () => {
+interface ApplicationBarProps {
+    goToSettings: () => void;
+}
+
+const ApplicationBar = ({ goToSettings }: ApplicationBarProps) => {
     const [logout] = useLogout();
     return (
     <AppBar 
@@ -12,7 +16,7 @@ const ApplicationBar = () => {
             <Menu 
                 Component={<UserPreview />}
                 MenuItems={[
-                    { label: 'Настройки', onClick: () => console.log('Настройки') },
+                    { label: 'Настройки', onClick: () => goToSettings() },
                     { label: 'Выход', onClick: () => logout() },
                 ]}
             />

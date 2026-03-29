@@ -3,9 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Text, TextInput, View } from '#shared/ui';
 import { LoginSchema, loginSchema } from '../model/loginSchema';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useLoginByUsername, useI18n, Utils, useTranslate, Adapter  } from '#shared/index';
-import { IconButton, InputAdornment } from '@mui/material';
 import { useHoldSession } from '#shared/api/authApi';
 
 export interface LoginFormProps {
@@ -17,12 +15,6 @@ const ErrorDictionary: Record<string, string> = {
     "Unknown Error": 'authByUsername.unknownError',
 }
 
-const getErrorMessage = (error: any) => {
-    if (Utils.isIError(error)) return error.error;
-    if (Utils.isIMessage(error)) return error.message;
-    if (Utils.isString(error)) return error;
-    return 'authByUsername.unknownError';
-}
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     const { t } = useI18n();
@@ -84,15 +76,11 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
                 label={t('authByUsername.password')}
                 type={isShowPassword ? "text" : "password" }
                 right={
-                    <InputAdornment position="end" sx={{ mr: -0.5 }}>
-                        <IconButton
-                            onClick={() => setIsShowPassword(!isShowPassword)}
-                            edge="end"
-                            size="small"
-                        >
-                            {isShowPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                        </IconButton>
-                    </InputAdornment>
+                    <Button.Icon 
+                        icon={isShowPassword ? "VisibilityOff" : "Visibility"}
+                        onClick={() => setIsShowPassword(!isShowPassword)}
+                        size="small"
+                    />
                 }
             />
 

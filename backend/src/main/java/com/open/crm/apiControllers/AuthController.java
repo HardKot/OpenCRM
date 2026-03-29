@@ -13,6 +13,8 @@ import com.open.crm.apiControllers.dto.ForgoutPasswordDto;
 import com.open.crm.apiControllers.dto.ForgoutPasswrodResponse;
 import com.open.crm.apiControllers.dto.LoginUserRequest;
 import com.open.crm.apiControllers.dto.LoginUserResponse;
+import com.open.crm.apiControllers.dto.PasswordDto;
+import com.open.crm.apiControllers.dto.PasswordLevelDto;
 import com.open.crm.apiControllers.dto.RegisterTenantRequest;
 import com.open.crm.apiControllers.dto.RegisterTenantResponse;
 import com.open.crm.apiControllers.dto.TokenLoginUserResponse;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,6 +41,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -111,12 +115,13 @@ public class AuthController {
   }
 
   @PostMapping("/password/level")
-  public String actionGetPasswordLevel(@RequestBody String dto) {
+  public PasswordLevelDto actionGetPasswordLevel(@RequestBody String dto) {
     PasswordType passwordType = userService.getPasswordType(dto);
-    return passwordType.name();
+    return new PasswordLevelDto(passwordType);
   }
 
   @PostMapping("/password")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<LoginUserResponse> actionChangePassword(@RequestBody ChangePasswordDto dto)
       throws UserException {
     User user = sessionEmployeeService.getUser();
@@ -127,17 +132,55 @@ public class AuthController {
 
     UserResult userResult = userService.updatePassword(user, dto.newPassword());
 
-    LoginUserResponse loginResponse =
-        new LoginUserResponse(
-            true,
-            "",
-            user.getId(),
-            user.getTenant().getId(),
-            user.getPermissions(),
-            user.getEntityId(),
-            user.getEntityName(),
-            user.getRole());
-    return ResponseEntity.ok(loginResponse);
+    switch (userResult) {
+      case UserResult.Ok result -> {
+        return ResponseEntity.ok(
+            new LoginUserResponse(
+                true,
+                "",
+                result.value().getId(),
+                result.value().getTenant().getId(),
+                result.value().getPermissions(),
+                result.value().getEntityId(),
+                result.value().getEntityName(),
+                result.value().getRole()));
+      }
+      case UserResult.NotFound ignored -> {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      }
+      case UserResult.InvalidData error -> {
+        return ResponseEntity.badRequest()
+            .body(
+                new LoginUserResponse(
+                    false,
+                    error.message(),
+                    user.getId(),
+                    user.getTenant().getId(),
+                    user.getPermissions(),
+                    user.getEntityId(),
+                    user.getEntityName(),
+                    user.getRole()));
+      }
+      default -> {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(
+                new LoginUserResponse(
+                    false,
+                    "Unknown error",
+                    user.getId(),
+                    user.getTenant().getId(),
+                    user.getPermissions(),
+                    user.getEntityId(),
+                    user.getEntityName(),
+                    user.getRole()));
+      }
+    }
+  }
+
+  @GetMapping("/password/generate")
+  public ResponseEntity<PasswordDto> actionGeneratePassword() {
+    String password = userService.generatePassword();
+    return ResponseEntity.ok(new PasswordDto(password));
   }
 
   @PostMapping("/token/login")

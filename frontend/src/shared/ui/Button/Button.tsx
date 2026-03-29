@@ -1,4 +1,4 @@
-import { Button as MuiButton, ButtonProps as MuiButtonProps, CircularProgress } from '@mui/material';
+import { Button as MuiButton, IconButton as MuiIconButton, ButtonProps as MuiButtonProps, CircularProgress } from '@mui/material';
 import { Icon, IconName } from '../Icon';
 import { forwardRef } from 'react';
 
@@ -19,10 +19,18 @@ const Button = ({ loading, children, disabled, ...props }: ButtonProps) => {
 };
 
 const ButtonIcon = forwardRef(({ icon, loading, disabled, ...props }: ButtonIconProps, ref) =>  (
-    <MuiButton disabled={disabled || loading} {...props}>
+    <MuiIconButton disabled={disabled || loading} {...props}>
         {loading ? <CircularProgress size={24} color="inherit" /> : <Icon name={icon} />}
+    </MuiIconButton>
+));
+
+const ButtonText = forwardRef(({ children, ...props }: Omit<ButtonProps, 'variant'>, ref) => (
+    <MuiButton {...props} variant="text">
+        {children}
     </MuiButton>
 ));
+
+Button.Text = ButtonText;
 
 Button.Icon = ButtonIcon;
 

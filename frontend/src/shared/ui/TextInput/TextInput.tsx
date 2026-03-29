@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, TextFieldProps } from '@mui/material';
+import { InputAdornment, TextField, TextFieldProps } from '@mui/material';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 
 export type TextInputProps = {
@@ -16,7 +16,7 @@ const TextInputBase: React.FC<TextInputProps> = (props) => {
             {...textFieldProps}
             InputProps={{
                 ...textFieldProps.InputProps,
-                endAdornment: right || textFieldProps.InputProps?.endAdornment,
+                endAdornment: right || (<InputAdornment position='end' sx={{ mr: -0.5 }}>{right}</InputAdornment>),
             }}
         />
     );

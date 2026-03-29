@@ -45,7 +45,33 @@
         "theme_light": "Светлая",
         "theme_dark": "Тёмная",
         "theme_system": "Как в системе",
+        "personalization": "Персонализация",
+        "security": "Безопасность",
+        "changePassword": "Сменить пароль",
         "theme_description": "Выберите режим отображения: светлый, тёмный или автоматически как в системе"
+    },
+
+    "changePassword": {
+        "changePassword": "Сменить пароль",
+        "currentPassword": "Текущий пароль",
+        "newPassword": "Новый пароль",
+        "confirmNewPassword": "Подтвердить новый пароль",
+        "submit": "Сохранить",
+        "invalidCredentials": "Текущий пароль неверный",
+        "unknownError": "Произошла ошибка при изменении пароля. Пожалуйста, попробуйте снова.",
+        "passwordsDoNotMatch": "Пароли не совпадают",
+        "passwordsMatch": "Новый пароль не может совпадать с текущим",
+        "passwordTooWeak": "Пароль слишком слабый",
+        "generatedPassword": "Сгенерированный пароль:",
+
+        "passwordChangeSuccess": "Пароль успешно изменён",
+
+        "passwordLevel": {
+            "WEAK": "Слабый",
+            "SIMPLE": "Простой",
+            "MEDIUM": "Средний",
+            "HARD": "Сильный"
+        }
     },
     "createTenant": {
         "title": "Создание организации",

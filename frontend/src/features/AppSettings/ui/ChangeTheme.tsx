@@ -24,39 +24,37 @@ const ChangeTheme = () => {
     };
 
     return (
-        <Paper sx={{ p: 3 }}>
-            <Stack spacing={2}>
-                <FormControl>
-                    <FormLabel sx={{ fontWeight: 600, mb: 1 }}>
-                        {t('settings.theme')}
-                    </FormLabel>
-                    <RadioGroup
-                        row
-                        value={theme}
-                        onChange={handleThemeChange}
-                    >
-                        <FormControlLabel
-                            value="light"
-                            control={<Radio />}
-                            label={t('settings.theme_light')}
-                        />
-                        <FormControlLabel
-                            value="dark"
-                            control={<Radio />}
-                            label={t('settings.theme_dark')}
-                        />
-                        <FormControlLabel
-                            value="system"
-                            control={<Radio />}
-                            label={t('settings.theme_system')}
-                        />
-                    </RadioGroup>
-                    <FormHelperText sx={{ mt: 1 }}>
-                        {t('settings.theme_description')}
-                    </FormHelperText>
-                </FormControl>
-            </Stack>
-        </Paper>
+        <Stack spacing={2}>
+            <FormControl>
+                <FormLabel sx={{ fontWeight: 600, mb: 1 }}>
+                    {t('settings.theme')}
+                </FormLabel>
+                <RadioGroup
+                    row
+                    value={theme}
+                    onChange={handleThemeChange}
+                >
+                    <FormControlLabel
+                        value="light"
+                        control={<Radio />}
+                        label={t('settings.theme_light')}
+                    />
+                    <FormControlLabel
+                        value="dark"
+                        control={<Radio />}
+                        label={t('settings.theme_dark')}
+                    />
+                    <FormControlLabel
+                        value="system"
+                        control={<Radio />}
+                        label={t('settings.theme_system')}
+                    />
+                </RadioGroup>
+                <FormHelperText sx={{ mt: 1 }}>
+                    {t('settings.theme_description')}
+                </FormHelperText>
+            </FormControl>
+        </Stack>
     );
 };
 
