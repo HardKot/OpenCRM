@@ -9,6 +9,7 @@ import com.open.crm.apiControllers.dto.ApiResponse;
 import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.apiControllers.dto.EmployeeAccess;
 import com.open.crm.apiControllers.dto.EmployeeDto;
+import com.open.crm.apiControllers.dto.PageResponse;
 import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.EmployeeException;
@@ -63,15 +64,25 @@ public class EmployeeController {
 
   @GetMapping
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public List<EmployeeDto> actionGetAll(
+  public PageResponse.EmployeePageDto actionGetAll(
       @RequestParam(name = "page", defaultValue = "1") int page,
       @RequestParam(name = "size", defaultValue = "100") int size) {
-    return employeeService
-        .getEmployeeSelector()
-        .getItems(page - 1, size, sessionEmployeeService.isShowDeleted())
-        .stream()
-        .map(employeeMapper::toDto)
-        .toList();
+
+    List<EmployeeDto> list =
+        employeeService
+            .getEmployeeSelector()
+            .getItems(page - 1, size, sessionEmployeeService.isShowDeleted())
+            .stream()
+            .map(employeeMapper::toDto)
+            .toList();
+
+    long totalElements =
+        employeeService.getEmployeeSelector().countItems(sessionEmployeeService.isShowDeleted());
+
+    return new PageResponse.EmployeePageDto(
+        employeeService.getEmployeeSelector().countItems(sessionEmployeeService.isShowDeleted()),
+        (int) Math.ceil((double) totalElements / size),
+        list.toArray(new EmployeeDto[0]));
   }
 
   @PutMapping("/{id}")

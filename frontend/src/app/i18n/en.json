@@ -1,6 +1,7 @@
 {
     "application": {
-        "name": "Open CRM System"
+        "name": "Open CRM System",
+        "shortName": "Open CRM"
     },
     "errors": {
         "failedToFetch": "Failed to connect to the server",
@@ -39,6 +40,8 @@
         "theme_light": "Light",
         "theme_dark": "Dark",
         "theme_system": "System",
+        "personalization": "Personalization",
+        "security": "Security",
         "theme_description": "Choose display mode: light, dark, or automatically follow system settings"
     }
 }

@@ -85,9 +85,14 @@ const ChangePassword = () => {
             flexDirection={"column"}
             gap={2}
             width={"100%"}
-            maxWidth={400}
+            maxWidth={560}
+            mx="auto"
         >
-            <Text variant="h5" align="center" gutterBottom color="text.primary">{t("changePassword.changePassword")}</Text>
+            <View>
+                <Text variant="h6" color="text.primary">
+                    {t("changePassword.changePassword")}
+                </Text>
+            </View>
 
             <PasswordInput.Form 
                 control={control}
@@ -98,13 +103,26 @@ const ChangePassword = () => {
 
             {
                 !!generatedPassword && (
-                    <Button.Text onClick={onSetGeneratedPassword}>
-                        <Text color="textSecondary">
-                            {t("changePassword.generatedPassword")}
-                        </Text>
-                        <Text color="textPrimary" fontWeight="bold">
-                            {generatedPassword}
-                        </Text>
+                    <Button.Text
+                        onClick={onSetGeneratedPassword}
+                        sx={{
+                            display: "flex",
+                            justifyContent: "flex-start",
+                            textTransform: "none",
+                            px: 2,
+                            py: 1.5,
+                            bgcolor: "action.hover",
+                            borderRadius: 1,
+                        }}
+                    >
+                        <View>
+                            <Text variant="body2" color="text.secondary">
+                                {t("changePassword.generatedPassword")}
+                            </Text>
+                            <Text variant="body1" color="text.primary" fontWeight={600}>
+                                {generatedPassword}
+                            </Text>
+                        </View>
                     </Button.Text>
                 )
             }
@@ -133,9 +151,17 @@ const ChangePassword = () => {
                 </Text>
             )}
 
-            <Button type="submit" disabled={isLoading} fullWidth loading={isLoading}>
-                {t("changePassword.submit")}
-            </Button>
+            <View display="flex" justifyContent={{ xs: "stretch", sm: "flex-end" }}>
+                <Button
+                    type="submit"
+                    disabled={isLoading}
+                    fullWidth={false}
+                    loading={isLoading}
+                    sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 180 } }}
+                >
+                    {t("changePassword.submit")}
+                </Button>
+            </View>
 
             {formState.isSubmitSuccessful && (
                 <Alert.Success message={t("changePassword.passwordChangeSuccess")}/>

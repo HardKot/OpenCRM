@@ -3,13 +3,15 @@ import { AppBar, Menu } from "#shared/ui"
 import { UserPreview } from "./UserPreview"
 
 interface ApplicationBarProps {
+    goToMain: () => void;
     goToSettings: () => void;
 }
 
-const ApplicationBar = ({ goToSettings }: ApplicationBarProps) => {
+const ApplicationBar = ({ goToMain, goToSettings }: ApplicationBarProps) => {
     const [logout] = useLogout();
     return (
     <AppBar 
+        goToMain={goToMain}
         Search={null}
         Navigation={null}
         Profile={(

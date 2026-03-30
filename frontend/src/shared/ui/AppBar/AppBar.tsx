@@ -1,18 +1,20 @@
 import { useI18n } from '#shared/hooks';
-import { Box, AppBar as MuiAppBar, TextField, Toolbar, Typography } from '@mui/material'
+import { Box, Button, AppBar as MuiAppBar, Toolbar, Typography } from '@mui/material'
 import React from 'react';
 
 interface AppBarProps {
-   Search: React.ReactNode;
-   Navigation: React.ReactNode;
-   Profile: React.ReactNode;
+    goToMain: () => void;
+    Search: React.ReactNode;
+    Navigation: React.ReactNode;
+    Profile: React.ReactNode;
 }
 
-const AppBar = ({ Search, Navigation, Profile }: AppBarProps) => {
+const AppBar = ({ goToMain, Search, Navigation, Profile }: AppBarProps) => {
     const { t } = useI18n();
     return (
         <MuiAppBar position='static' color='primary' enableColorOnDark>
             <Toolbar>
+                <Button variant='text' color='inherit' onClick={goToMain}>
                 <Typography
                     variant="h6"
                     noWrap
@@ -22,6 +24,7 @@ const AppBar = ({ Search, Navigation, Profile }: AppBarProps) => {
                 >            
                 {t('application.shortName')}
                 </Typography>
+                </Button>
                 <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }}}>
                     {Search}
                     {Navigation}
