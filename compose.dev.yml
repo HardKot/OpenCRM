@@ -1,0 +1,75 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    restart: unless-stopped
+    working_dir: /workspace
+    command: bash /workspace/scripts/dev-run.sh
+    ports:
+      - '8080:8080'
+      - '3000:3000'
+      - '5005:5005'
+    volumes:
+      - './:/workspace'
+      - 'frontend_node_modules:/workspace/frontend/node_modules'
+      - 'frontend_npm_cache:/home/devuser/.npm'
+      - './.docker-cache/gradle:/home/devuser/.gradle'
+    environment:
+      - 'SPRING_PROFILES_ACTIVE=dev'
+      - 'DOCKER_COMPOSE_ENABLED=false'
+      - 'SPRING_DEVTOOLS_RESTART_ENABLED=true'
+      - 'SPRING_DEVTOOLS_RESTART_POLL_INTERVAL=1s'
+      - 'SPRING_DEVTOOLS_RESTART_QUIET_PERIOD=500ms'
+      - 'ENABLE_REMOTE_DEBUG=true'
+      - 'DB_HOST=postgres'
+      - 'DB_PORT=5432'
+      - 'DB_NAME=open-crm'
+      - 'DB_USERNAME=myuser'
+      - 'DB_PASSWORD=secret'
+      - 'MAIL_HOST=mailhog'
+      - 'MAIL_PORT=1025'
+      - 'REACT_APP_BACKEND_URL=http://localhost:8080'
+      - 'CHOKIDAR_USEPOLLING=true'
+      - 'CHOKIDAR_INTERVAL=300'
+      - 'HOST=0.0.0.0'
+      - 'GRADLE_MAX_WORKERS=4'
+      - 'GRADLE_JVM_ARGS=-Xms512m -Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8'
+    depends_on:
+      - postgres
+      - mailhog
+    networks:
+      - app-network
+
+      
+  postgres:
+    image: 'postgres:18.3-alpine'
+    restart: unless-stopped
+    environment:
+      - 'POSTGRES_DB=open-crm'
+      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_USER=myuser'
+    ports:
+      - '5432:5432'
+    networks:
+      - app-network
+
+  mailhog:
+      image: mailhog/mailhog:v1.0.1
+      restart: unless-stopped
+      networks:
+        - app-network
+      ports:
+        - '1025:1025'
+        - '8025:8025'
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  frontend_node_modules:
+  frontend_npm_cache:

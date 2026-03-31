@@ -70,6 +70,7 @@ dependencies {
 
 
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 
 	runtimeOnly 'org.postgresql:postgresql'
@@ -93,4 +94,10 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('bootRun') {
+	if (System.getenv('ENABLE_REMOTE_DEBUG') == 'true') {
+		jvmArgs += ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005']
+	}
 }

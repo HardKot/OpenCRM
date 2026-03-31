@@ -1,0 +1,23 @@
+FROM eclipse-temurin:21-jdk-jammy
+
+ARG UID=1000
+ARG GID=1000
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && groupadd --gid "${GID}" devuser \
+    && useradd --uid "${UID}" --gid devuser --create-home --shell /bin/bash devuser \
+    && mkdir -p /workspace/frontend/node_modules /home/devuser/.npm \
+    && chown -R devuser:devuser /workspace /home/devuser \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+ENV HOME=/home/devuser
+ENV NPM_CONFIG_CACHE=/home/devuser/.npm
+
+USER devuser
+
+EXPOSE 3000 8080 5005

@@ -1,5 +1,6 @@
 .vscode/
 .idea/
+.docker-cache/
 logs/
 
 .env
