@@ -12,7 +12,7 @@
     "frontend": "cd frontend && npm install"
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/workspace/.devcontainer/scripts"
+    "PATH": "${containerEnv:PATH}:/workspace/scripts"
   },
   "containerEnv": {
     // Databse creds

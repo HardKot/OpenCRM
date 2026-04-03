@@ -1,0 +1,42 @@
+#!/bin/bash
+
+source "$(dirname "${BASH_SOURCE[0]}")/.constants"
+
+ERRORS=0
+
+echo "🧪 Запуск тестов Backend (Spring Boot + JUnit)..."
+cd "$PROJECT_ROOT/backend"
+if ! ./gradlew test; then
+    echo "❌ Найдены упавшие тесты в Backend."
+    ERRORS=1
+else
+    echo "✅ Тесты Backend прошли успешно!"
+fi
+
+echo ""
+echo "🧪 Запуск тестов Frontend (React + Jest)..."
+cd "$PROJECT_ROOT/frontend"
+if ! npm test -- --watchAll=false --passWithNoTests; then
+    echo "❌ Найдены упавшие тесты в Frontend."
+    ERRORS=1
+else
+    echo "✅ Тесты Frontend прошли успешно!"
+fi
+
+echo ""
+echo "📝 Проверка типов Frontend (TypeScript)..."
+if ! npx tsc --noEmit; then
+    echo "❌ Найдены ошибки типов (TypeScript) в Frontend."
+    ERRORS=1
+else
+    echo "✅ Проверка типов Frontend прошла успешно!"
+fi
+
+echo ""
+if [ $ERRORS -eq 0 ]; then
+    echo "🎉 Поздравляем! Все модульные тесты в проекте пройдены успешно."
+    exit 0
+else
+    echo "🚨 Часть тестов упала. Пожалуйста, исправьте код или обновите снепшоты."
+    exit 1
+fi

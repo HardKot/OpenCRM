@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Подгружаем константы
+source "$(dirname "${BASH_SOURCE[0]}")/.constants"
+
+# Переменная для отслеживания ошибок
+ERRORS=0
+
+echo "🔍 Проверка форматирования Backend (Spotless)..."
+cd "$PROJECT_ROOT/backend"
+if ! ./gradlew spotlessCheck; then
+    echo "❌ Найдены ошибки форматирования в Backend. Чтобы исправить, запустите crm-format"
+    ERRORS=1
+fi
+
+echo "🔍 Проверка стилей и линтеров Frontend (ESLint + Prettier)..."
+cd "$PROJECT_ROOT/frontend"
+
+# Проверка Prettier
+if ! npx prettier --check "src/**/*.{js,jsx,ts,tsx,css,scss,json}"; then
+    echo "❌ Найдены ошибки форматирования в Frontend. Чтобы исправить, запустите crm-format"
+    ERRORS=1
+fi
+
+# Запуск ESLint
+if ! npx eslint "src/**/*.{js,jsx,ts,tsx}" --max-warnings=0; then
+    echo "❌ ESLint нашел предупреждения или ошибки в Frontend-коде."
+    ERRORS=1
+fi
+
+echo ""
+if [ $ERRORS -eq 0 ]; then
+    echo "✅ Все проверки пройдены успешно! Код идеален."
+    exit 0
+else
+    echo "🚨 Часть проверок завершилась с ошибками. Пожалуйста, исправьте их."
+    exit 1
+fi

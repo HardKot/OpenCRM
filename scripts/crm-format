@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Подгружаем константы
+source "$(dirname "${BASH_SOURCE[0]}")/.constants"
+
+echo "✨ Форматирование Backend (Spotless)..."
+cd "$PROJECT_ROOT/backend"
+./gradlew spotlessApply
+
+echo "✨ Форматирование Frontend (Prettier)..."
+cd "$PROJECT_ROOT/frontend"
+npx prettier --write "src/**/*.{js,jsx,ts,tsx,css,scss,json}"
+
+echo ""
+echo "🎉 Форматирование успешно завершено!"
