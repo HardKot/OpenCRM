@@ -9,8 +9,8 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    password: ${DB_PASSWORD:secret}
-    username: ${DB_USERNAME:myuser}
+    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME}
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:open-crm}
 
   jpa:
@@ -55,6 +55,6 @@ logging:
     console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
 
 jwt:
-  secret: ${JWT_SECRET:rZaL5vR7SaHsH0DryywXyoh44QJlX9PQEKTKK4nShQtfxbjGR5yIrIEJMAj2awCb}
+  secret: ${JWT_SECRET}
   access-expires: 900000 # 15 minutes in milliseconds
   refresh-expires: 604800000 # 7 days in milliseconds

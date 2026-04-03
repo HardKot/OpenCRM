@@ -1,0 +1,58 @@
+{
+  "name": "OpenCRM DevContainer",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "features": {},
+  "remoteUser": "devuser",
+  "forwardPorts": [
+    8080,
+    5005,
+    3000,
+    5432,
+    1025,
+    8025
+  ],
+  "updateRemoteUserUID": true,
+  "postCreateCommand": {
+    "backend": "cd backend && ./gradlew --no-daemon build -x test || true",
+    "frontend": "cd frontend && npm install"
+  },
+  "postStartCommand": {
+    "backend": "cd backend && ./gradlew bootRun",
+    "frontend": "cd frontend && npm start"
+  },
+  "containerEnv": {
+    // Databse creds
+    "DB_NAME": "open-crm",
+    "DB_USERNAME": "myuser",
+    "DB_PASSWORD": "secret",
+    // Mail creds
+    "MAIL_HOST": "mailhog",
+    "MAIL_PORT": "1025",
+    // Front config
+    "REACT_APP_BACKEND_URL": "http: //localhost:8080'",
+    // Backend config
+    "SPRING_PROFILES_ACTIVE": "dev",
+    "DOCKER_COMPOSE_ENABLED": "false",
+    "SPRING_DEVTOOLS_RESTART_ENABLED": "true",
+    "SPRING_DEVTOOLS_RESTART_POLL_INTERVAL": "1s",
+    "SPRING_DEVTOOLS_RESTART_QUIET_PERIOD": "500ms",
+    "ENABLE_REMOTE_DEBUG": "true",
+    "JWT_SECRET": "rZaL5vR7SaHsH0DryywXyoh44QJlX9PQEKTKK4nShQtfxbjGR5yIrIEJMAj2awCb",
+    "HOST": "0.0.0.0",
+    "CHOKIDAR_USEPOLLING": "true",
+    "CHOKIDAR_INTERVAL": "300"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "humao.rest-client"
+      ]
+    }
+  }
+}

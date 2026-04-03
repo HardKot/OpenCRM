@@ -23,8 +23,7 @@ public class EmployeeService {
   private final IEmployeeRepository employeeRepository;
   private final IUserService userService;
 
-  @Qualifier("employeeSelectorData")
-  @Getter
+  @Qualifier("employeeSelectorData") @Getter
   private final SelectorData<Employee> employeeSelector;
 
   private final ApplicationEventPublisher eventPublisher;

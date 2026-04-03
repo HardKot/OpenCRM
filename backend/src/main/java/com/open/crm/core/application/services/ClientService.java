@@ -21,8 +21,7 @@ public class ClientService {
   private final IClientRepository clientRepository;
   private final ApplicationEventPublisher eventPublisher;
 
-  @Qualifier("clientSelectorData")
-  private final SelectorData<Client> clientSelector;
+  @Qualifier("clientSelectorData") private final SelectorData<Client> clientSelector;
 
   @Transactional
   public Client createClient(Client client, Author author, ClientInfoCleaner cleaner) {
