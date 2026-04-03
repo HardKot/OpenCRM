@@ -1,0 +1,21 @@
+#!/bin/bash
+
+source "$(dirname "${BASH_SOURCE[0]}")/.constants"
+
+# Создаем папку для логов, если её нет
+mkdir -p "$LOGS_DIR"
+
+echo "Запуск Backend (Spring Boot)..."
+cd "$PROJECT_ROOT/backend"
+nohup ./gradlew bootRun --debug-jvm > "$LOGS_DIR/backend.log" 2>&1 &
+BACKEND_PID=$!
+echo "Backend запущен (PID: $BACKEND_PID). Логи: logs/backend.log"
+
+echo "Запуск Frontend (React/Vite)..."
+cd "$PROJECT_ROOT/frontend"
+nohup npm start > "$LOGS_DIR/frontend.log" 2>&1 &
+FRONTEND_PID=$!
+echo "Frontend запущен (PID: $FRONTEND_PID). Логи: logs/frontend.log"
+
+echo ""
+echo "🎉 Готово! Сервисы работают в фоновом режиме."

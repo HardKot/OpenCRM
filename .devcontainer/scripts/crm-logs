@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Подгружаем константы
+source "$(dirname "${BASH_SOURCE[0]}")/.constants"
+
+SERVICE=$1
+
+if [ "$SERVICE" == "backend" ]; then
+    echo "👀 Логи Backend (Ctrl+C для выхода):"
+    tail -f "$LOGS_DIR/backend.log"
+elif [ "$SERVICE" == "frontend" ]; then
+    echo "👀 Логи Frontend (Ctrl+C для выхода):"
+    tail -f "$LOGS_DIR/frontend.log"
+else
+    echo "❌ Ошибка: укажите сервис для чтения логов."
+    echo "👉 Использование: $(basename "$0") [backend|frontend]"
+    echo ""
+    echo "Доступные файлы логов в $LOGS_DIR:"
+    ls -1 "$LOGS_DIR"/*.log 2>/dev/null | xargs -n 1 basename || echo "Нет логов."
+fi

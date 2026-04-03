@@ -96,8 +96,3 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-tasks.named('bootRun') {
-	if (System.getenv('ENABLE_REMOTE_DEBUG') == 'true') {
-		jvmArgs += ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005']
-	}
-}

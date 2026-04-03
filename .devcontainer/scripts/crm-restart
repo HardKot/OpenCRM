@@ -1,0 +1,5 @@
+#!/bin/bash
+
+bash "$(dirname "${BASH_SOURCE[0]}")/crm-stop"
+sleep 1
+bash "$(dirname "${BASH_SOURCE[0]}")/crm-start"

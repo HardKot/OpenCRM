@@ -5,22 +5,14 @@
   "workspaceFolder": "/workspace",
   "features": {},
   "remoteUser": "devuser",
-  "forwardPorts": [
-    8080,
-    5005,
-    3000,
-    5432,
-    1025,
-    8025
-  ],
+  "forwardPorts": [8080, 5005, 3000],
   "updateRemoteUserUID": true,
   "postCreateCommand": {
     "backend": "cd backend && ./gradlew --no-daemon build -x test || true",
     "frontend": "cd frontend && npm install"
   },
-  "postStartCommand": {
-    "backend": "cd backend && ./gradlew bootRun",
-    "frontend": "cd frontend && npm start"
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/workspace/.devcontainer/scripts"
   },
   "containerEnv": {
     // Databse creds
@@ -48,10 +40,15 @@
     "vscode": {
       "extensions": [
         "vscjava.vscode-java-pack",
-        "vscjava.vscode-spring-boot-dashboard",
+        "vmware.vscode-boot-dev-pack",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "humao.rest-client"
+        "humao.rest-client",
+        "CoenraadS.bracket-pair-colorizer-2",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "orta.vscode-jest",
+        "dsznajder.es7-react-js-snippets"
       ]
     }
   }
