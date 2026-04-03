@@ -37,7 +37,7 @@ spring:
   docker:
     compose:
       enabled: ${DOCKER_COMPOSE_ENABLED:true}
-      file: docker-compose.debug.yml
+      file: docker-compose.yml
 
 springdoc:
   api-docs:

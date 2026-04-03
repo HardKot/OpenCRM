@@ -43,6 +43,8 @@
         "vmware.vscode-boot-dev-pack",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
+        "richardwillis.vscode-spotless-gradle",
+        "sonarsource.sonarlint-vscode",
         "humao.rest-client",
         "CoenraadS.bracket-pair-colorizer-2",
         "redhat.vscode-yaml",

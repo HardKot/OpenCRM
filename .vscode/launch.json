@@ -1,0 +1,54 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot Remote Debug (Dev Container)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "presentation": {
+        "group": "Spring Boot",
+        "order": 1
+      }
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-CrmApplication<backend>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "mainClass": "com.open.crm.CrmApplication",
+      "projectName": "backend",
+      "args": "",
+      "presentation": {
+        "group": "Spring Boot",
+        "order": 2
+      }
+    },
+    {
+      "type": "chrome",
+      "name": "Launch React App in Chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend",
+      "presentation": {
+        "group": "React",
+        "order": 1
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (Spring + React)",
+      "configurations": ["Spring Boot Remote Debug (Dev Container)"],
+      "stopAll": true,
+      "presentation": {
+        "group": "Full Stack",
+        "order": 1
+      }
+    }
+  ]
+}
