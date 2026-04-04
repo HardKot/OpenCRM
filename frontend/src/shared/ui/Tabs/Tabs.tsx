@@ -1,6 +1,7 @@
 import { Tabs as MuiTabs, Tab as MuiTab, Box } from "@mui/material"
 import { ReactElement, useState } from "react";
 import { IconName } from "../Icon";
+import { TabsNavigation } from "./TabsNavigation";
 
 interface Tab {
     label: string;
@@ -43,5 +44,7 @@ const Tabs = ({
         </>
     )
 }
+
+Tabs.Navigation = TabsNavigation;
 
 export { Tabs }

@@ -1,4 +1,4 @@
-import { Table as MuiTable, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material"
+import { Box, Table as MuiTable, Paper, SxProps, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material"
 import { FC, PropsWithChildren, useState } from "react";
 
 interface TableHeader {
@@ -7,6 +7,7 @@ interface TableHeader {
     align?: 'right' | 'left' | 'center';
     minWidth?: number;
     padding?: 'none' | 'normal'
+    Component: FC<{}>
 }
 
 interface TableProps<T extends { id: number }> {
@@ -16,13 +17,13 @@ interface TableProps<T extends { id: number }> {
     onRowsPerPageChange?: (newRowsPerPage: number) => void;
     onPageChange?: (newPage: number) => void;
     
-    headers: TableHeader[];
+    rows: TableHeader[];
     rowData: T[];
     RowWrapper: FC<PropsWithChildren<{ data: T }>>;
-    rows: FC<{}>[];
+    sx?: SxProps
 }
 
-const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, onPageChange, headers, rowData, rows, RowWrapper, key }: TableProps<T>) => {
+const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, onPageChange, rows, rowData, RowWrapper, key, sx }: TableProps<T>) => {
     const [rowsPerPage, setRowsPerPage] = useState(25);
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -36,28 +37,37 @@ const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, o
     }
 
     return (
-        <>
+        <Paper 
+            elevation={2} 
+            sx={{
+                p: { xs: 2, sm: 3 },
+                borderRadius: 2,
+                gridColumn: { xs: 'span 1', md: '1 / -1' },
+                ...sx
+            }}>
             <TableContainer>
                 <MuiTable stickyHeader >
                     <TableHead>
-                        {headers.map((header) => (
-                            <TableCell
-                                key={header.id}
-                                align={header.align}
-                                style={{ minWidth: header.minWidth }}
-                                padding={header.padding ?? "normal"}
-                            >
-                                {header.label}
-                            </TableCell>
-                        ))}
+                        <TableRow>
+                            {rows.map((header) => (
+                                <TableCell
+                                    key={header.id}
+                                    align={header.align}
+                                    style={{ minWidth: header.minWidth }}
+                                    padding={header.padding ?? "normal"}
+                                >
+                                    {header.label}
+                                </TableCell>
+                            ))}
+                        </TableRow>
                     </TableHead>
                     <TableBody>
                         {rowData.map((row) => (
                             <TableRow key={`${key}Row-${row.id}`}>
                                 <RowWrapper data={row}>
-                                    {rows.map((ColumnComponent, index) => (
-                                        <TableCell key={`${key}Cell-${index}`} padding={headers[index]?.padding ?? "normal"} align={headers[index]?.align ?? "left"}>
-                                            <ColumnComponent />
+                                    {rows.map(({ Component, padding, align }, index) => (
+                                        <TableCell key={`${key}Cell-${index}`} padding={padding ?? "normal"} align={align ?? "left"}>
+                                            <Component />
                                         </TableCell>
                                     ))}
                                 </RowWrapper>
@@ -71,11 +81,11 @@ const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, o
                 rowsPerPageOptions={[25, 50, 100, 150]}
                 count={count}
                 rowsPerPage={rowsPerPage}
-                page={page}
+                page={page - 1}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
-        </>
+        </Paper>
     )
 }
 

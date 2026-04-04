@@ -5,9 +5,9 @@ services:
     image: postgres:18.3-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: crm
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: open-crm
     ports:
       - "5432:5432"
 

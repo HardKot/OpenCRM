@@ -1,4 +1,5 @@
 export * from './Text';
+export * from './Table'
 export * from './Header';
 export * from './Image';
 export * from './View';

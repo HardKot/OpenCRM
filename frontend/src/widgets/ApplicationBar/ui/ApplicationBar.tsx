@@ -1,29 +1,32 @@
 import { useLogout } from "#shared/api"
 import { AppBar, Menu } from "#shared/ui"
+import { NavigationTo } from "../libs/types";
+import { NavigationMenu } from "./NavigationMenu";
 import { UserPreview } from "./UserPreview"
 
 interface ApplicationBarProps {
-    goToMain: () => void;
-    goToSettings: () => void;
+    goTo: (to: NavigationTo) => void;
+    hrefMap: (to: NavigationTo) => string;
 }
 
-const ApplicationBar = ({ goToMain, goToSettings }: ApplicationBarProps) => {
+
+const ApplicationBar = ({ goTo, hrefMap }: ApplicationBarProps) => {
     const [logout] = useLogout();
     return (
-    <AppBar 
-        goToMain={goToMain}
-        Search={null}
-        Navigation={null}
-        Profile={(
-            <Menu 
-                Component={<UserPreview />}
-                MenuItems={[
-                    { label: 'Настройки', onClick: () => goToSettings() },
-                    { label: 'Выход', onClick: () => logout() },
-                ]}
-            />
-        )}
-    />
+        <AppBar 
+            goToMain={() => goTo(NavigationTo.Main)}
+            Search={null}
+            Navigation={<NavigationMenu hrefMap={hrefMap}/>}
+            Profile={(
+                <Menu 
+                    Component={<UserPreview />}
+                    MenuItems={[
+                        { label: 'Настройки', onClick: () => goTo(NavigationTo.Setting) },
+                        { label: 'Выход', onClick: () => logout() },
+                    ]}
+                />
+            )}
+        />
 )}
 
 export { ApplicationBar }

@@ -16,9 +16,10 @@
   },
   "containerEnv": {
     // Databse creds
-    "DB_NAME": "open-crm",
-    "DB_USERNAME": "myuser",
-    "DB_PASSWORD": "secret",
+    "DB_HOST": "db",
+    "DB_NAME": "crm",
+    "DB_USERNAME": "devuser",
+    "DB_PASSWORD": "devpassword",
     // Mail creds
     "MAIL_HOST": "mailhog",
     "MAIL_PORT": "1025",
@@ -46,11 +47,12 @@
         "richardwillis.vscode-spotless-gradle",
         "sonarsource.sonarlint-vscode",
         "humao.rest-client",
-        "CoenraadS.bracket-pair-colorizer-2",
         "redhat.vscode-yaml",
         "yzhang.markdown-all-in-one",
         "orta.vscode-jest",
-        "dsznajder.es7-react-js-snippets"
+        "dsznajder.es7-react-js-snippets",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
       ]
     }
   }

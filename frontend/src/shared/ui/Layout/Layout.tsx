@@ -1,4 +1,4 @@
-import { Grid, Paper } from "@mui/material";
+import { Box, Grid, Paper } from "@mui/material";
 import { PropsWithChildren } from "react";
 
 interface LayoutProps extends PropsWithChildren {
@@ -9,6 +9,9 @@ interface LayoutProps extends PropsWithChildren {
     paddingY?: number | string;
 }
 
+interface LayoutGridProps extends LayoutProps {
+    column?: number | string;
+}
 
 const LayoutPaper = ({ children, minHeight, padding, paddingX = 2, paddingY = 1 }: LayoutProps) => (
     <Paper square variant="elevation" elevation={2} sx={{ paddingX, paddingY, borderRadius: 2, minHeight, padding }}>
@@ -22,14 +25,14 @@ const LayoutGrid = ({ children, padding, paddingX, paddingY }: LayoutProps) => (
     </Grid>   
 )
 
-const LayoutItem = ({ children, size = "grow", minHeight, padding, paddingX = 2, paddingY = 1 }: LayoutProps) => (
-    <Grid size={size} sx={{ minHeight, padding, paddingX, paddingY }}>
+const LayoutItem = ({ children, size = "grow", minHeight, padding, paddingX = 2, paddingY = 1, column }: LayoutGridProps) => (
+    <Grid size={size} sx={{ minHeight, padding, paddingX, paddingY, gridColumn: column }}>
         {children}
     </Grid>
 )
 
-const LayoutItemPaper = ({ children, size = "grow", minHeight, padding, paddingX = 2, paddingY = 1 }: LayoutProps) => (
-    <Grid size={size} sx={{ minHeight }}>
+const LayoutItemPaper = ({ children, size = "grow", minHeight, padding, paddingX = 2, paddingY = 1, column }: LayoutGridProps) => (
+    <Grid size={size} sx={{ minHeight, gridColumn: column }}>
         <Paper square variant="elevation" elevation={2} sx={{ paddingX, paddingY, borderRadius: 2, minHeight, padding }}>
             {children}
         </Paper>
@@ -37,9 +40,11 @@ const LayoutItemPaper = ({ children, size = "grow", minHeight, padding, paddingX
 )
 
 
-const Layout = () => {
-    return null;
-}
+const Layout = ({ children, minHeight, padding, paddingX, paddingY, size }: LayoutProps) => (
+    <Box sx={{ minHeight, padding, paddingX, paddingY, flexGrow: size === "grow" ? 1 : 0 }}>
+        {children}
+    </Box>
+)
 
 Layout.Paper = LayoutPaper;
 Layout.Grid = LayoutGrid;

@@ -1,7 +1,7 @@
 import { EmployeeCard } from "#entities/Employee";
 import { useGetPageEmployees } from "#shared/api"
 import { useI18n, usePage } from "#shared/hooks";
-import { Table } from "#shared/ui/Table";
+import { Layout, Table, Text } from "#shared/ui";
 
 const EmployeeReference = () => {
     const { t } = useI18n();
@@ -14,25 +14,27 @@ const EmployeeReference = () => {
 
 
     return (
-        <Table 
-            key="employeeReferenceTable"
-            count={data.totalElements}
-            page={page}
-            onPageChange={onPageChange}
-            onRowsPerPageChange={onSizeChange}
-            headers={[
-                { id: "id", label: t("employee.fields.id"), padding: "none", align: "right" },
-                { id: "name", label: t("employee.fields.name"), minWidth: 150 },
-                { id: "position", label: t("employee.fields.position"), minWidth: 150 },
-            ]}
-            rowData={data.models}
-            RowWrapper={EmployeeCard}
-            rows={[
-                EmployeeCard.Id,
-                EmployeeCard.FullName,
-                EmployeeCard.Position,
-            ]}
-        />
+        <>
+            <Layout.Paper>
+                <Text variant="h6">{t("employee.title")}</Text>
+                
+            </Layout.Paper>
+
+            <Table
+                sx={{ mt: 2 }}
+                count={data.totalElements}
+                page={page}
+                onPageChange={onPageChange}
+                onRowsPerPageChange={onSizeChange}
+                rows={[
+                    { id: "id", label: t("employee.fields.id"), padding: "none", align: "right", Component: EmployeeCard.Id },
+                    { id: "name", label: t("employee.fields.name"), minWidth: 150, Component: EmployeeCard.FullName },
+                    { id: "position", label: t("employee.fields.position"), minWidth: 150, Component: EmployeeCard.Position },
+                ]}
+                rowData={data.models}
+                RowWrapper={EmployeeCard}
+            />
+        </>
     )
 }
 

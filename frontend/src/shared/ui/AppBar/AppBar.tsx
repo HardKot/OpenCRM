@@ -25,10 +25,9 @@ const AppBar = ({ goToMain, Search, Navigation, Profile }: AppBarProps) => {
                 {t('application.shortName')}
                 </Typography>
                 </Button>
-                <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }}}>
+                <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'flex-end', gap: 2 }}>
                     {Search}
                     {Navigation}
-
                 </Box>
                 {Profile}
             </Toolbar>

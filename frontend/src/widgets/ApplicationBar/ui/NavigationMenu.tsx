@@ -1,9 +1,24 @@
-import { View } from "#shared/ui";
+import { useI18n } from "#shared/hooks";
+import { Tabs } from "#shared/ui";
+import { NavigationTo } from "../libs/types";
 
-type NavigationMenuItems = "employees";
 
 interface NavigationMenuProps {
-  onGoTo: (to: NavigationMenuItems) => void;
+  hrefMap: (key: NavigationTo) => string;
 }
 
-const NavigationMenu = ({ onGoTo }: NavigationMenuProps) => <View>{}</View>;
+const NavigationMenu = ({ hrefMap }: NavigationMenuProps) => {
+  const { t } = useI18n()
+  return (
+    <Tabs.Navigation 
+      tabs={[
+        {
+          label: t("navigation.employee"),
+          href: hrefMap(NavigationTo.Employee)
+        }
+      ]}
+    />
+)};
+
+
+export { NavigationMenu }
