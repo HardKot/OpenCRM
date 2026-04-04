@@ -2,10 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Spring Boot: Run",
+            "label": "Spring Boot: Run with Remote Debug",
             "type": "shell",
             "command": "cd backend && ./gradlew bootRun --debug-jvm",
             "isBackground": true,
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -32,6 +35,9 @@
             "type": "shell",
             "command": "cd frontend && npm start",
             "isBackground": true,
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -54,46 +60,6 @@
                     "endsPattern": "^.*webpack compiled.*$"
                 }
             }
-        },
-        {
-            "label": "Gradle: Build",
-            "type": "shell",
-            "command": "cd backend && ./gradlew build",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "group": "Build"
-            },
-            "problemMatcher": [
-                "$gradle"
-            ]
-        },
-        {
-            "label": "Tests: Spring Boot",
-            "type": "shell",
-            "command": "cd backend && ./gradlew test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "group": "Tests"
-            },
-            "problemMatcher": [
-                "$gradle"
-            ]
-        },
-        {
-            "label": "Tests: React",
-            "type": "shell",
-            "command": "cd frontend && npm test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "group": "Tests"
-            },
-            "isBackground": true,
-            "problemMatcher": [
-                "$tsc"
-            ]
         }
     ]
 }
