@@ -1,6 +1,6 @@
 import { useSessionHoldEffect } from "#app/useSessionHoldEffect";
 import { Dashboard } from "#pages/Dashboard";
-import { EmployeeReference } from "#pages/employee/EmployeeReference/ui/EmployeeReference";
+import { EmployeeReferencePage } from "#pages/employee/EmployeeReference";
 import { Settings } from "#pages/Settings";
 import { View } from "#shared/ui";
 import { ApplicationBar, NavigationTo } from "#widgets/ApplicationBar";
@@ -26,7 +26,7 @@ const AuthRoute = () => {
             <Routes>
                <Route path="/" Component={Dashboard} />
                <Route path="/dashboard" Component={Dashboard} />
-               <Route path="/employee" Component={EmployeeReference} />
+               <Route path="/employee" Component={EmployeeReferencePage} />
 
                <Route path="/settings" Component={Settings} />
             </Routes>   

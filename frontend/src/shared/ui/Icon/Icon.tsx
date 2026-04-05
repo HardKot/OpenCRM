@@ -1,14 +1,15 @@
-import { Visibility, VisibilityOff, LightMode, DarkMode, AutoMode, BrightnessMedium } from "@mui/icons-material";
+import { Visibility, VisibilityOff, LightMode, DarkMode, AutoMode, BrightnessMedium, Add } from "@mui/icons-material";
 import { FC } from "react";
 
 
-const Icons: Record<string, FC<{ size?: number; color?: IconColor }>> = {
+export const Icons: Record<string, FC<{ size?: number; color?: IconColor }>> = {
     Visibility: Visibility,
     VisibilityOff: VisibilityOff,
     LightMode: LightMode,    
     DarkMode: DarkMode,
     AutoMode: AutoMode,
     BrightnessMedium: BrightnessMedium,
+    Add: Add
 }
 
 type IconColor = 'inherit' | 'primary' | 'secondary' | 'action' | 'error' | 'disabled';

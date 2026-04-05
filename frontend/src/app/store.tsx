@@ -4,16 +4,23 @@ import { ApiMiddleware, ApiReducer } from '#shared/api';
 import { AppConfigReducer } from './config/AppConfigSlice';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
+import { EmployeeFilterReducer } from '#features/filter/employeeFilter';
 
 const persistConfig = {
   key: 'root',
   version: 1,
   storage: storage,
+  whitelist: ['user', 'appConfig'],
 }
+
+const filters = combineReducers({
+  employee: EmployeeFilterReducer,
+});
 
 const appReducer = combineReducers({
   user: userReducer,
   appConfig: AppConfigReducer,
+  filters: filters,
   ...ApiReducer
 })
 

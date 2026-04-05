@@ -1,5 +1,8 @@
 import { Box, Table as MuiTable, Paper, SxProps, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from "@mui/material"
 import { FC, PropsWithChildren, useState } from "react";
+import { LoadingTable } from "./LoadingTable";
+import { TableWrapper } from "./TableWrapper";
+import { TableEmpty } from "./TableEmpty";
 
 interface TableHeader {
     id: string;
@@ -23,7 +26,7 @@ interface TableProps<T extends { id: number }> {
     sx?: SxProps
 }
 
-const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, onPageChange, rows, rowData, RowWrapper, key, sx }: TableProps<T>) => {
+const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, onPageChange, rows, rowData, RowWrapper, key, sx = {} }: TableProps<T>) => {
     const [rowsPerPage, setRowsPerPage] = useState(25);
 
     const handleChangePage = (event: unknown, newPage: number) => {
@@ -37,14 +40,7 @@ const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, o
     }
 
     return (
-        <Paper 
-            elevation={2} 
-            sx={{
-                p: { xs: 2, sm: 3 },
-                borderRadius: 2,
-                gridColumn: { xs: 'span 1', md: '1 / -1' },
-                ...sx
-            }}>
+        <TableWrapper sx={sx}>
             <TableContainer>
                 <MuiTable stickyHeader >
                     <TableHead>
@@ -85,8 +81,11 @@ const Table = <T extends { id: number }, >({ count, page, onRowsPerPageChange, o
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />
-        </Paper>
+        </TableWrapper>
     )
 }
+
+Table.Loading = LoadingTable
+Table.Empty = TableEmpty
 
 export { Table }

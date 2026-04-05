@@ -14,6 +14,8 @@ export interface EmployeeDto {
 }
 
 export interface GetEmployeeListRequest {
+    fullname?: string;
+    position?: string;
     page: number;
     size: number;
 }
@@ -26,20 +28,23 @@ const employeeApi = createApi({
             query: (id) => ({
                 url: `/api/employee/${id}`,
                 method: "GET",
-             }),
+            }),
         }),
 
         getPageEmployees: build.query<PageResponse<EmployeeDto>, GetEmployeeListRequest>({
-            query: ({ page, size }) => ({
+            query: ({ page, size, fullname, position }) => ({
                 url: `/api/employee`,
                 method: "GET",
                 params: {
                     page,
                     size,
+                    fullname,
+                    position
                 }
             }),
         }),
     }),
+
 });
 
 export const useGetEmployeeById = employeeApi.useGetEmployeeByIdQuery;
