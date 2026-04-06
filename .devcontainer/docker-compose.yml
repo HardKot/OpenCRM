@@ -8,9 +8,6 @@ services:
     volumes:
       - ..:/workspace:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
 
   db:
     image: postgres:18.3-alpine
@@ -33,7 +30,7 @@ services:
   thooks:
     image: gitverse.ru/batiukhnonikita/thook:v0.1.0
     restart: unless-stopped
-  ports:
+    ports:
       - "8825:3000"   
 
   pgadmin:
