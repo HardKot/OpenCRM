@@ -66,7 +66,10 @@ public class EmployeeController {
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
   public PageResponse.EmployeePageDto actionGetAll(
       @RequestParam(name = "page", defaultValue = "1") int page,
-      @RequestParam(name = "size", defaultValue = "100") int size) {
+      @RequestParam(name = "size", defaultValue = "100") int size,
+      @RequestParam(name = "fullname", required = false) String fullname,
+      @RequestParam(name = "position", required = false) String position
+    ) {
 
     List<EmployeeDto> list =
         employeeService

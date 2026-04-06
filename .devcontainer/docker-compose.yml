@@ -29,3 +29,18 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+
+  thooks:
+    image: gitverse.ru/batiukhnonikita/thook:v0.1.0
+    restart: unless-stopped
+  ports:
+      - "8825:3000"   
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8888:80"

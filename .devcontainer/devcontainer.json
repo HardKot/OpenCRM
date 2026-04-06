@@ -15,6 +15,7 @@
     "PATH": "${containerEnv:PATH}:/workspace/scripts"
   },
   "containerEnv": {
+    "SSH_AUTH_SOCK": "/tmp/ssh-agent.sock",
     // Databse creds
     "DB_HOST": "db",
     "DB_NAME": "crm",
@@ -50,9 +51,10 @@
         "redhat.vscode-yaml",
         "yzhang.markdown-all-in-one",
         "orta.vscode-jest",
-        "dsznajder.es7-react-js-snippets",
-        "GitHub.copilot",
-        "GitHub.copilot-chat"
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-vscode.vscode-typescript-next",
+        "SonarSource.sonarlint-vscode"
       ]
     }
   }
