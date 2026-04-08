@@ -1,10 +1,12 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query";
 
-const BASE_URL: string = (import.meta as any).env.VITE_API_URL || 'http://localhost:8080';
+const BASE_URL: string = import.meta.env.VITE_API_URL ?? "";
 
-const BaseFetchQuery = (options: { url?: string }) => fetchBaseQuery({
-    baseUrl: `${BASE_URL}/${options.url ?? ''}`.replace(/\/+$/, '/'),
-    credentials: 'include'
-})
+const BaseFetchQuery = (): ReturnType<typeof fetchBaseQuery> => {
+  return fetchBaseQuery({
+    credentials: "include",
+    timeout: 60_000,
+  });
+};
 
-export { BaseFetchQuery, BASE_URL }
+export { BaseFetchQuery, BASE_URL };

@@ -5,10 +5,9 @@
   "workspaceFolder": "/workspace",
   "features": {},
   "remoteUser": "devuser",
-  "forwardPorts": [8080, 5005, 3000],
+  "forwardPorts": [443, 80, 8080, 5005, 3000],
   "updateRemoteUserUID": true,
   "postCreateCommand": {
-    "backend": "cd backend && ./gradlew --no-daemon build -x test || true",
     "frontend": "cd frontend && npm install"
   },
   "remoteEnv": {
@@ -25,7 +24,7 @@
     "MAIL_HOST": "mailhog",
     "MAIL_PORT": "1025",
     // Front config
-    "REACT_APP_BACKEND_URL": "http: //localhost:8080'",
+    "REACT_APP_BACKEND_URL": "",
     // Backend config
     "SPRING_PROFILES_ACTIVE": "dev",
     "DOCKER_COMPOSE_ENABLED": "false",

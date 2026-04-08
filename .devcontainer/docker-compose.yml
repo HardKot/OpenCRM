@@ -9,6 +9,18 @@ services:
       - ..:/workspace:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
 
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+
   db:
     image: postgres:18.3-alpine
     restart: unless-stopped
@@ -41,3 +53,5 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8888:80"
+
+  
