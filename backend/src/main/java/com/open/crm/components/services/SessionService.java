@@ -45,7 +45,7 @@ public class SessionService {
   }
 
   public boolean isShowDeleted() throws SessionException {
-    return false;
+    return true;
   }
 
   public Author getAuthor() throws SessionException {

@@ -15,4 +15,5 @@ export * from "./Menu";
 export * from "./Tabs";
 export * from "./Layout";
 export * from "./Accordion";
+export * from "./Loading";
 export { Alert } from "./Alert";

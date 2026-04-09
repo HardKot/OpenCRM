@@ -68,22 +68,27 @@ public class EmployeeController {
       @RequestParam(name = "page", defaultValue = "1") int page,
       @RequestParam(name = "size", defaultValue = "100") int size,
       @RequestParam(name = "fullname", required = false) String fullname,
-      @RequestParam(name = "position", required = false) String position
+      @RequestParam(name = "position", required = false) String position,
+      @RequestParam(name = "isDeleted", required = false) boolean isDeleted,
+      @RequestParam(name = "sortBy", required = false) String sortBy,
+      @RequestParam(name = "sortDirection", required = false) String sortDirection
     ) {
+
+    boolean showDeleted = isDeleted && sessionEmployeeService.isShowDeleted();
 
     List<EmployeeDto> list =
         employeeService
             .getEmployeeSelector()
-            .getItems(page - 1, size, sessionEmployeeService.isShowDeleted())
+            .getItems(page - 1, size, showDeleted, sortBy, sortDirection)
             .stream()
             .map(employeeMapper::toDto)
             .toList();
 
     long totalElements =
-        employeeService.getEmployeeSelector().countItems(sessionEmployeeService.isShowDeleted());
+        employeeService.getEmployeeSelector().countItems(showDeleted);
 
     return new PageResponse.EmployeePageDto(
-        employeeService.getEmployeeSelector().countItems(sessionEmployeeService.isShowDeleted()),
+        totalElements,
         (int) Math.ceil((double) totalElements / size),
         list.toArray(new EmployeeDto[0]));
   }

@@ -10,10 +10,5 @@ export {
   useGeneratePassword,
   useHoldSession,
 } from "./authApi";
-export {
-  employeeApi,
-  useGetEmployeeById,
-  useGetPageEmployees,
-  useEmployeeById,
-} from "./employeeApi";
+export * from "./employeeApi";
 export type { EmployeeDto } from "./employeeApi";

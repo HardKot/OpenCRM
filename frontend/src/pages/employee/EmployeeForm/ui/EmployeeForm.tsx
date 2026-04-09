@@ -1,6 +1,5 @@
 const EmployeeForm = () => {
+  return null;
+};
 
-}
-
-
-export { EmployeeForm }
+export { EmployeeForm };
