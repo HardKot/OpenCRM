@@ -1,129 +1,129 @@
 {
-    "application": {
-        "name": "Open CRM Система",
-        "shortName": "Open CRM"
-    },
-    "errors": {
-        "failedToFetch": "Не удалось подключиться к серверу",
-        "unauthorized": "Пользователь не авторизован",
-        "forbidden": "Доступ запрещён",
-        "notFound": "Ресурс не найден",
-        "internalServerError": "Внутренняя ошибка сервера",
-        "badRequest": "Неверный запрос",
-        "unknownError": "Неизвестная ошибка"
-    },
-    "auth": {
-        "signIn": "Войти",
-        "createTenant": "Создать организацию",
-        "forgotPassword": "Забыли пароль?",
-        "backToLogin": "Назад к входу"
-    },
-    "authByUsername": {
-        "title": "Вход в систему",
-        "email": "Электронная почта",
-        "password": "Пароль",
-        "submit": "Войти",
-        "username": "Имя пользователя",
-        "forgotPassword": "Забыли пароль?",
-        "required": "Это поле обязательно",
-        "invalidCredentials": "Неверный email или пароль",
-        "unknownError": "Произошла ошибка при входе. Пожалуйста, попробуйте снова.",
-        "validation": {
-            "username": {
-                "email": "Пожалуйста, введите корректный email",
-                "required": "Пожалуйста, введите имя пользователя"
-            },
-            
-            "password": {"required": "Пожалуйста, введите пароль" }
-        }
-    },
-    "settings": {
-        "language": "Язык",
-        "language_system": "Автоматически (система)",
-        "language_description": "Выберите язык интерфейса приложения",
-        "theme": "Режим темы",
-        "theme_light": "Светлая",
-        "theme_dark": "Тёмная",
-        "theme_system": "Как в системе",
-        "personalization": "Персонализация",
-        "security": "Безопасность",
-        "changePassword": "Сменить пароль",
-        "theme_description": "Выберите режим отображения: светлый, тёмный или автоматически как в системе"
-    },
+  "application": {
+    "name": "Open CRM Система",
+    "shortName": "Open CRM"
+  },
+  "errors": {
+    "failedToFetch": "Не удалось подключиться к серверу",
+    "unauthorized": "Пользователь не авторизован",
+    "forbidden": "Доступ запрещён",
+    "notFound": "Ресурс не найден",
+    "internalServerError": "Внутренняя ошибка сервера",
+    "badRequest": "Неверный запрос",
+    "unknownError": "Неизвестная ошибка"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "createTenant": "Создать организацию",
+    "forgotPassword": "Забыли пароль?",
+    "backToLogin": "Назад к входу"
+  },
+  "authByUsername": {
+    "title": "Вход в систему",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "submit": "Войти",
+    "username": "Имя пользователя",
+    "forgotPassword": "Забыли пароль?",
+    "required": "Это поле обязательно",
+    "invalidCredentials": "Неверный email или пароль",
+    "unknownError": "Произошла ошибка при входе. Пожалуйста, попробуйте снова.",
+    "validation": {
+      "username": {
+        "email": "Пожалуйста, введите корректный email",
+        "required": "Пожалуйста, введите имя пользователя"
+      },
 
-    "changePassword": {
-        "changePassword": "Сменить пароль",
-        "currentPassword": "Текущий пароль",
-        "newPassword": "Новый пароль",
-        "confirmNewPassword": "Подтвердить новый пароль",
-        "submit": "Сохранить",
-        "invalidCredentials": "Текущий пароль неверный",
-        "unknownError": "Произошла ошибка при изменении пароля. Пожалуйста, попробуйте снова.",
-        "passwordsDoNotMatch": "Пароли не совпадают",
-        "passwordsMatch": "Новый пароль не может совпадать с текущим",
-        "passwordTooWeak": "Пароль слишком слабый",
-        "generatedPassword": "Сгенерированный пароль:",
-
-        "passwordChangeSuccess": "Пароль успешно изменён",
-
-        "passwordLevel": {
-            "WEAK": "Слабый",
-            "SIMPLE": "Простой",
-            "MEDIUM": "Средний",
-            "HARD": "Сильный"
-        }
-    },
-    "createTenant": {
-        "title": "Создание организации",
-        "email": "Электронная почта",
-        "submit": "Создать",
-        "unknownError": "Произошла ошибка при входе. Пожалуйста, попробуйте снова.",
-        "validation": {
-            "email": {
-                "email": "Пожалуйста, введите корректный email",
-                "required": "Пожалуйста, введите email"
-            }
-        }
-    },
-    "forgoutPassword": {
-        "title": "Восстановление пароля",
-        "username": "Электронная почта",
-        "submit": "Отправить инструкцию",
-        "required": "Это поле обязательно",
-        "invalidEmail": "Пожалуйста, введите корректный email",
-        "unknownError": "Произошла ошибка при отправке инструкции. Пожалуйста, попробуйте снова."
-    }, 
-    "employee": {
-        "title": "Сотрудники",
-        "add": "Добавить сотрудника",
-        "name": "Сотрудник",
-        "list": "Список сотрудников",
-        "create": "Создать сотрудника",
-        "edit": "Редактировать сотрудника",
-        "delete": "Удалить сотрудника",
-        "fields": {
-            "firstname": "Имя",
-            "lastname": "Фамилия",
-            "patronymic": "Отчество",
-            "id": "№",
-            "name": "Фамилия Имя Отчество",
-            "email": "Электронная почта",
-            "phone": "Телефон",
-            "position": "Должность",
-            "fullname": "Фамилия Имя Отчество"
-        }
-    },
-    "common": {
-        "actions": {
-            "search": "Найти",
-            "apply": "Применить",
-            "edit": "Редактировать",
-            "delete": "Удалить",
-            "confirm": "Подтвердить",
-            "cancel": "Отмена"
-        }
-    },
-    "navigation": {
-        "employee": "Сотрудники"
+      "password": { "required": "Пожалуйста, введите пароль" }
     }
+  },
+  "settings": {
+    "language": "Язык",
+    "language_system": "Автоматически (система)",
+    "language_description": "Выберите язык интерфейса приложения",
+    "theme": "Режим темы",
+    "theme_light": "Светлая",
+    "theme_dark": "Тёмная",
+    "theme_system": "Как в системе",
+    "personalization": "Персонализация",
+    "security": "Безопасность",
+    "changePassword": "Сменить пароль",
+    "theme_description": "Выберите режим отображения: светлый, тёмный или автоматически как в системе"
+  },
+
+  "changePassword": {
+    "changePassword": "Сменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "confirmNewPassword": "Подтвердить новый пароль",
+    "submit": "Сохранить",
+    "invalidCredentials": "Текущий пароль неверный",
+    "unknownError": "Произошла ошибка при изменении пароля. Пожалуйста, попробуйте снова.",
+    "passwordsDoNotMatch": "Пароли не совпадают",
+    "passwordsMatch": "Новый пароль не может совпадать с текущим",
+    "passwordTooWeak": "Пароль слишком слабый",
+    "generatedPassword": "Сгенерированный пароль:",
+
+    "passwordChangeSuccess": "Пароль успешно изменён",
+
+    "passwordLevel": {
+      "WEAK": "Слабый",
+      "SIMPLE": "Простой",
+      "MEDIUM": "Средний",
+      "HARD": "Сильный"
+    }
+  },
+  "createTenant": {
+    "title": "Создание организации",
+    "email": "Электронная почта",
+    "submit": "Создать",
+    "unknownError": "Произошла ошибка при входе. Пожалуйста, попробуйте снова.",
+    "validation": {
+      "email": {
+        "email": "Пожалуйста, введите корректный email",
+        "required": "Пожалуйста, введите email"
+      }
+    }
+  },
+  "forgoutPassword": {
+    "title": "Восстановление пароля",
+    "username": "Электронная почта",
+    "submit": "Отправить инструкцию",
+    "required": "Это поле обязательно",
+    "invalidEmail": "Пожалуйста, введите корректный email",
+    "unknownError": "Произошла ошибка при отправке инструкции. Пожалуйста, попробуйте снова."
+  },
+  "employee": {
+    "title": "Сотрудники",
+    "add": "Добавить сотрудника",
+    "name": "Сотрудник",
+    "list": "Список сотрудников",
+    "create": "Создать сотрудника",
+    "edit": "Редактировать сотрудника",
+    "delete": "Удалить сотрудника",
+    "fields": {
+      "firstname": "Имя",
+      "lastname": "Фамилия",
+      "patronymic": "Отчество",
+      "id": "№",
+      "name": "Фамилия Имя Отчество",
+      "email": "Электронная почта",
+      "phone": "Телефон",
+      "position": "Должность",
+      "fullname": "Фамилия Имя Отчество"
+    }
+  },
+  "common": {
+    "actions": {
+      "search": "Найти",
+      "apply": "Применить",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirm": "Подтвердить",
+      "cancel": "Отмена"
+    }
+  },
+  "navigation": {
+    "employee": "Сотрудники"
+  }
 }

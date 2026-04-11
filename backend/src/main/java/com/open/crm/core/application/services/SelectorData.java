@@ -24,15 +24,11 @@ public class SelectorData<T extends BaseEntity> {
 
   // Get page
   public Page<T> getPage(
-    int page,
-    int size,
-    boolean includeDeleted,
-    Specification<T> specification,
-    Sort sortBy
-  ) {
+      int page, int size, boolean includeDeleted, Specification<T> specification, Sort sortBy) {
     Specification<T> finalSpecification = Specification.where(specification);
     if (!includeDeleted) {
-      finalSpecification = finalSpecification.and((root, query, cb) -> cb.isFalse(root.get("isDeleted")));
+      finalSpecification =
+          finalSpecification.and((root, query, cb) -> cb.isFalse(root.get("isDeleted")));
     }
 
     Pageable pageable = PageRequest.of(page, size, sortBy);
@@ -41,26 +37,16 @@ public class SelectorData<T extends BaseEntity> {
   }
 
   public Page<T> getPage(
-    int page,
-    int size,
-    boolean includeDeleted,
-    Specification<T> specification
-  ) {
+      int page, int size, boolean includeDeleted, Specification<T> specification) {
     return getPage(page, size, includeDeleted, specification, Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
-  public Page<T> getPage(
-    int page,
-    int size,
-    boolean includeDeleted
-  ) {
-    return getPage(page, size, includeDeleted, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
+  public Page<T> getPage(int page, int size, boolean includeDeleted) {
+    return getPage(
+        page, size, includeDeleted, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
-  public Page<T> getPage(
-    int page,
-    int size
-  ) {
+  public Page<T> getPage(int page, int size) {
     return getPage(page, size, false, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
@@ -86,15 +72,18 @@ public class SelectorData<T extends BaseEntity> {
 
   public List<T> getItems(
       long offset, int size, boolean includeDeleted, Specification<T> specification) {
-    return getItems(offset, size, includeDeleted, specification, Sort.by(Order.asc(DEFAULT_SORT_BY)));
+    return getItems(
+        offset, size, includeDeleted, specification, Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
   public List<T> getItems(long offset, int size, boolean includeDeleted) {
-    return getItems(offset, size, includeDeleted, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
+    return getItems(
+        offset, size, includeDeleted, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
   public List<T> getItems(long offset, int size) {
-    return getItems(offset, size, false, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
+    return getItems(
+        offset, size, false, Specification.anyOf(), Sort.by(Order.asc(DEFAULT_SORT_BY)));
   }
 
   public List<T> getItems(int size) {

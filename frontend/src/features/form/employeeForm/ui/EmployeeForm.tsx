@@ -5,6 +5,7 @@ import { EmployeeFormSchema, IEmployeeForm } from "../model/EmployeeFormSchema";
 import { useI18n } from "#shared/hooks";
 import { Button, Layout, Text, TextInput, View } from "#shared/ui";
 import { EmployeeDto, useSaveEmployee } from "#shared/api/employeeApi";
+import { ReactNode } from "react";
 
 interface EmployeeFormProps {
   employeeId?: number;
@@ -103,7 +104,7 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
 
 interface FormSectionProps {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const FormSection = ({ title, children }: FormSectionProps) => {

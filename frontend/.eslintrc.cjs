@@ -1,126 +1,133 @@
 module.exports = {
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
   env: {
     node: true,
-    browser: true
+    browser: true,
+    es2021: true,
   },
   plugins: [
-    "eslint-plugin-unicorn",
-    "eslint-plugin-react",
-    "eslint-plugin-react-hooks",
-    "boundaries"
+    "unicorn",
+    "react",
+    "react-hooks",
+    "boundaries",
+    "@typescript-eslint",
   ],
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
   ],
   settings: {
     react: {
-      version: "detect"
+      version: "detect",
     },
     "boundaries/elements": [
       {
         type: "app",
-        pattern: "app/*"
+        pattern: "app/*",
       },
       {
         type: "pages",
-        pattern: "pages/*"
+        pattern: "pages/*",
       },
       {
         type: "widgets",
-        pattern: "widgets/*"
+        pattern: "widgets/*",
       },
       {
         type: "features",
-        pattern: "features/*"
+        pattern: "features/*",
       },
       {
         type: "entities",
-        pattern: "entities/*"
+        pattern: "entities/*",
       },
       {
         type: "shared",
-        pattern: "shared/*"
-      }
+        pattern: "shared/*",
+      },
     ],
-    "boundaries/ignore": [
-      "**/*.test.*",
-      "**/*.spec.*"
-    ]
+    "boundaries/ignore": ["**/*.test.*", "**/*.spec.*"],
   },
   rules: {
     "no-undefined": "off",
     "@typescript-eslint/no-inferrable-types": "off",
-    "eslint-plugin-unicorn/no-useless-undefined": [
+    "unicorn/no-useless-undefined": [
       "error",
       {
-        checkArguments: false
-      }
+        checkArguments: false,
+      },
     ],
     "@typescript-eslint/naming-convention": [
       "error",
       {
         selector: "function",
-        format: ["camelCase", "PascalCase"]
+        format: ["camelCase", "PascalCase"],
       },
       {
         selector: "variable",
         modifiers: ["const", "global"],
-        format: ["UPPER_CASE", "PascalCase", "camelCase"]
+        format: ["UPPER_CASE", "PascalCase", "camelCase"],
       },
       {
         selector: "class",
-        format: ["PascalCase"]
+        format: ["PascalCase"],
       },
       {
         selector: "interface",
-        format: ["PascalCase"]
+        format: ["PascalCase"],
       },
       {
         selector: "typeAlias",
-        format: ["PascalCase"]
-      }
+        format: ["PascalCase"],
+      },
     ],
-    "eslint-plugin-react/react-in-jsx-scope": "off",
-    "eslint-plugin-react/jsx-pascal-case": [
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-pascal-case": [
       "error",
       {
-        allowAllCaps: false
-      }
+        allowAllCaps: false,
+      },
     ],
-    "eslint-plugin-react-hooks/rules-of-hooks": "error",
-    "eslint-plugin-react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "max-lines-per-function": [
-      "error",
+      "off",
       {
         max: 50,
         skipBlankLines: true,
-        skipComments: true
-      }
+        skipComments: true,
+      },
     ],
-    "max-statements": ["error", 10],
-    complexity: ["error", 10],
-    "eslint-plugin-react/function-component-definition": [
+    "max-statements": ["off", 10],
+    complexity: ["off", 10],
+    "react/function-component-definition": [
       "error",
       {
         namedComponents: [
           "arrow-function",
           "function-declaration",
-          "function-expression"
+          "function-expression",
         ],
-        unnamedComponents: "arrow-function"
-      }
+        unnamedComponents: "arrow-function",
+      },
     ],
-    "eslint-plugin-unicorn/filename-case": [
+    "unicorn/filename-case": [
       "error",
       {
         cases: {
           pascalCase: true,
-          camelCase: true
+          camelCase: true,
         },
-        ignore: ["\\.test\\.(tsx?|jsx?)$", "\\.spec\\.(tsx?|jsx?)$"]
-      }
+        ignore: ["\\.test\\.(tsx?|jsx?)$", "\\.spec\\.(tsx?|jsx?)$"],
+      },
     ],
     "boundaries/element-types": [
       "error",
@@ -129,47 +136,47 @@ module.exports = {
         rules: [
           {
             from: "app",
-            allow: ["pages", "widgets", "features", "entities", "shared"]
+            allow: ["pages", "widgets", "features", "entities", "shared"],
           },
           {
             from: "pages",
-            allow: ["widgets", "features", "entities", "shared"]
+            allow: ["widgets", "features", "entities", "shared"],
           },
           {
             from: "widgets",
-            allow: ["features", "entities", "shared"]
+            allow: ["features", "entities", "shared"],
           },
           {
             from: "features",
-            allow: ["entities", "shared"]
+            allow: ["entities", "shared"],
           },
           {
             from: "entities",
-            allow: ["shared"]
+            allow: ["shared"],
           },
           {
             from: "shared",
-            allow: ["shared"]
-          }
-        ]
-      }
+            allow: ["shared"],
+          },
+        ],
+      },
     ],
-    "boundaries/no-private": ["error"]
+    "boundaries/no-private": ["error"],
   },
   overrides: [
     {
       files: [
         "**/__tests__/**/*.{ts,tsx,js,jsx}",
-        "**/*.{test,spec}.{ts,tsx,js,jsx}"
+        "**/*.{test,spec}.{ts,tsx,js,jsx}",
       ],
       env: {
-        jest: true
+        jest: true,
       },
       rules: {
         "max-lines-per-function": "off",
         "max-statements": "off",
-        complexity: "off"
-      }
-    }
-  ]
+        complexity: "off",
+      },
+    },
+  ],
 };

@@ -2,13 +2,11 @@ import { LoginForm } from "#features/auth/LoginForm";
 import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const onSuccess = () => {
-        navigate('/');
-    };
+  const onSuccess = () => {
+    navigate("/");
+  };
 
-    return (
-        <LoginForm onSuccess={onSuccess} />
-    )
-}
+  return <LoginForm onSuccess={onSuccess} />;
+};

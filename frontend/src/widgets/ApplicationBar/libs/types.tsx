@@ -1,7 +1,7 @@
 enum NavigationTo {
-    Main,
-    Employee,
-    Setting,
+  Main,
+  Employee,
+  Setting,
 }
 
-export { NavigationTo } 
+export { NavigationTo };

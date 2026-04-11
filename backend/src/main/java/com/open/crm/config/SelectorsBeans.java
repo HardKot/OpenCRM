@@ -7,7 +7,6 @@ import com.open.crm.core.application.services.SelectorData;
 import com.open.crm.core.entities.client.Client;
 import com.open.crm.core.entities.commodity.Commodity;
 import com.open.crm.core.entities.commodity.CommodityCategory;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

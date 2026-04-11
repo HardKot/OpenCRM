@@ -1,9 +1,7 @@
-import { View } from "#shared/ui"
+import { View } from "#shared/ui";
 
 const Dashboard = () => {
-    return (
-        <View>Dashboard</View>
-    )
-}
+  return <View>Dashboard</View>;
+};
 
-export { Dashboard }
+export { Dashboard };

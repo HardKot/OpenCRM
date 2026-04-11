@@ -1,39 +1,30 @@
-import { PropsWithChildren, useEffect, useMemo, useState } from "react";
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { PaletteMode } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { PropsWithChildren, useMemo } from "react";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import { CssBaseline } from "@mui/material";
 import { createAppTheme } from "#app/theme";
 import { useAppSelector } from "#shared/index";
+import { useSystemTheme } from "#app/libs/useSystemTheme";
 
 const ThemeProvider = ({ children }: PropsWithChildren) => {
-    const themeMode = useAppSelector(state => state.appConfig.theme);
-    const [currentMode, setCurrentMode] = useState<PaletteMode>('light');
+  const themeMode = useAppSelector((state) => state.appConfig.theme);
+  const systemTheme = useSystemTheme();
 
-    useEffect(() => {
-        if (themeMode === 'system') {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const isDark = mediaQuery.matches;
-            setCurrentMode(isDark ? 'dark' : 'light');
+  const currentMode = useMemo(() => {
+    if (themeMode !== "system") return themeMode;
 
-            const handler = (e: MediaQueryListEvent) => {
-                setCurrentMode(e.matches ? 'dark' : 'light');
-            };
-            mediaQuery.addEventListener('change', handler);
-            return () => mediaQuery.removeEventListener('change', handler);
-        } else {
-            setCurrentMode(themeMode);
-        }
-    }, [themeMode]);
+    const isDark = systemTheme === "dark";
+    if (isDark) return "dark";
+    return "light";
+  }, [themeMode, systemTheme]);
 
-    const theme = useMemo(() => createAppTheme(currentMode), [currentMode]);
+  const theme = useMemo(() => createAppTheme(currentMode), [currentMode]);
 
-    return (
-        <MuiThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-        </MuiThemeProvider>
-    )
-}
-
+  return (
+    <MuiThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </MuiThemeProvider>
+  );
+};
 
 export { ThemeProvider };

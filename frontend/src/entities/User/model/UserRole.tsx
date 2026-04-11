@@ -1,6 +1,6 @@
 enum UserRole {
-    Employee = 'ROLE_EMPLOYEE',
-    Owner = 'ROLE_OWNER'
+  Employee = "ROLE_EMPLOYEE",
+  Owner = "ROLE_OWNER",
 }
 
-export { UserRole }
+export { UserRole };

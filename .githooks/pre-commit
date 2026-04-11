@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Running pre-commit hook..."
+./scripts/crm-lint
+if [ $? -ne 0 ]; then
+    echo "Commit failed: lint errors found. Run ./scripts/crm-format to fix them."
+    exit 1
+fi

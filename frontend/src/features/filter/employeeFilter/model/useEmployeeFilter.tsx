@@ -1,12 +1,9 @@
 import { useAppSelector } from "#shared/hooks";
 
-const useEmployeeFilter = () => useAppSelector(({
-    filters: {
-        employee
-    }
-}) => ({
+const useEmployeeFilter = () =>
+  useAppSelector(({ filters: { employee } }) => ({
     fullname: employee.fullnameLike,
-    position: employee.position
-}))
+    position: employee.position,
+  }));
 
-export { useEmployeeFilter }
+export { useEmployeeFilter };

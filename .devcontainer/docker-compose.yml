@@ -28,7 +28,7 @@ services:
       POSTGRES_USER: devuser
       POSTGRES_PASSWORD: devpassword
       POSTGRES_DB: crm
-    # Spring Boot should connect to the database via jdbc:postgresql://db:5432/crm
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
@@ -45,7 +45,7 @@ services:
     image: gitverse.ru/batiukhnonikita/thook:v0.1.0
     restart: unless-stopped
     ports:
-      - "8825:3000"   
+      - "8825:3000"
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -55,5 +55,3 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8888:80"
-
-  

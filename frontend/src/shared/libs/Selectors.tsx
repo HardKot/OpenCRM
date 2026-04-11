@@ -1,1 +1,0 @@
-const currentUserSelector = (state: RootState) => state.user.authData;

@@ -2,15 +2,14 @@ import { UserPermission } from "./UserPermission";
 import { UserRole } from "./UserRole";
 
 interface User {
-    username: string;
-    userId: string;
-    tenantId: string;
+  username: string;
+  userId: string;
+  tenantId: string;
 
-    permissions: UserPermission[];
-    role: UserRole;
+  permissions: UserPermission[];
+  role: UserRole;
 
-    entityId: number;
-
+  entityId: number;
 }
 
-export type { User }
+export type { User };

@@ -1,1 +1,3 @@
-export type ITranslation = {(key: string, options?: { defaultValue?: string }): string}
+export type ITranslation = {
+  (key: string, options?: { defaultValue?: string }): string;
+};

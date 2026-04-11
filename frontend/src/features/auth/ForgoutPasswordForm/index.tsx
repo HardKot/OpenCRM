@@ -1,1 +1,1 @@
-export { ForgoutPasswordForm } from "./ui/ForgoutPasswordForm"
+export { ForgoutPasswordForm } from "./ui/ForgoutPasswordForm";

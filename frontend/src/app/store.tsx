@@ -1,17 +1,26 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { userReducer } from '#entities/User';
-import { ApiMiddleware, ApiReducer } from '#shared/api';
-import { AppConfigReducer } from './config/AppConfigSlice';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
-import { EmployeeFilterReducer } from '#features/filter/employeeFilter';
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { userReducer } from "#entities/User";
+import { ApiMiddleware, ApiReducer } from "#shared/api";
+import { AppConfigReducer } from "./config/AppConfigSlice";
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import { EmployeeFilterReducer } from "#features/filter/employeeFilter";
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   version: 1,
   storage: storage,
-  whitelist: ['user', 'appConfig'],
-}
+  whitelist: ["user", "appConfig"],
+};
 
 const filters = combineReducers({
   employee: EmployeeFilterReducer,
@@ -21,31 +30,30 @@ const appReducer = combineReducers({
   user: userReducer,
   appConfig: AppConfigReducer,
   filters: filters,
-  ...ApiReducer
-})
+  ...ApiReducer,
+});
 
-
-const persistedReducer = persistReducer(persistConfig, appReducer)
-
+const persistedReducer = persistReducer(persistConfig, appReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ 
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      }
+      },
     }).concat(ApiMiddleware),
   enhancers: (getDefaultEnhancers) => getDefaultEnhancers(),
   devTools: import.meta.env.DEV,
-})
+});
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-export type AppStore = typeof store
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+export type AppStore = typeof store;
 
 export interface ThunkExtraArg {
-    api: any; // Ideally AxiosInstance
-    navigate?: (to: string) => void;
+  api: any; // Ideally AxiosInstance
+  navigate?: (to: string) => void;
 }

@@ -1,18 +1,15 @@
 import { Alert as MuiAlert } from "@mui/material";
 
 interface IAlertProps {
-    message: string;
+  message: string;
 }
 
 const SuccessAlert = ({ message }: IAlertProps) => (
-    <MuiAlert severity="success">
-        {message}
-    </MuiAlert>
+  <MuiAlert severity="success">{message}</MuiAlert>
 );
 
-
 const Alert = {
-    Success: SuccessAlert,
-}
+  Success: SuccessAlert,
+};
 
 export { Alert, SuccessAlert };

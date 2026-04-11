@@ -21,6 +21,8 @@
     "dbaeumer.vscode-eslint",
     "ms-vscode.vscode-typescript-next",
     "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker-russian",
+    "streetsidesoftware.code-spell-checker"
     // "stylelint.vscode-stylelint"
   ]
 }

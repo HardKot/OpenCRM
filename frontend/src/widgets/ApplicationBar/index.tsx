@@ -1,2 +1,2 @@
-export { ApplicationBar } from "./ui/ApplicationBar"
-export { NavigationTo } from "./libs/types"
+export { ApplicationBar } from "./ui/ApplicationBar";
+export { NavigationTo } from "./libs/types";

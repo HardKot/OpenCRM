@@ -61,7 +61,7 @@ const employeeApi = createApi({
           sortDirection,
         },
       }),
-      providesTags: (result) => [{ type: "Employee", id: "LIST" }],
+      providesTags: () => [{ type: "Employee", id: "LIST" }],
     }),
 
     saveEmployee: build.mutation<EmployeeDto, EmployeeDto>({

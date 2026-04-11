@@ -9,7 +9,7 @@ import {
   TableRow,
   TableSortLabel,
 } from "@mui/material";
-import { FC, PropsWithChildren, useState } from "react";
+import { ChangeEvent, FC, PropsWithChildren } from "react";
 import { LoadingTable } from "./LoadingTable";
 import { TableWrapper } from "./TableWrapper";
 import { TableEmpty } from "./TableEmpty";
@@ -69,7 +69,7 @@ const Table = <T extends { id?: number }>({
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     onRowsPerPageChange?.(newRowsPerPage);
