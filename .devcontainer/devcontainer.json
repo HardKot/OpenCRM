@@ -7,14 +7,15 @@
   "remoteUser": "devuser",
   "forwardPorts": [443, 80, 8080, 5005, 3000],
   "updateRemoteUserUID": true,
+  "mounts": ["source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"],
   "postCreateCommand": {
     "frontend": "cd frontend && npm install"
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/workspace/scripts"
+    "PATH": "${containerEnv:PATH}:/workspace/scripts",
+    "SSH_AUTH_SOCK": "/ssh-agent"
   },
   "containerEnv": {
-    "SSH_AUTH_SOCK": "/tmp/ssh-agent.sock",
     // Databse creds
     "DB_HOST": "db",
     "DB_NAME": "crm",

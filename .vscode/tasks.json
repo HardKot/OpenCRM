@@ -6,9 +6,33 @@
       "type": "shell",
       "command": "cd backend && ./gradlew bootRun --debug-jvm",
       "isBackground": true,
-      "runOptions": {
-        "runOn": "folderOpen"
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "group": "Spring Boot"
       },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*ERROR.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*:.*$",
+          "endsPattern": "^.*Started.*in.*$"
+        }
+      }
+    },
+
+    {
+      "label": "Spring Boot: Run",
+      "type": "shell",
+      "command": "cd backend && ./gradlew bootRun",
+      "isBackground": true,
       "presentation": {
         "echo": true,
         "reveal": "always",
@@ -35,9 +59,6 @@
       "type": "shell",
       "command": "cd frontend && npm start",
       "isBackground": true,
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
       "presentation": {
         "echo": true,
         "reveal": "always",

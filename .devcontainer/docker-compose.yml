@@ -31,6 +31,8 @@ services:
     # Spring Boot should connect to the database via jdbc:postgresql://db:5432/crm
     ports:
       - "5432:5432"
+    volumes:
+      - ./srv/postgresql:/var/lib/postgresql/data
 
   mailhog:
     image: mailhog/mailhog
