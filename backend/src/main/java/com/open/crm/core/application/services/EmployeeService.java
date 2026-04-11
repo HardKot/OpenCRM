@@ -4,13 +4,13 @@ import com.open.crm.core.application.IUserService;
 import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.results.ResultApp;
+import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import java.util.Objects;
 import java.util.Optional;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -22,11 +22,12 @@ public class EmployeeService {
 
   private final IEmployeeRepository employeeRepository;
   private final IUserService userService;
-
-  @Qualifier("employeeSelectorData") @Getter
-  private final SelectorData<Employee> employeeSelector;
-
   private final ApplicationEventPublisher eventPublisher;
+
+  @Lookup
+  public EmployeeSelector getSelector() {
+    return new EmployeeSelector(employeeRepository);
+  }
 
   @Transactional
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")

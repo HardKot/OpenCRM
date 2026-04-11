@@ -61,6 +61,23 @@ CREATE TABLE commodities (
     FOREIGN KEY (category_id) REFERENCES commodity_categories (id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_employees_firstname_trgm
+    ON employees USING GIN (lower(firstname) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_employees_lastname_trgm
+    ON employees USING GIN (lower(lastname) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_employees_patronymic_trgm
+    ON employees USING GIN (lower(patronymic) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_employees_position_trgm
+    ON employees USING GIN (lower(position) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS idx_employees_fullname_trgm
+    ON employees USING GIN (
+        lower(firstname || ' ' || lastname || ' ' || patronymic) gin_trgm_ops
+    );
+
 INSERT INTO
     employees (
         firstname,

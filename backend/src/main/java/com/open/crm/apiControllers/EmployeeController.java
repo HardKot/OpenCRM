@@ -14,10 +14,11 @@ import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.results.ResultApp;
+import com.open.crm.core.application.selectors.EmployeeSelector;
+import com.open.crm.core.application.selectors.SortDirection;
 import com.open.crm.core.application.services.EmployeeService;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ public class EmployeeController {
   private final EmployeeService employeeService;
 
   private final UserService userService;
+  private final EmployeeSelector employeeSelector;
 
   private final SessionService sessionEmployeeService;
   private final IEmployeeMapper employeeMapper;
@@ -64,33 +66,45 @@ public class EmployeeController {
 
   @GetMapping
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public PageResponse.EmployeePageDto actionGetAll(
+  public PageResponse actionGetAll(
       @RequestParam(name = "page", defaultValue = "1") int page,
       @RequestParam(name = "size", defaultValue = "100") int size,
       @RequestParam(name = "fullname", required = false) String fullname,
       @RequestParam(name = "position", required = false) String position,
-      @RequestParam(name = "isDeleted", required = false) boolean isDeleted,
+      @RequestParam(name = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
       @RequestParam(name = "sortBy", required = false) String sortBy,
-      @RequestParam(name = "sortDirection", required = false) String sortDirection
-    ) {
+      @RequestParam(name = "sortDesc", required = false) SortDirection sortDirection) {
 
     boolean showDeleted = isDeleted && sessionEmployeeService.isShowDeleted();
+    EmployeeSelector selector = employeeService.getSelector();
 
-    List<EmployeeDto> list =
-        employeeService
-            .getEmployeeSelector()
-            .getItems(page - 1, size, showDeleted, sortBy, sortDirection)
-            .stream()
-            .map(employeeMapper::toDto)
-            .toList();
+    selector.setFullname(fullname);
+    selector.setPosition(position);
+    selector.setIncludeDeleted(showDeleted);
 
-    long totalElements =
-        employeeService.getEmployeeSelector().countItems(showDeleted);
+    selector.setPage(page - 1);
+    selector.setSize(size);
+    selector.setSortBy(sortBy);
+    selector.setSortDirection(sortDirection);
 
-    return new PageResponse.EmployeePageDto(
-        totalElements,
-        (int) Math.ceil((double) totalElements / size),
-        list.toArray(new EmployeeDto[0]));
+    ResultApp<EmployeeSelector> sResultApp = selector.search();
+
+    switch (sResultApp) {
+      case ResultApp.Ok<EmployeeSelector> ok -> {
+        return new PageResponse.EmployeePageDto(
+            selector.getTotalItems(),
+            selector.getTotalPages(),
+            selector.getItems().stream().map(employeeMapper::toDto).toArray(EmployeeDto[]::new));
+      }
+
+      case ResultApp.InvalidData<EmployeeSelector> invalidData -> {
+        return new PageResponse.ErrorPageDto(invalidData.message());
+      }
+
+      default -> {
+        return new PageResponse.ErrorPageDto("Unknown error");
+      }
+    }
   }
 
   @PutMapping("/{id}")

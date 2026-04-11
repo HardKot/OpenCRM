@@ -27,6 +27,6 @@ public class Employee extends BaseEntity {
 
   @Column(name = "phone_number")
   private String phoneNumber = "";
-
+  
   private String email = "";
 }
