@@ -1,6 +1,6 @@
-package com.open.crm.admin.entities.user;
+package com.open.crm.core.entities.employee;
 
-public enum UserPermission {
+public enum AccessPermission {
   EMPLOYEE_READ,
   EMPLOYEE_UPDATE,
   EMPLOYEE_ACCESS,

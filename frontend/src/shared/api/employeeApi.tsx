@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { BaseFetchQuery } from "./api";
-import { PageResponse } from "./types";
+import { PageResponse, SuggestResponse } from "./types";
 
 export interface EmployeeDto {
   id: number;
@@ -16,6 +16,8 @@ export interface EmployeeDto {
 export interface GetEmployeeListRequest {
   fullname?: string;
   position?: string;
+  email?: string;
+  phone?: string;
   page: number;
   size: number;
   isDeleted?: boolean;
@@ -26,7 +28,7 @@ export interface GetEmployeeListRequest {
 const employeeApi = createApi({
   reducerPath: "api/employeeApi",
   baseQuery: BaseFetchQuery(),
-  tagTypes: ["Employee"],
+  tagTypes: ["Employee", "Position"],
   endpoints: (build) => ({
     getEmployeeById: build.query<EmployeeDto, number>({
       query: (id) => ({
@@ -40,28 +42,33 @@ const employeeApi = createApi({
       PageResponse<EmployeeDto>,
       GetEmployeeListRequest
     >({
-      query: ({
-        page,
-        size,
-        fullname,
-        position,
-        isDeleted,
-        sortBy,
-        sortDirection,
-      }) => ({
+      query: (args) => ({
         url: `/api/employee`,
         method: "GET",
         params: {
-          page,
-          size,
-          fullname,
-          position,
-          isDeleted,
-          sortBy,
-          sortDirection,
+          page: args.page,
+          size: args.size,
+          fullname: args.fullname,
+          position: args.position,
+          email: args.email,
+          phone: args.phone,
+          isDeleted: args.isDeleted,
+          sortBy: args.sortBy,
+          sortDirection: args.sortDirection,
         },
       }),
       providesTags: () => [{ type: "Employee", id: "LIST" }],
+    }),
+
+    getSuggestPositions: build.query<SuggestResponse<string>, string>({
+      query: (name) => ({
+        url: `/api/employee/position`,
+        method: "GET",
+        params: {
+          name,
+        },
+      }),
+      providesTags: () => [{ type: "Position", id: "LIST" }],
     }),
 
     saveEmployee: build.mutation<EmployeeDto, EmployeeDto>({
@@ -73,6 +80,7 @@ const employeeApi = createApi({
       invalidatesTags: (result) => [
         { type: "Employee", id: result?.id },
         { type: "Employee", id: "LIST" },
+        { type: "Position", id: "LIST" },
       ],
     }),
 
@@ -102,6 +110,7 @@ const employeeApi = createApi({
 export const useEmployeeById = employeeApi.useLazyGetEmployeeByIdQuery;
 export const useGetEmployeeById = employeeApi.useGetEmployeeByIdQuery;
 export const useGetPageEmployees = employeeApi.useGetPageEmployeesQuery;
+export const useGetSuggestPositions = employeeApi.useGetSuggestPositionsQuery;
 export const useSaveEmployee = employeeApi.useSaveEmployeeMutation;
 export const useDeleteEmployee = employeeApi.useDeleteEmployeeMutation;
 export const useRestoreEmployee = employeeApi.useRestoreEmployeeMutation;

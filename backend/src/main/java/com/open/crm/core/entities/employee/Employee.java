@@ -1,6 +1,5 @@
 package com.open.crm.core.entities.employee;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.open.crm.core.entities.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Employee extends BaseEntity {
 
   private String firstname = "";

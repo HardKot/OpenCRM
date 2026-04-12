@@ -2,10 +2,10 @@ package com.open.crm.components.services;
 
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.components.errors.SessionException;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.services.ClientInfoCleaner;
+import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.core.entities.investigationLog.AuthorEntityName;
@@ -70,8 +70,8 @@ public class SessionService {
   public ClientInfoCleaner getClientInfoCleaner() throws SessionException {
     User user = getUser();
 
-    boolean showName = user.hasPermission(UserPermission.CLIENT_NAME_SHOW);
-    boolean showContact = user.hasPermission(UserPermission.CLIENT_CONTACT_SHOW);
+    boolean showName = user.hasPermission(AccessPermission.CLIENT_NAME_SHOW);
+    boolean showContact = user.hasPermission(AccessPermission.CLIENT_CONTACT_SHOW);
     return new ClientInfoCleaner(!showName, !showContact);
   }
 }

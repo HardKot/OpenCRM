@@ -1,4 +1,4 @@
-import { Box, Grid, Paper } from "@mui/material";
+import { Box, Grid, Paper, SxProps } from "@mui/material";
 import { PropsWithChildren } from "react";
 
 interface LayoutProps extends PropsWithChildren {
@@ -7,6 +7,7 @@ interface LayoutProps extends PropsWithChildren {
   padding?: number | string;
   paddingX?: number | string;
   paddingY?: number | string;
+  sx?: SxProps;
 }
 
 interface LayoutGridProps extends LayoutProps {

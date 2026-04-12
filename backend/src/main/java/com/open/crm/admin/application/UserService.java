@@ -10,12 +10,12 @@ import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.admin.entities.user.UserEntity;
-import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.admin.entities.user.UserRole;
 import com.open.crm.core.application.IUserService;
 import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.investigation.events.InviteEmployeeEvent;
 import com.open.crm.core.application.investigation.events.UpdateAccessEmployeeEvent;
+import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import java.util.Arrays;
@@ -182,13 +182,13 @@ public class UserService implements UserDetailsService, IUserService {
     return new UserResult.Ok(data);
   }
 
-  public UserResult updateUserPermission(Employee employee, UserPermission[] permissions) {
+  public UserResult updateUserPermission(Employee employee, AccessPermission[] permissions) {
     return getUserByEmployee(employee)
         .<UserResult>map(user -> updateUserPermissions(user, permissions))
         .orElseGet(UserResult.NotFound::new);
   }
 
-  public UserResult updateUserPermissions(User user, UserPermission[] permissions) {
+  public UserResult updateUserPermissions(User user, AccessPermission[] permissions) {
     if (user.getRole().equals(UserRole.ROLE_OWNER)) {
       return new UserResult.InvalidData("Cannot change permissions for owner");
     }
@@ -206,7 +206,7 @@ public class UserService implements UserDetailsService, IUserService {
   }
 
   public UserResult updateUserPermissionsByEmployee(
-      Employee employee, UserPermission[] permissions, Author author) {
+      Employee employee, AccessPermission[] permissions, Author author) {
 
     UserResult result =
         getUserByEmployee(employee)
@@ -221,7 +221,7 @@ public class UserService implements UserDetailsService, IUserService {
   }
 
   public UserResult updateUserPermissions(
-      UUID userId, UserPermission[] permissions, Author author) {
+      UUID userId, AccessPermission[] permissions, Author author) {
     UserResult result =
         userRepository
             .findById(userId)

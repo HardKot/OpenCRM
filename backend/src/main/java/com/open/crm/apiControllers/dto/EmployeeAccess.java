@@ -1,5 +1,5 @@
 package com.open.crm.apiControllers.dto;
 
-import com.open.crm.admin.entities.user.UserPermission;
+import com.open.crm.core.entities.employee.AccessPermission;
 
-public record EmployeeAccess(UserPermission[] permissions) {}
+public record EmployeeAccess(AccessPermission[] permissions) {}

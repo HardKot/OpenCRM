@@ -2,16 +2,17 @@ import { useAppDispatch, useI18n } from "#shared/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { EmployeeFilterSchema } from "../model/employeeFilterSchema";
-import { TextInput, View } from "#shared/ui";
-import { Button } from "@mui/material";
+import { TextInput, View, SuggestInput, Button } from "#shared/ui";
 import {
   dropEmployeeFilter,
   setEmployeeFilter,
 } from "../model/employeeFilterSlice";
+import { usePositionSuggest } from "../model/usePositionSuggest";
 
 const EmployeeFilter = () => {
   const { t } = useI18n();
   const appDispatch = useAppDispatch();
+  const { positions, isLoading, handleInputChange } = usePositionSuggest();
 
   const { control, handleSubmit, reset } = useForm({
     resolver: yupResolver(EmployeeFilterSchema),
@@ -35,11 +36,26 @@ const EmployeeFilter = () => {
           name="fullnameLike"
           label={t("employee.fields.fullname")}
         />
+        <SuggestInput.Form
+          control={control}
+          name={"positionSuggest"}
+          label={t("employee.fields.position")}
+          options={positions}
+          onInputChange={handleInputChange}
+          loading={isLoading}
+        />
         <TextInput.Form
           sx={{ width: "100%" }}
           control={control}
-          name="position"
-          label={t("employee.fields.position")}
+          name="email"
+          label={t("employee.fields.email")}
+        />
+        <TextInput.Form
+          sx={{ width: "100%" }}
+          control={control}
+          name="phoneLike"
+          label={t("employee.fields.phone")}
+          mask={Number}
         />
       </View>
 

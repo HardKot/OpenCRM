@@ -44,16 +44,20 @@ const EmployeeAvatar = () => {
   return <Avatar.Text text={initials} />;
 };
 
-const EmployeeEmail = (props: TextPropsWithoutChildren) => {
+const EmployeeEmail = (
+  props: TextPropsWithoutChildren & { default?: string },
+) => {
   const { email } = useEmployeeContext();
-  if (!email) return null;
-  return <Text {...props}>{email}</Text>;
+  if (!email && !props.default) return null;
+  return <Text {...props}>{email ?? props.default}</Text>;
 };
 
-const EmployeePhone = (props: TextPropsWithoutChildren) => {
+const EmployeePhone = (
+  props: TextPropsWithoutChildren & { default?: string },
+) => {
   const { phone } = useEmployeeContext();
-  if (!phone) return null;
-  return <Text {...props}>{phone}</Text>;
+  if (!phone && !props.default) return null;
+  return <Text {...props}>{phone ?? props.default}</Text>;
 };
 
 const EmployeeShortName = (props: TextPropsWithoutChildren) => {
@@ -66,6 +70,18 @@ const EmployeeShortName = (props: TextPropsWithoutChildren) => {
         lastname,
         patronymic,
       })}
+    </Text>
+  );
+};
+
+const EmployeeContact = (props: TextPropsWithoutChildren) => {
+  const { email, phone } = useEmployeeContext();
+  if (!email && !phone) return null;
+  return (
+    <Text {...props}>
+      {email}
+      {email && phone && " | "}
+      {phone}
     </Text>
   );
 };
@@ -84,5 +100,6 @@ EmployeeCard.Avatar = EmployeeAvatar;
 EmployeeCard.Email = EmployeeEmail;
 EmployeeCard.Phone = EmployeePhone;
 EmployeeCard.ShortName = EmployeeShortName;
+EmployeeCard.Contact = EmployeeContact;
 
 export { EmployeeCard };

@@ -27,7 +27,12 @@
         }
       }
     },
-
+    {
+      "label": "Spring Boot: Auto-Compile (Watch)",
+      "type": "shell",
+      "command": "cd backend && ./gradlew classes -t",
+      "isBackground": true
+    },
     {
       "label": "Spring Boot: Run",
       "type": "shell",

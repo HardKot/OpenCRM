@@ -43,5 +43,12 @@
     "personalization": "Personalization",
     "security": "Security",
     "theme_description": "Choose display mode: light, dark, or automatically follow system settings"
+  },
+  "employee": {
+    "reference": {
+      "empty": "No employees found",
+      "emptyMessage": "Try changing the filter parameters or adding a new employee.",
+      "filterTitle": "Filter Parameters"
+    }
   }
 }

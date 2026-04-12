@@ -16,4 +16,5 @@ export * from "./Tabs";
 export * from "./Layout";
 export * from "./Accordion";
 export * from "./Loading";
+export * from "./SuggestInput";
 export { Alert } from "./Alert";

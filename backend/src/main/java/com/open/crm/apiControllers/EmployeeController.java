@@ -4,8 +4,8 @@ import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.apiControllers.dto.ApiResponse;
+import com.open.crm.apiControllers.dto.ApiSuggestDto;
 import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.apiControllers.dto.EmployeeAccess;
 import com.open.crm.apiControllers.dto.EmployeeDto;
@@ -13,12 +13,16 @@ import com.open.crm.apiControllers.dto.PageResponse;
 import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.EmployeeException;
+import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.application.selectors.SortDirection;
 import com.open.crm.core.application.services.EmployeeService;
+import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,10 +39,10 @@ public class EmployeeController {
   private final EmployeeService employeeService;
 
   private final UserService userService;
-  private final EmployeeSelector employeeSelector;
 
   private final SessionService sessionEmployeeService;
   private final IEmployeeMapper employeeMapper;
+  private final IEmployeeRepository employeeRepository;
 
   @PostMapping
   @Transactional
@@ -71,15 +75,20 @@ public class EmployeeController {
       @RequestParam(name = "size", defaultValue = "100") int size,
       @RequestParam(name = "fullname", required = false) String fullname,
       @RequestParam(name = "position", required = false) String position,
+      @RequestParam(name = "email", required = false) String email,
+      @RequestParam(name = "phone", required = false) String phone,
       @RequestParam(name = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
       @RequestParam(name = "sortBy", required = false) String sortBy,
-      @RequestParam(name = "sortDesc", required = false) SortDirection sortDirection) {
+      @RequestParam(name = "sortDirection", required = false) String sortDirectionStr) {
 
+    SortDirection sortDirection = SortDirection.valueOf(sortDirectionStr.toUpperCase());
     boolean showDeleted = isDeleted && sessionEmployeeService.isShowDeleted();
     EmployeeSelector selector = employeeService.getSelector();
 
     selector.setFullname(fullname);
     selector.setPosition(position);
+    selector.setEmail(email);
+    selector.setPhoneNumber(phone);
     selector.setIncludeDeleted(showDeleted);
 
     selector.setPage(page - 1);
@@ -105,6 +114,20 @@ public class EmployeeController {
         return new PageResponse.ErrorPageDto("Unknown error");
       }
     }
+  }
+
+  @GetMapping("/position")
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
+  public ResponseEntity<ApiResponse> actionGetPositionsSuggest(
+      @RequestParam(name = "name", required = false) String name) {
+    List<String> positions = List.of();
+
+    if (Objects.isNull(name) || name.trim().isEmpty()) {
+      positions = employeeRepository.findAllPositions();
+    } else {
+      positions = employeeRepository.findPositionsByName(name);
+    }
+    return ResponseEntity.ok(new ApiSuggestDto<>(positions.toArray(new String[0])));
   }
 
   @PutMapping("/{id}")
@@ -239,7 +262,7 @@ public class EmployeeController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    UserPermission[] permissions = userOpt.get().getPermissions();
+    AccessPermission[] permissions = userOpt.get().getPermissions();
 
     return ResponseEntity.ok(new EmployeeAccess(permissions));
   }

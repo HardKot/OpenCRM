@@ -1,7 +1,7 @@
 package com.open.crm.apiControllers.dto;
 
-import com.open.crm.admin.entities.user.UserPermission;
 import com.open.crm.admin.entities.user.UserRole;
+import com.open.crm.core.entities.employee.AccessPermission;
 import java.util.UUID;
 
 public sealed interface HoldSession<T> permits HoldSession.Employee {
@@ -9,13 +9,13 @@ public sealed interface HoldSession<T> permits HoldSession.Employee {
 
   UUID tenantId();
 
-  UserPermission[] permissions();
+  AccessPermission[] permissions();
 
   UserRole role();
 
   T entity();
 
   public record Employee(
-      UUID userId, UUID tenantId, UserPermission[] permissions, UserRole role, EmployeeDto entity)
+      UUID userId, UUID tenantId, AccessPermission[] permissions, UserRole role, EmployeeDto entity)
       implements HoldSession<EmployeeDto> {}
 }

@@ -21,7 +21,7 @@ interface TableHeader {
   minWidth?: number;
   padding?: "none" | "normal";
   isSortable?: boolean;
-  Component: FC<{}>;
+  Component: FC<{ index: number }>;
 }
 
 interface TableProps<T extends { id?: number }> {
@@ -33,6 +33,7 @@ interface TableProps<T extends { id?: number }> {
   onRowsPerPageChange?: (newRowsPerPage: number) => void;
   onPageChange?: (newPage: number) => void;
   onSortChange?: (columnId: string, direction: "asc" | "desc") => void;
+  onRowClick?: (id: number) => void;
   rows: TableHeader[];
   rowData: T[];
   RowWrapper: FC<PropsWithChildren<{ data: T }>>;
@@ -57,6 +58,7 @@ const Table = <T extends { id?: number }>({
   onRowsPerPageChange,
   onPageChange,
   onSortChange,
+  onRowClick,
   rows,
   rowData,
   RowWrapper,
@@ -84,8 +86,8 @@ const Table = <T extends { id?: number }>({
   };
 
   return (
-    <TableWrapper sx={sx}>
-      <TableContainer>
+    <TableWrapper sx={{ display: "flex", flexDirection: "column", ...sx }}>
+      <TableContainer sx={{ flexGrow: 1, overflow: "auto" }}>
         <MuiTable stickyHeader>
           <TableHead>
             <TableRow>
@@ -116,8 +118,19 @@ const Table = <T extends { id?: number }>({
             </TableRow>
           </TableHead>
           <TableBody>
-            {rowData.map((row) => (
-              <TableRow key={`${key}Row-${row.id}`}>
+            {rowData.map((row, rowIndex) => (
+              <TableRow
+                key={`${key}Row-${row.id}`}
+                onClick={
+                  onRowClick && row.id !== undefined
+                    ? () => onRowClick(row.id as number)
+                    : undefined
+                }
+                sx={{
+                  cursor: onRowClick ? "pointer" : "default",
+                  "&:hover": onRowClick ? { bgcolor: "action.hover" } : {},
+                }}
+              >
                 <RowWrapper data={row}>
                   {rows.map(({ Component, padding, align }, index) => (
                     <TableCell
@@ -125,7 +138,7 @@ const Table = <T extends { id?: number }>({
                       padding={padding ?? "normal"}
                       align={align ?? "left"}
                     >
-                      <Component />
+                      <Component index={rowIndex} />
                     </TableCell>
                   ))}
                   {!!ActionComponent && (

@@ -17,12 +17,43 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "eslint.workingDirectories": ["./frontend"],
+  "eslint.workingDirectories": [
+    "./frontend"
+  ],
   "eslint.validate": [
     "javascript",
     "javascriptreact",
     "typescript",
     "typescriptreact"
   ],
-  "spotlessGradle.diagnostics.enable": true
+  "spotlessGradle.diagnostics.enable": true,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/backend/build/**": true,
+    "**/backend/bin/**": true,
+    "**/backend/.gradle/**": true,
+    "**/logs/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/backend/build": true,
+    "**/backend/bin": true,
+    "**/backend/.gradle": true,
+    "**/logs": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/node_modules": true,
+    "**/backend/build": true,
+    "**/backend/bin": false,
+    "**/backend/.gradle": true,
+    "**/logs": true
+  }
 }

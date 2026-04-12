@@ -1,21 +1,59 @@
 import React from "react";
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
+import { IMaskInput } from "react-imask";
+
+interface TextMaskCustomProps {
+  onChange: (event: { target: { name: string; value: string } }) => void;
+  name: string;
+  mask: string;
+}
+
+const TextMaskCustom = React.forwardRef<HTMLElement, TextMaskCustomProps>(
+  function TextMaskCustom(props, ref) {
+    const { onChange, mask, ...other } = props;
+    return (
+      <IMaskInput
+        {...other}
+        mask={mask as any}
+        inputRef={ref as any}
+        onAccept={(value: any) =>
+          onChange({ target: { name: props.name, value } })
+        }
+        overwrite
+      />
+    );
+  },
+);
 
 export type TextInputProps = {
   right?: React.ReactNode;
+  mask?: typeof Number | string;
 } & TextFieldProps;
 
 const TextInputBase: React.FC<TextInputProps> = (props) => {
-  const { right, ...textFieldProps } = props;
+  const { right, mask, ...textFieldProps } = props;
   return (
     <TextField
       variant="outlined"
       size="small"
       fullWidth
       {...textFieldProps}
+      sx={{
+        height: 48,
+        ...textFieldProps.sx,
+      }}
       InputProps={{
         ...textFieldProps.InputProps,
+        ...(mask
+          ? {
+              inputComponent: TextMaskCustom as any,
+              inputProps: {
+                ...(textFieldProps.inputProps || {}),
+                mask,
+              },
+            }
+          : {}),
         endAdornment: right || (
           <InputAdornment position="end" sx={{ mr: -0.5 }}>
             {right}

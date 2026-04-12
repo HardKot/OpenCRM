@@ -4,17 +4,23 @@ import { IEmployeeFilter } from "./employeeFilterSchema";
 const EmployeeFilterSlice = createSlice({
   name: "filter/employee",
   initialState: {
-    fullnameLike: "",
+    fullname: "",
     position: "",
+    phone: "",
+    email: "",
   },
   reducers: {
     setEmployeeFilter: (state, action: PayloadAction<IEmployeeFilter>) => {
-      state.fullnameLike = action.payload.fullnameLike;
-      state.position = action.payload.position;
+      state.fullname = action.payload.fullnameLike;
+      state.position = action.payload.positionSuggest;
+      state.email = action.payload.email;
+      state.phone = action.payload.phoneLike;
     },
     dropEmployeeFilter: (state) => {
-      state.fullnameLike = "";
+      state.fullname = "";
       state.position = "";
+      state.email = "";
+      state.phone = "";
     },
   },
 });

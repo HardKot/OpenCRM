@@ -2,6 +2,7 @@ package com.open.crm.admin.entities.user;
 
 import com.open.crm.admin.entities.common.BaseAdminEntity;
 import com.open.crm.admin.entities.tenant.Tenant;
+import com.open.crm.core.entities.employee.AccessPermission;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -58,7 +59,7 @@ public class User extends BaseAdminEntity implements UserDetails {
       joinColumns = @JoinColumn(name = "user_id"))
   @Enumerated(EnumType.STRING)
   @Column(name = "permission")
-  private Set<UserPermission> permissions = Set.of();
+  private Set<AccessPermission> permissions = Set.of();
 
   @Column(name = "is_enabled", nullable = false)
   private boolean isEnabled = true;
@@ -77,19 +78,19 @@ public class User extends BaseAdminEntity implements UserDetails {
     return Objects.equals(entityName, UserEntity.EMPLOYEE);
   }
 
-  public UserPermission[] getPermissions() {
+  public AccessPermission[] getPermissions() {
     if (role.equals(UserRole.ROLE_OWNER)) {
-      return UserPermission.values();
+      return AccessPermission.values();
     }
 
     if (role.equals(UserRole.ROLE_ADMIN)) {
-      return UserPermission.values();
+      return AccessPermission.values();
     }
 
-    return permissions.toArray(new UserPermission[0]);
+    return permissions.toArray(new AccessPermission[0]);
   }
 
-  public boolean hasPermission(UserPermission permission) {
+  public boolean hasPermission(AccessPermission permission) {
     if (role.equals(UserRole.ROLE_OWNER)) {
       return true;
     }
