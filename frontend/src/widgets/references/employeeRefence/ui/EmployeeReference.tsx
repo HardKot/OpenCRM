@@ -3,7 +3,7 @@ import {
   EmployeeFilter,
   useEmployeeFilter,
 } from "#features/filter/employeeFilter";
-import { EmployeeAction } from "#pages/employee/EmployeeForm";
+import { EmployeeAction } from "#pages/employee/EmployeeFormPage";
 import { useGetPageEmployees } from "#shared/api";
 import { useI18n, usePage } from "#shared/hooks";
 import { Layout, Table, Text, View } from "#shared/ui";

@@ -3,10 +3,12 @@ import { useI18n } from "#shared/hooks";
 import { Layout, Modal, Text, Button, View } from "#shared/ui";
 import { EmployeeReference } from "#widgets/references/employeeRefence/ui/EmployeeReference";
 import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 
 const EmployeeReferencePage = () => {
   const [openModal, setOpenModal] = useState(false);
   const { t } = useI18n();
+  const navigate = useNavigate();
 
   return (
     <View
@@ -55,11 +57,13 @@ const EmployeeReferencePage = () => {
         actions
         isDeleted
         sx={{ flexGrow: 1 }}
-        onClick={console.log}
+        onClick={(id) => navigate(`/employee/${id}`)}
       />
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
         <EmployeeForm onCancel={() => setOpenModal(false)} />
       </Modal>
+
+      <Outlet />
     </View>
   );
 };

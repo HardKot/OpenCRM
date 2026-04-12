@@ -7,7 +7,7 @@ mkdir -p "$LOGS_DIR"
 
 echo "Запуск Backend (Spring Boot)..."
 cd "$PROJECT_ROOT/backend"
-nohup ./gradlew bootRun --debug-jvm > "$LOGS_DIR/backend.log" 2>&1 &
+nohup ./gradlew bootRun > "$LOGS_DIR/backend.log" 2>&1 &
 BACKEND_PID=$!
 echo "Backend запущен (PID: $BACKEND_PID). Логи: logs/backend.log"
 
