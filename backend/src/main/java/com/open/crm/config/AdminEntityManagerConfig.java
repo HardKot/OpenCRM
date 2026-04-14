@@ -47,6 +47,8 @@ public class AdminEntityManagerConfig {
   @Bean(name = "adminTransactionManager")
   public PlatformTransactionManager adminTransactionManager(
       @Qualifier("adminEntityManagerFactory") EntityManagerFactory adminEntityManagerFactory) {
-    return new JpaTransactionManager(adminEntityManagerFactory);
+    JpaTransactionManager tm = new JpaTransactionManager(adminEntityManagerFactory);
+    tm.setDataSource(null);
+    return tm;
   }
 }

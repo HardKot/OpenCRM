@@ -1,5 +1,5 @@
 import { ITranslation } from "#shared/index";
-import { InferType, object, string } from "yup";
+import { InferType, object, string, boolean, array } from "yup";
 
 const EmployeeFormSchema = (t: ITranslation) =>
   object({
@@ -17,6 +17,9 @@ const EmployeeFormSchema = (t: ITranslation) =>
       .max(20)
       .default("")
       .optional(),
+    isAccessAllowed: boolean().default(false).optional(),
+    role: string().default("").optional(),
+    permissions: array().of(string().required()).default([]).optional(),
   }).required();
 
 type IEmployeeForm = InferType<ReturnType<typeof EmployeeFormSchema>>;

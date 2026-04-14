@@ -1,4 +1,4 @@
-package com.open.crm.apiControllers.dto;
+package com.open.crm.dto;
 
 public interface PageResponse<T extends Object> {
   long totalElements();

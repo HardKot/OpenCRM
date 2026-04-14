@@ -1,11 +1,11 @@
-package com.open.crm.apiControllers;
+package com.open.crm.controllers;
 
-import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.ClientException;
 import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.services.ClientService;
 import com.open.crm.core.entities.client.Client;
+import com.open.crm.dto.ApplicationErrorDto;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;

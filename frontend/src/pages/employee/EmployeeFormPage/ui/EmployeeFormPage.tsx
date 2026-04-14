@@ -13,7 +13,7 @@ const EmployeeFormPage = () => {
   };
 
   return (
-    <Modal open={true} onClose={handleClose}>
+    <Modal open={true} onClose={handleClose} maxWidth="md" fullWidth>
       <EmployeeForm employeeId={employeeId} onCancel={handleClose} />
     </Modal>
   );

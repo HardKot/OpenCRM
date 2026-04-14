@@ -11,4 +11,6 @@ export {
   useHoldSession,
 } from "./authApi";
 export * from "./employeeApi";
+
 export type { EmployeeDto } from "./employeeApi";
+export type { OptionalId } from "./types";

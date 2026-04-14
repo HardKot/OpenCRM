@@ -1,4 +1,4 @@
-package com.open.crm.apiControllers.dto;
+package com.open.crm.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

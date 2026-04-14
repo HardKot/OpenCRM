@@ -1,29 +1,26 @@
-package com.open.crm.apiControllers;
+package com.open.crm.controllers;
 
-import com.open.crm.admin.application.UserService;
-import com.open.crm.admin.application.exceptions.UserException;
-import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.apiControllers.dto.ApiResponse;
-import com.open.crm.apiControllers.dto.ApiSuggestDto;
-import com.open.crm.apiControllers.dto.ApplicationErrorDto;
-import com.open.crm.apiControllers.dto.EmployeeAccess;
-import com.open.crm.apiControllers.dto.EmployeeDto;
-import com.open.crm.apiControllers.dto.PageResponse;
 import com.open.crm.components.mapper.IEmployeeMapper;
+import com.open.crm.components.services.EmployeeUserService;
 import com.open.crm.components.services.SessionService;
-import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
 import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.application.selectors.SortDirection;
 import com.open.crm.core.application.services.EmployeeService;
-import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
+import com.open.crm.dto.ApiResponse;
+import com.open.crm.dto.ApiSuggestDto;
+import com.open.crm.dto.ApplicationErrorDto;
+import com.open.crm.dto.EmployeeDto;
+import com.open.crm.dto.EmployeeUserDto;
+import com.open.crm.dto.PageResponse;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +34,7 @@ import org.springframework.web.bind.annotation.*;
 public class EmployeeController {
 
   private final EmployeeService employeeService;
-
-  private final UserService userService;
-
+  private final EmployeeUserService employeeManagerFacades;
   private final SessionService sessionEmployeeService;
   private final IEmployeeMapper employeeMapper;
   private final IEmployeeRepository employeeRepository;
@@ -232,73 +227,41 @@ public class EmployeeController {
     }
   }
 
-  @PostMapping("/{id}/invite")
-  @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-  public ResponseEntity<EmployeeDto> actionInvite(@PathVariable("id") long id) {
+  @GetMapping("/{id}/form")
+  public ResponseEntity<EmployeeUserDto> actionGetForm(@PathVariable("id") long id) {
+    Optional<EmployeeUserDto> employeeFormOpt = employeeManagerFacades.getEmployeeUserById(id);
+    if (employeeFormOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    return ResponseEntity.ok(employeeFormOpt.get());
+  }
+
+  @PostMapping("/form")
+  public ResponseEntity<EmployeeUserDto> actionSaveEmployeeUser(
+      @RequestBody EmployeeUserDto entity) {
     Author author = sessionEmployeeService.getAuthor();
-
-    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
-    if (employeeOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    Employee employee = employeeOpt.get();
-    userService.createUserFromEmployee(employee, author);
-
-    return ResponseEntity.ok(employeeMapper.toDto(employee));
+    ResultApp<EmployeeUserDto> result = employeeManagerFacades.saveEmployeeUser(entity, author);
+    return switch (result) {
+      case ResultApp.Ok<EmployeeUserDto> ok -> ResponseEntity.ok(ok.value());
+      case ResultApp.InvalidData<EmployeeUserDto> invalidData ->
+          ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+      case ResultApp.NotFound<EmployeeUserDto> notFound ->
+          ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+      default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    };
   }
 
-  @GetMapping("{id}/access")
-  @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-  public ResponseEntity<EmployeeAccess> actionGetAccess(@PathVariable("id") long id) {
-    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
-    if (employeeOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    Employee employee = employeeOpt.get();
+  @PutMapping("{id}/form")
+  public ResponseEntity<EmployeeUserDto> actionUpdateEmployeeUser(
+      @PathVariable("id") long id, @RequestBody EmployeeUserDto formDto) {
+    Employee entity = employeeMapper.toEntity(formDto.employee());
+    entity.setId(id);
+    User user = new User();
+    user.setEnabled(formDto.isAccessAllowed());
+    user.setPermissions(Set.of(formDto.permissions()));
+    formDto = employeeMapper.toFormDto(entity, user);
 
-    Optional<User> userOpt = userService.getUserByEmployee(employee);
-    if (userOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-
-    AccessPermission[] permissions = userOpt.get().getPermissions();
-
-    return ResponseEntity.ok(new EmployeeAccess(permissions));
-  }
-
-  @PutMapping("{id}/access")
-  @PreAuthorize("hasPermission(null, 'EMPLOYEE_ACCESS')")
-  public ResponseEntity<EmployeeAccess> putMethodName(
-      @PathVariable("id") long id, @RequestBody EmployeeAccess entity) {
-    Author author = sessionEmployeeService.getAuthor();
-
-    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
-    if (employeeOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    Employee employee = employeeOpt.get();
-    UserResult userResult =
-        userService.updateUserPermissionsByEmployee(employee, entity.permissions(), author);
-
-    switch (userResult) {
-      case UserResult.Ok ok -> {
-        return ResponseEntity.ok(new EmployeeAccess(ok.value().getPermissions()));
-      }
-      case UserResult.NotFound ignored -> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-      }
-
-      default -> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new EmployeeAccess(entity.permissions()));
-      }
-    }
-  }
-
-  @ExceptionHandler({EmployeeException.class, UserException.class})
-  public ResponseEntity<ApplicationErrorDto> handleEmployeeException(Exception ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ApplicationErrorDto(ex.getMessage()));
+    return actionSaveEmployeeUser(formDto);
   }
 }

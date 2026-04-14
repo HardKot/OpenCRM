@@ -18,3 +18,4 @@ export * from "./Accordion";
 export * from "./Loading";
 export * from "./SuggestInput";
 export { Alert } from "./Alert";
+export * from "./TransferList";

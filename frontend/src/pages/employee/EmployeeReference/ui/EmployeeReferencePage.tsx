@@ -59,7 +59,12 @@ const EmployeeReferencePage = () => {
         sx={{ flexGrow: 1 }}
         onClick={(id) => navigate(`/employee/${id}`)}
       />
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      <Modal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <EmployeeForm onCancel={() => setOpenModal(false)} />
       </Modal>
 

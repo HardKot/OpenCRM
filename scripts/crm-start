@@ -1,5 +1,13 @@
 #!/bin/bash
 
+DEBUG=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --debug|-d) DEBUG=true; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+done
+
 source "$(dirname "${BASH_SOURCE[0]}")/.constants"
 
 # Создаем папку для логов, если её нет
@@ -7,7 +15,12 @@ mkdir -p "$LOGS_DIR"
 
 echo "Запуск Backend (Spring Boot)..."
 cd "$PROJECT_ROOT/backend"
-nohup ./gradlew bootRun > "$LOGS_DIR/backend.log" 2>&1 &
+if [ "$DEBUG" = true ]; then
+    echo "Включен режим отладки (JVM Debug)..."
+    nohup ./gradlew bootRun --debug-jvm > "$LOGS_DIR/backend.log" 2>&1 &
+else
+    nohup ./gradlew bootRun > "$LOGS_DIR/backend.log" 2>&1 &
+fi
 BACKEND_PID=$!
 echo "Backend запущен (PID: $BACKEND_PID). Логи: logs/backend.log"
 

@@ -1,11 +1,26 @@
-import { useEmployeeById } from "#shared/api";
+import { useSaveEmployeeForm, useGetEmployeeForm } from "#shared/api";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  Controller,
+  useWatch,
+} from "react-hook-form";
 import { EmployeeFormSchema, IEmployeeForm } from "../model/EmployeeFormSchema";
 import { useI18n } from "#shared/hooks";
-import { Button, Layout, Text, TextInput, View } from "#shared/ui";
-import { EmployeeDto, useSaveEmployee } from "#shared/api/employeeApi";
+import {
+  Button,
+  Layout,
+  Text,
+  TextInput,
+  View,
+  Tabs,
+  Checkbox,
+  TransferList,
+} from "#shared/ui";
 import { ReactNode } from "react";
+import type { EmployeeDto } from "#shared/api";
 
 interface EmployeeFormProps {
   employeeId?: number;
@@ -15,8 +30,9 @@ interface EmployeeFormProps {
 
 const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
   const { t } = useI18n();
-  const [getTrigger, { data: employeeData }] = useEmployeeById();
-  const [saveTrigger, { isLoading: isSaving }] = useSaveEmployee();
+  const [getTrigger, { data: employeeData }] = useGetEmployeeForm();
+  const [saveTrigger, { isLoading: isSaving }] = useSaveEmployeeForm();
+
   const schema = EmployeeFormSchema(t);
 
   const form = useForm({
@@ -24,7 +40,7 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
       let form: IEmployeeForm = schema.getDefault();
       if (employeeId) {
         const data = await getTrigger(employeeId).unwrap();
-        form = data;
+        form = { ...form, ...data };
       }
 
       return form;
@@ -33,20 +49,23 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
   });
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    const dto: EmployeeDto = {
-      id: employeeId,
-      isDeleted: false,
-      ...employeeData,
+    const result = await saveTrigger({
       ...data,
-    };
-    await saveTrigger(dto).unwrap();
-    onSave?.(dto);
+      isDeleted: employeeData?.isDeleted ?? false,
+      id: employeeId,
+    }).unwrap();
+
+    form.reset({ ...data, ...result });
+    onSave?.(result);
   });
 
   const handleCancel = () => {
     form.reset();
     onCancel?.();
   };
+
+  const role = useWatch({ control: form.control, name: "role" });
+  const isOwner = role === "ROLE_OWNER";
 
   return (
     <FormProvider {...form}>
@@ -57,7 +76,7 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
           display: "flex",
           flexDirection: "column",
           gap: 2,
-          width: { xs: "100%", sm: 620 },
+          width: { xs: "100%", md: 800 },
           maxWidth: "100%",
           py: 0.5,
         }}
@@ -66,9 +85,42 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
           {employeeId ? t("employee.edit") : t("employee.create")}
         </Text>
 
-        <PersonalInformation />
-        <ContactInformation />
-        <StaffInformation />
+        <Tabs
+          tabs={[
+            {
+              label: t("employee.tabs.main"),
+              Component: (
+                <View
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    pt: 1,
+                  }}
+                >
+                  <PersonalInformation />
+                  <ContactInformation />
+                  <StaffInformation />
+                </View>
+              ),
+            },
+            {
+              label: t("employee.tabs.security"),
+              Component: (
+                <View
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    pt: 1,
+                  }}
+                >
+                  <SecurityInformation />
+                </View>
+              ),
+            },
+          ]}
+        />
 
         <View
           sx={{
@@ -92,7 +144,7 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
             color="primary"
             type="submit"
             loading={isSaving}
-            disabled={form.formState.isLoading}
+            disabled={form.formState.isLoading || isOwner}
           >
             {t("common.actions.confirm")}
           </Button>
@@ -198,6 +250,66 @@ const StaffInformation = () => {
         disabled={isLoading}
       />
     </FormSection>
+  );
+};
+
+const SecurityInformation = () => {
+  const { t } = useI18n();
+  const methods = useFormContext<IEmployeeForm>();
+  const isAccessAllowed = useWatch({
+    control: methods.control,
+    name: "isAccessAllowed",
+  });
+  const role = useWatch({ control: methods.control, name: "role" });
+  const isOwner = role === "ROLE_OWNER";
+  const isLoading = methods.formState.isLoading;
+
+  const ALL_PERMISSIONS = [
+    "EMPLOYEE_READ",
+    "EMPLOYEE_UPDATE",
+    "EMPLOYEE_ACCESS",
+    "CLIENT_READ",
+    "CLIENT_UPDATE",
+    "CLIENT_NAME_SHOW",
+    "CLIENT_CONTACT_SHOW",
+    "INVESTIGATION_LOG_READ",
+    "COMMODITY_READ",
+    "COMMODITY_UPDATE",
+  ];
+
+  return (
+    <>
+      <Layout.Paper>
+        <Checkbox.Form
+          control={methods.control}
+          name="isAccessAllowed"
+          label={t("employee.security.allowAccess")}
+          disabled={isLoading || isOwner}
+        />
+      </Layout.Paper>
+
+      {isAccessAllowed && (
+        <Layout.Paper sx={{ mt: 2 }}>
+          <Text variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+            {t("employee.security.permissionsTitle")}
+          </Text>
+          <Controller
+            name="permissions"
+            control={methods.control}
+            render={({ field }) => (
+              <TransferList
+                choices={ALL_PERMISSIONS}
+                selectedChoices={field.value || []}
+                onChange={field.onChange}
+                leftTitle={t("employee.security.available")}
+                rightTitle={t("employee.security.selected")}
+                renderOption={(opt) => t(`permission.${opt}`)}
+              />
+            )}
+          />
+        </Layout.Paper>
+      )}
+    </>
   );
 };
 

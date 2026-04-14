@@ -1,10 +1,10 @@
-package com.open.crm.apiControllers;
+package com.open.crm.controllers;
 
 import com.open.crm.admin.entities.user.User;
-import com.open.crm.apiControllers.dto.HoldSession;
 import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.entities.employee.Employee;
+import com.open.crm.dto.HoldSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

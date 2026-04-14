@@ -1,11 +1,11 @@
-package com.open.crm.apiControllers;
+package com.open.crm.controllers;
 
-import com.open.crm.apiControllers.dto.ApplicationErrorDto;
 import com.open.crm.components.services.SessionService;
 import com.open.crm.core.application.errors.CommodityException;
 import com.open.crm.core.application.services.CommodityService;
 import com.open.crm.core.entities.commodity.Commodity;
 import com.open.crm.core.entities.commodity.CommodityCategory;
+import com.open.crm.dto.ApplicationErrorDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

@@ -106,6 +106,16 @@
     "create": "Создать сотрудника",
     "edit": "Редактировать сотрудника",
     "delete": "Удалить сотрудника",
+    "tabs": {
+      "main": "Основная информация",
+      "security": "Безопасность"
+    },
+    "security": {
+      "allowAccess": "Разрешить доступ к системе",
+      "permissionsTitle": "Права доступа",
+      "available": "Доступные",
+      "selected": "Выбранные"
+    },
     "fields": {
       "firstname": "Имя",
       "lastname": "Фамилия",
@@ -130,5 +140,17 @@
   },
   "navigation": {
     "employee": "Сотрудники"
+  },
+  "permission": {
+    "EMPLOYEE_READ": "Просмотр сотрудников",
+    "EMPLOYEE_UPDATE": "Редактирование сотрудников",
+    "EMPLOYEE_ACCESS": "Управление доступом сотрудников",
+    "CLIENT_READ": "Просмотр клиентов",
+    "CLIENT_UPDATE": "Редактирование клиентов",
+    "CLIENT_NAME_SHOW": "Просмотр имен клиентов",
+    "CLIENT_CONTACT_SHOW": "Просмотр контактов клиентов",
+    "INVESTIGATION_LOG_READ": "Просмотр журнала расследований",
+    "COMMODITY_READ": "Просмотр товаров/услуг",
+    "COMMODITY_UPDATE": "Редактирование товаров/услуг"
   }
 }

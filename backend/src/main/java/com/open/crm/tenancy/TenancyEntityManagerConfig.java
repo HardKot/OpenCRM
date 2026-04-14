@@ -58,6 +58,8 @@ public class TenancyEntityManagerConfig {
   @Bean(name = "tenantTransactionManager")
   public PlatformTransactionManager tenantTransactionManager(
       @Qualifier("tenantEntityManagerFactory") EntityManagerFactory tenantEntityManagerFactory) {
-    return new JpaTransactionManager(tenantEntityManagerFactory);
+    JpaTransactionManager tm = new JpaTransactionManager(tenantEntityManagerFactory);
+    tm.setDataSource(null);
+    return tm;
   }
 }

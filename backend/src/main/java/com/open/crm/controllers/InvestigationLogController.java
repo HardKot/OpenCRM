@@ -1,4 +1,4 @@
-package com.open.crm.apiControllers;
+package com.open.crm.controllers;
 
 import com.open.crm.core.application.investigation.InvestigationLogService;
 import com.open.crm.core.entities.investigationLog.InvestigationLog;
