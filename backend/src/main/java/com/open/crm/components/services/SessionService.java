@@ -74,4 +74,9 @@ public class SessionService {
     boolean showContact = user.hasPermission(AccessPermission.CLIENT_CONTACT_SHOW);
     return new ClientInfoCleaner(!showName, !showContact);
   }
+
+  public boolean hasPermission(AccessPermission permission) throws SessionException {
+    User user = getUser();
+    return user.hasPermission(permission);
+  }
 }

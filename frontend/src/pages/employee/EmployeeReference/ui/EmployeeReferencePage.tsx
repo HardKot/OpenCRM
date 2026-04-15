@@ -1,3 +1,5 @@
+import { UserPermission } from "#entities/User";
+import { useHasPermission } from "#features/auth/AccessPermission";
 import { EmployeeForm } from "#features/form/employeeForm";
 import { useI18n } from "#shared/hooks";
 import { Layout, Modal, Text, Button, View } from "#shared/ui";
@@ -7,8 +9,12 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 const EmployeeReferencePage = () => {
   const [openModal, setOpenModal] = useState(false);
+  const hasCreateEmployee = useHasPermission(UserPermission.EmployeeUpdate);
+  const hasReadEmployee = useHasPermission(UserPermission.EmployeeRead);
   const { t } = useI18n();
   const navigate = useNavigate();
+
+  if (!hasReadEmployee) return null;
 
   return (
     <View
@@ -29,28 +35,30 @@ const EmployeeReferencePage = () => {
         <Text variant="h5" fontWeight={600} color="text.primary">
           {t("employee.title")}
         </Text>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenModal(true)}
-          left="Add"
-          sx={{
-            borderRadius: 2,
-            px: 3,
-            py: 1,
-            textTransform: "none",
-            fontWeight: 500,
-            boxShadow: "none",
-            "&:hover": {
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            },
-            display: "flex",
-            gap: 1,
-            alignItems: "center",
-          }}
-        >
-          {t("employee.add")}
-        </Button>
+        {hasCreateEmployee && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpenModal(true)}
+            left="Add"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: "none",
+              fontWeight: 500,
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              },
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+            }}
+          >
+            {t("employee.add")}
+          </Button>
+        )}
       </Layout.Paper>
       <EmployeeReference
         filter
@@ -59,14 +67,16 @@ const EmployeeReferencePage = () => {
         sx={{ flexGrow: 1 }}
         onClick={(id) => navigate(`/employee/${id}`)}
       />
-      <Modal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <EmployeeForm onCancel={() => setOpenModal(false)} />
-      </Modal>
+      {hasCreateEmployee && (
+        <Modal
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <EmployeeForm onCancel={() => setOpenModal(false)} />
+        </Modal>
+      )}
 
       <Outlet />
     </View>

@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { UserState } from "./UserState";
 import { authApi } from "#shared/index";
-import { UserRole } from "./UserRole";
+import { getUserRole, UserRole } from "./UserRole";
 import { isUserPermission, isUserRole } from "../libs/typeGuards";
 import { UserPermission } from "./UserPermission";
 
@@ -54,7 +54,7 @@ export const userSlice = createSlice({
             userId: action.payload.userId,
             tenantId: action.payload.tenantId,
             entityId: action.payload.entity.id,
-            role: UserRole.Employee,
+            role: getUserRole(action.payload.role) ?? UserRole.Employee,
             permissions: new Array<UserPermission>(),
           };
           state.entity = action.payload.entity;

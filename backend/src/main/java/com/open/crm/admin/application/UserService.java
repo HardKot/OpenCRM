@@ -15,15 +15,15 @@ import com.open.crm.core.application.IUserService;
 import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.investigation.events.InviteEmployeeEvent;
 import com.open.crm.core.application.investigation.events.UpdateAccessEmployeeEvent;
+import com.open.crm.core.application.services.ConflictAccessSetUseCase;
 import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +46,7 @@ public class UserService implements UserDetailsService, IUserService {
 
   private final ApplicationEventPublisher eventPublisher;
   private final ISecurityGateway securityGateway;
+  private final ConflictAccessSetUseCase conflictAccessSetUseCase;
 
   private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -196,7 +197,15 @@ public class UserService implements UserDetailsService, IUserService {
     if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
       return new UserResult.InvalidData("Cannot change permissions for admin");
     }
-    user.setPermissions(new HashSet<>(Arrays.asList(permissions)));
+    Set<AccessPermission> permissionSet = Set.of(permissions);
+
+    ConflictAccessSetUseCase.Result conflictResult =
+        conflictAccessSetUseCase.execute(permissionSet);
+    if (!conflictResult.isValid()) {
+      return new UserResult.InvalidData(conflictResult.message());
+    }
+
+    user.setPermissions(permissionSet);
 
     securityGateway.refreshAccessUser(user);
 

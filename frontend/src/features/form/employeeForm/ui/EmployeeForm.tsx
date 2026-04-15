@@ -26,9 +26,16 @@ interface EmployeeFormProps {
   employeeId?: number;
   onSave?: (data: EmployeeDto) => void;
   onCancel?: () => void;
+
+  userAccess?: boolean;
 }
 
-const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
+const EmployeeForm = ({
+  employeeId,
+  onSave,
+  onCancel,
+  userAccess = false,
+}: EmployeeFormProps) => {
   const { t } = useI18n();
   const [getTrigger, { data: employeeData }] = useGetEmployeeForm();
   const [saveTrigger, { isLoading: isSaving }] = useSaveEmployeeForm();
@@ -66,6 +73,35 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
 
   const role = useWatch({ control: form.control, name: "role" });
   const isOwner = role === "ROLE_OWNER";
+  const isNeedTabs = userAccess;
+
+  const MainComponents = (
+    <View
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        pt: 1,
+      }}
+    >
+      <PersonalInformation />
+      <ContactInformation />
+      <StaffInformation />
+    </View>
+  );
+
+  const UserAccess = (
+    <View
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        pt: 1,
+      }}
+    >
+      <SecurityInformation />
+    </View>
+  );
 
   return (
     <FormProvider {...form}>
@@ -85,42 +121,21 @@ const EmployeeForm = ({ employeeId, onSave, onCancel }: EmployeeFormProps) => {
           {employeeId ? t("employee.edit") : t("employee.create")}
         </Text>
 
-        <Tabs
-          tabs={[
-            {
-              label: t("employee.tabs.main"),
-              Component: (
-                <View
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    pt: 1,
-                  }}
-                >
-                  <PersonalInformation />
-                  <ContactInformation />
-                  <StaffInformation />
-                </View>
-              ),
-            },
-            {
-              label: t("employee.tabs.security"),
-              Component: (
-                <View
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    pt: 1,
-                  }}
-                >
-                  <SecurityInformation />
-                </View>
-              ),
-            },
-          ]}
-        />
+        {!isNeedTabs && MainComponents}
+        {isNeedTabs && (
+          <Tabs
+            tabs={[
+              {
+                label: t("employee.tabs.main"),
+                Component: MainComponents,
+              },
+              {
+                label: t("employee.tabs.security"),
+                Component: UserAccess,
+              },
+            ]}
+          />
+        )}
 
         <View
           sx={{

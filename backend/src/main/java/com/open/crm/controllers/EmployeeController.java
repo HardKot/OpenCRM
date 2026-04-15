@@ -9,6 +9,7 @@ import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.application.selectors.SortDirection;
 import com.open.crm.core.application.services.EmployeeService;
+import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
 import com.open.crm.dto.ApiResponse;
@@ -234,25 +235,43 @@ public class EmployeeController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    return ResponseEntity.ok(employeeFormOpt.get());
+    EmployeeUserDto employeeUserDto = employeeFormOpt.get();
+    if (!sessionEmployeeService.hasPermission(AccessPermission.EMPLOYEE_ACCESS)) {
+      employeeUserDto = new EmployeeUserDto(employeeUserDto.employee());
+    }
+
+    return ResponseEntity.ok(employeeUserDto);
   }
 
   @PostMapping("/form")
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
   public ResponseEntity<EmployeeUserDto> actionSaveEmployeeUser(
       @RequestBody EmployeeUserDto entity) {
     Author author = sessionEmployeeService.getAuthor();
     ResultApp<EmployeeUserDto> result = employeeManagerFacades.saveEmployeeUser(entity, author);
-    return switch (result) {
-      case ResultApp.Ok<EmployeeUserDto> ok -> ResponseEntity.ok(ok.value());
-      case ResultApp.InvalidData<EmployeeUserDto> invalidData ->
-          ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-      case ResultApp.NotFound<EmployeeUserDto> notFound ->
-          ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-      default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-    };
+
+    switch (result) {
+      case ResultApp.Ok<EmployeeUserDto> ok -> {
+        EmployeeUserDto savedEntity = ok.value();
+        if (!sessionEmployeeService.hasPermission(AccessPermission.EMPLOYEE_ACCESS)) {
+          savedEntity = new EmployeeUserDto(savedEntity.employee());
+        }
+        return ResponseEntity.ok(savedEntity);
+      }
+      case ResultApp.InvalidData<EmployeeUserDto> invalidData -> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+      }
+      case ResultApp.NotFound<EmployeeUserDto> notFound -> {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      }
+      default -> {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      }
+    }
   }
 
   @PutMapping("{id}/form")
+  @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
   public ResponseEntity<EmployeeUserDto> actionUpdateEmployeeUser(
       @PathVariable("id") long id, @RequestBody EmployeeUserDto formDto) {
     Employee entity = employeeMapper.toEntity(formDto.employee());
