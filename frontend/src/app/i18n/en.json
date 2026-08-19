@@ -62,14 +62,17 @@
     }
   },
   "permission": {
+    "EMPLOYEE": "Employees",
     "EMPLOYEE_READ": "Read employees",
     "EMPLOYEE_UPDATE": "Update employees",
     "EMPLOYEE_ACCESS": "Manage employee access",
+    "CLIENT": "Clients",
     "CLIENT_READ": "Read clients",
     "CLIENT_UPDATE": "Update clients",
     "CLIENT_NAME_SHOW": "Show client names",
     "CLIENT_CONTACT_SHOW": "Show client contacts",
     "INVESTIGATION_LOG_READ": "Read investigation log",
+    "COMMODITY": "Commodities",
     "COMMODITY_READ": "Read commodities",
     "COMMODITY_UPDATE": "Update commodities"
   }

@@ -3,7 +3,7 @@ export {
   authApi,
   useLoginByUsername,
   useRegisterTenant,
-  useForgoutPassword,
+  useForgotPassword,
   useLogout,
   useChangePassword,
   useGetPasswordLevel,
@@ -11,6 +11,7 @@ export {
   useHoldSession,
 } from "./authApi";
 export * from "./employeeApi";
+export * from "./investigationLogApi";
 
 export type { EmployeeDto } from "./employeeApi";
 export type { OptionalId } from "./types";

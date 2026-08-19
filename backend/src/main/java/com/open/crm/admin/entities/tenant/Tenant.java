@@ -4,6 +4,7 @@ import com.open.crm.admin.entities.common.BaseAdminEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Tenant extends BaseAdminEntity {
+public class Tenant extends BaseAdminEntity implements Serializable {
 
   @Column(nullable = false)
   private Boolean active = true;

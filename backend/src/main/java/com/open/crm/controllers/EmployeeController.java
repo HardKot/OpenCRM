@@ -4,20 +4,21 @@ import com.open.crm.admin.entities.user.User;
 import com.open.crm.components.mapper.IEmployeeMapper;
 import com.open.crm.components.services.EmployeeUserService;
 import com.open.crm.components.services.SessionService;
+import com.open.crm.core.application.errors.EmployeeException;
+import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
-import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.application.selectors.SortDirection;
 import com.open.crm.core.application.services.EmployeeService;
 import com.open.crm.core.entities.employee.AccessPermission;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
-import com.open.crm.dto.ApiResponse;
-import com.open.crm.dto.ApiSuggestDto;
-import com.open.crm.dto.ApplicationErrorDto;
-import com.open.crm.dto.EmployeeDto;
-import com.open.crm.dto.EmployeeUserDto;
-import com.open.crm.dto.PageResponse;
+import com.open.crm.dto.common.ApiResponse;
+import com.open.crm.dto.common.ApiSuggestDto;
+import com.open.crm.dto.common.PageResponse;
+import com.open.crm.dto.employee.EmployeeDto;
+import com.open.crm.dto.employee.EmployeeSearchCriteria;
+import com.open.crm.dto.employee.EmployeeUserDto;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EmployeeController {
 
+  private static final String EMPLOYEE_NOT_FOUND_MESSAGE = "Employee not found";
+
   private final EmployeeService employeeService;
   private final EmployeeUserService employeeManagerFacades;
   private final SessionService sessionEmployeeService;
@@ -43,80 +46,56 @@ public class EmployeeController {
   @PostMapping
   @Transactional
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResponseEntity<ApiResponse> actionCreate(@RequestBody EmployeeDto employee) {
+  public ResponseEntity<EmployeeDto> actionCreate(@RequestBody EmployeeDto employee) {
     Author author = sessionEmployeeService.getAuthor();
 
-    ResultApp<Employee> createdEmployee =
+    Employee createdEmployee =
         employeeService.createEmployee(employeeMapper.toEntity(employee), author);
 
-    switch (createdEmployee) {
-      case ResultApp.Ok<Employee> ok -> {
-        return ResponseEntity.status(HttpStatus.CREATED).body(employeeMapper.toDto(ok.value()));
-      }
-      case ResultApp.InvalidData<Employee> invalidData -> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ApplicationErrorDto(invalidData.message()));
-      }
-      default -> {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ApplicationErrorDto("Unknown error"));
-      }
-    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(employeeMapper.toDto(createdEmployee));
   }
 
   @GetMapping
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public PageResponse actionGetAll(
-      @RequestParam(name = "page", defaultValue = "1") int page,
-      @RequestParam(name = "size", defaultValue = "100") int size,
-      @RequestParam(name = "fullname", required = false) String fullname,
-      @RequestParam(name = "position", required = false) String position,
-      @RequestParam(name = "email", required = false) String email,
-      @RequestParam(name = "phone", required = false) String phone,
-      @RequestParam(name = "isDeleted", required = false, defaultValue = "false") boolean isDeleted,
-      @RequestParam(name = "sortBy", required = false) String sortBy,
-      @RequestParam(name = "sortDirection", required = false) String sortDirectionStr) {
+  public PageResponse<EmployeeDto> actionGetAll(@ModelAttribute EmployeeSearchCriteria criteria) {
+    SortDirection sortDirection;
+    try {
+      sortDirection =
+          criteria.sortDirection() != null
+              ? SortDirection.valueOf(criteria.sortDirection().toUpperCase())
+              : SortDirection.ASC;
+    } catch (IllegalArgumentException e) {
+      sortDirection = SortDirection.ASC;
+    }
 
-    SortDirection sortDirection = SortDirection.valueOf(sortDirectionStr.toUpperCase());
-    boolean showDeleted = isDeleted && sessionEmployeeService.isShowDeleted();
+    boolean showDeleted =
+        Boolean.TRUE.equals(criteria.isDeleted()) && sessionEmployeeService.isShowDeleted();
     EmployeeSelector selector = employeeService.getSelector();
 
-    selector.setFullname(fullname);
-    selector.setPosition(position);
-    selector.setEmail(email);
-    selector.setPhoneNumber(phone);
+    selector.setFullname(criteria.fullname());
+    selector.setPosition(criteria.position());
+    selector.setEmail(criteria.email());
+    selector.setPhoneNumber(criteria.phone());
     selector.setIncludeDeleted(showDeleted);
 
-    selector.setPage(page - 1);
-    selector.setSize(size);
-    selector.setSortBy(sortBy);
+    selector.setPage(criteria.page() != null ? criteria.page() - 1 : 0);
+    selector.setSize(criteria.size() != null ? criteria.size() : 100);
+    selector.setSortBy(criteria.sortBy());
     selector.setSortDirection(sortDirection);
 
-    ResultApp<EmployeeSelector> sResultApp = selector.search();
+    selector.search();
 
-    switch (sResultApp) {
-      case ResultApp.Ok<EmployeeSelector> ok -> {
-        return new PageResponse.EmployeePageDto(
-            selector.getTotalItems(),
-            selector.getTotalPages(),
-            selector.getItems().stream().map(employeeMapper::toDto).toArray(EmployeeDto[]::new));
-      }
-
-      case ResultApp.InvalidData<EmployeeSelector> invalidData -> {
-        return new PageResponse.ErrorPageDto(invalidData.message());
-      }
-
-      default -> {
-        return new PageResponse.ErrorPageDto("Unknown error");
-      }
-    }
+    return new PageResponse.EmployeePageDto(
+        selector.getTotalItems(),
+        selector.getTotalPages(),
+        selector.getItems().stream().map(employeeMapper::toDto).toArray(EmployeeDto[]::new));
   }
 
   @GetMapping("/position")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
   public ResponseEntity<ApiResponse> actionGetPositionsSuggest(
       @RequestParam(name = "name", required = false) String name) {
-    List<String> positions = List.of();
+    List<String> positions;
 
     if (Objects.isNull(name) || name.trim().isEmpty()) {
       positions = employeeRepository.findAllPositions();
@@ -128,46 +107,16 @@ public class EmployeeController {
 
   @PutMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResponseEntity<ApiResponse> actionUpdate(
-      @PathVariable("id") long id, @RequestBody EmployeeDto data) {
+  public ResponseEntity<EmployeeDto> actionUpdate(
+      @PathVariable("id") long id, @RequestBody EmployeeDto data)
+      throws NotFoundException, EmployeeException {
     Author author = sessionEmployeeService.getAuthor();
     Employee employee = employeeMapper.toEntity(data);
     employee.setId(id);
-    ResultApp<Employee> result = employeeService.updateEmployeeData(employee, author);
-
-    switch (result) {
-      case ResultApp.InvalidData<Employee> invalidData -> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ApplicationErrorDto(invalidData.message()));
-      }
-
-      case ResultApp.NotFound<Employee> notFound -> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ApplicationErrorDto("Employee not found"));
-      }
-
-      case ResultApp.IsDeleted<Employee> isDeleted -> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ApplicationErrorDto("Cannot update deleted employee"));
-      }
-
-      case ResultApp.Ok<Employee> ok -> {
-        employee = ok.value();
-      }
-      default -> {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ApplicationErrorDto("Unknown error"));
-      }
-    }
+    employee = employeeService.updateEmployeeData(employee, author);
 
     if (!data.email().equals(employee.getEmail())) {
-      result = employeeService.updateEmail(employee, data.email(), author);
-      if (result instanceof ResultApp.Ok<Employee> ok) {
-        employee = ok.value();
-      } else {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ApplicationErrorDto("Failed to update email"));
-      }
+      employee = employeeService.updateEmail(employee, data.email(), author);
     }
 
     return ResponseEntity.ok(employeeMapper.toDto(employee));
@@ -175,57 +124,41 @@ public class EmployeeController {
 
   @GetMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")
-  public ResponseEntity<ApiResponse> actionGet(@PathVariable("id") long id) {
+  public ResponseEntity<EmployeeDto> actionGet(@PathVariable("id") long id)
+      throws NotFoundException {
     return employeeService
         .getEmployeeById(id)
-        .<ResponseEntity<ApiResponse>>map(
+        .<ResponseEntity<EmployeeDto>>map(
             employee -> ResponseEntity.ok(employeeMapper.toDto(employee)))
-        .orElseGet(
-            () ->
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApplicationErrorDto("Employee not found")));
+        .orElseThrow(() -> new NotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResponseEntity<ApiResponse> actionDelete(@PathVariable("id") long id) {
+  public ResponseEntity<EmployeeDto> actionDelete(@PathVariable("id") long id)
+      throws NotFoundException, EmployeeException {
     Author author = sessionEmployeeService.getAuthor();
-    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
-    if (employeeOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(new ApplicationErrorDto("Employee not found"));
-    }
-    ResultApp<Employee> result = employeeService.deleteEmployee(employeeOpt.get(), author);
-    if (result instanceof ResultApp.Ok<Employee> ok) {
-      return ResponseEntity.ok(employeeMapper.toDto(ok.value()));
-    } else if (result instanceof ResultApp.InvalidData<Employee> invalid) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new ApplicationErrorDto(invalid.message()));
-    } else {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(new ApplicationErrorDto("Unknown error"));
-    }
+    Employee employee =
+        employeeService
+            .getEmployeeById(id)
+            .orElseThrow(() -> new NotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
+
+    employee = employeeService.deleteEmployee(employee, author);
+
+    return ResponseEntity.ok(employeeMapper.toDto(employee));
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResponseEntity<ApiResponse> actionRestore(@PathVariable("id") long id) {
+  public ResponseEntity<EmployeeDto> actionRestore(@PathVariable("id") long id) {
     Author author = sessionEmployeeService.getAuthor();
-    Optional<Employee> employeeOpt = employeeService.getEmployeeById(id);
-    if (employeeOpt.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body(new ApplicationErrorDto("Employee not found"));
-    }
-    ResultApp<Employee> result = employeeService.restoreEmployee(employeeOpt.get(), author);
-    if (result instanceof ResultApp.Ok<Employee> ok) {
-      return ResponseEntity.ok(employeeMapper.toDto(ok.value()));
-    } else if (result instanceof ResultApp.InvalidData<Employee> invalid) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(new ApplicationErrorDto(invalid.message()));
-    } else {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(new ApplicationErrorDto("Unknown error"));
-    }
+    Employee employee =
+        employeeService
+            .getEmployeeById(id)
+            .orElseThrow(() -> new NotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
+    employee = employeeService.restoreEmployee(employee, author);
+
+    return ResponseEntity.ok(employeeMapper.toDto(employee));
   }
 
   @GetMapping("/{id}/form")
@@ -248,26 +181,17 @@ public class EmployeeController {
   public ResponseEntity<EmployeeUserDto> actionSaveEmployeeUser(
       @RequestBody EmployeeUserDto entity) {
     Author author = sessionEmployeeService.getAuthor();
-    ResultApp<EmployeeUserDto> result = employeeManagerFacades.saveEmployeeUser(entity, author);
-
-    switch (result) {
-      case ResultApp.Ok<EmployeeUserDto> ok -> {
-        EmployeeUserDto savedEntity = ok.value();
-        if (!sessionEmployeeService.hasPermission(AccessPermission.EMPLOYEE_ACCESS)) {
-          savedEntity = new EmployeeUserDto(savedEntity.employee());
-        }
-        return ResponseEntity.ok(savedEntity);
-      }
-      case ResultApp.InvalidData<EmployeeUserDto> invalidData -> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-      }
-      case ResultApp.NotFound<EmployeeUserDto> notFound -> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-      }
-      default -> {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-      }
+    if (!sessionEmployeeService.hasPermission(AccessPermission.EMPLOYEE_ACCESS)) {
+      entity = new EmployeeUserDto(entity.employee());
     }
+
+    entity = employeeManagerFacades.saveEmployeeUser(entity, author);
+
+    if (!sessionEmployeeService.hasPermission(AccessPermission.EMPLOYEE_ACCESS)) {
+      entity = new EmployeeUserDto(entity.employee());
+    }
+
+    return ResponseEntity.ok(entity);
   }
 
   @PutMapping("{id}/form")

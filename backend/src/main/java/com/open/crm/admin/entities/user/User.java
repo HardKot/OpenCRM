@@ -14,6 +14,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
@@ -33,13 +35,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class User extends BaseAdminEntity implements UserDetails {
 
   @Column(nullable = false, unique = true)
-  private String email = "";
+  @Email @Max(255) private String email = "";
 
   @Column(nullable = false)
   private String password = "";
 
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
-  private Tenant tenant;
+  private transient Tenant tenant;
 
   @Column(nullable = true, name = "entity_name")
   @Enumerated(EnumType.STRING)

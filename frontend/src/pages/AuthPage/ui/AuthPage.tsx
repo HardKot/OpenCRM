@@ -4,13 +4,13 @@ import { View, Text } from "#shared/ui";
 import { useI18n } from "#shared/hooks";
 import { AuthPageMode } from "../model/AuthPageMode";
 import { Login } from "./Login";
-import { ForgoutPassword } from "./ForgoutPassword";
+import { ForgotPassword } from "./ForgotPassword";
 import { CreateTenant } from "./CreateTenant";
 import { ModeSwitcher } from "./ModeSwitcher";
 
 const ViewModes: { [key in AuthPageMode]: FC<{}> } = {
   [AuthPageMode.LOGIN]: Login,
-  [AuthPageMode.FORGOT_PASSWORD]: ForgoutPassword,
+  [AuthPageMode.FORGOT_PASSWORD]: ForgotPassword,
   [AuthPageMode.CREATE_TENANT]: CreateTenant,
 };
 

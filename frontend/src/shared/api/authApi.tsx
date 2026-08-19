@@ -27,7 +27,7 @@ interface RegisterTenantResponse {
   message: string;
 }
 
-interface ForgoutPasswordRequest {
+interface ForgotPasswordRequest {
   email: string;
 }
 
@@ -89,9 +89,9 @@ const authApi = createApi({
         return { error: data.message };
       },
     }),
-    forgoutPassword: build.mutation<{}, ForgoutPasswordRequest>({
+    forgotPassword: build.mutation<{}, ForgotPasswordRequest>({
       query: (data) => ({
-        url: "/auth/forgoutPassword",
+        url: "/auth/forgotPassword",
         method: "POST",
         body: data,
       }),
@@ -142,7 +142,7 @@ const authApi = createApi({
 export const useLoginByUsername = authApi.useLoginByUsernameMutation;
 export const useLogout = authApi.useLogoutMutation;
 export const useRegisterTenant = authApi.useRegisterTenantMutation;
-export const useForgoutPassword = authApi.useForgoutPasswordMutation;
+export const useForgotPassword = authApi.useForgotPasswordMutation;
 export const useHoldSession = authApi.useLazyHoldSessionQuery;
 export const useChangePassword = authApi.useChangePasswordMutation;
 export const useGetPasswordLevel = authApi.useLazyGetPasswordLevelQuery;

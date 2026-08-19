@@ -1,7 +1,7 @@
 package com.open.crm.core.application.selectors;
 
+import com.open.crm.core.application.errors.EmployeeException;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
-import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.services.SelectorData;
 import com.open.crm.core.application.specification.EmployeeSpecification;
 import com.open.crm.core.entities.employee.Employee;
@@ -59,30 +59,26 @@ public class EmployeeSelector {
     return resultPage.getTotalPages();
   }
 
-  public ResultApp<EmployeeSelector> search() {
-    ResultApp<EmployeeSelector> validationResult = validateSort();
-    if (!(validationResult instanceof ResultApp.Ok<EmployeeSelector>)) {
-      return validationResult;
-    }
-
+  public EmployeeSelector search() throws EmployeeException {
+    validateSort();
     Specification<Employee> specification = buildSpecification();
     Sort sort = buildSort();
 
     resultPage = selector.getPage(page, size, includeDeleted, specification, sort);
 
-    return new ResultApp.Ok<>(this);
+    return this;
   }
 
-  private ResultApp<EmployeeSelector> validateSort() {
+  private EmployeeSelector validateSort() throws EmployeeException {
     if (Objects.isNull(sortBy) || sortBy.isBlank()) {
       sortBy = FIELD_ID;
     }
 
     if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
-      return new ResultApp.InvalidData<>("Invalid sort field: " + sortBy);
+      throw new EmployeeException("Invalid sort field: " + sortBy);
     }
 
-    return new ResultApp.Ok<>(this);
+    return this;
   }
 
   private Specification<Employee> buildSpecification() {

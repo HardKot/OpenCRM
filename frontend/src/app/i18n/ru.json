@@ -85,7 +85,7 @@
       }
     }
   },
-  "forgoutPassword": {
+  "forgotPassword": {
     "title": "Восстановление пароля",
     "username": "Электронная почта",
     "submit": "Отправить инструкцию",
@@ -142,15 +142,18 @@
     "employee": "Сотрудники"
   },
   "permission": {
+    "EMPLOYEE": "Сотрудники",
     "EMPLOYEE_READ": "Просмотр сотрудников",
     "EMPLOYEE_UPDATE": "Редактирование сотрудников",
     "EMPLOYEE_ACCESS": "Управление доступом сотрудников",
+    "CLIENT": "Клиенты",
     "CLIENT_READ": "Просмотр клиентов",
     "CLIENT_UPDATE": "Редактирование клиентов",
     "CLIENT_NAME_SHOW": "Просмотр имен клиентов",
     "CLIENT_CONTACT_SHOW": "Просмотр контактов клиентов",
-    "INVESTIGATION_LOG_READ": "Просмотр журнала расследований",
-    "COMMODITY_READ": "Просмотр товаров/услуг",
-    "COMMODITY_UPDATE": "Редактирование товаров/услуг"
+    "INVESTIGATION_LOG_READ": "Просмотр журнала действий",
+    "COMMODITY": "Товары",
+    "COMMODITY_READ": "Просмотр товаров",
+    "COMMODITY_UPDATE": "Редактирование товаров"
   }
 }

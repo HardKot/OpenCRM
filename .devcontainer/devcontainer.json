@@ -1,42 +1,21 @@
 {
   "name": "OpenCRM DevContainer",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
-  "features": {},
   "remoteUser": "devuser",
-  "forwardPorts": [443, 80, 8080, 5005, 3000],
+  "dockerComposeFile": "./docker-compose.yml",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/workspace",
+  "service": "dev",
+  "forwardPorts": [8443, 8080, 5005, 3000],
   "updateRemoteUserUID": true,
   "postCreateCommand": {
+    "versions": "java --version && node -v && npm -v && gradle -v"
     "git": "git config core.hooksPath .githooks",
     "frontend": "cd frontend && npm install"
   },
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/workspace/scripts"
   },
-  "containerEnv": {
-    // Databse creds
-    "DB_HOST": "db",
-    "DB_NAME": "crm",
-    "DB_USERNAME": "devuser",
-    "DB_PASSWORD": "devpassword",
-    // Mail creds
-    "MAIL_HOST": "mailhog",
-    "MAIL_PORT": "1025",
-    // Front config
-    "REACT_APP_BACKEND_URL": "",
-    // Backend config
-    "SPRING_PROFILES_ACTIVE": "dev",
-    "DOCKER_COMPOSE_ENABLED": "false",
-    "SPRING_DEVTOOLS_RESTART_ENABLED": "true",
-    "SPRING_DEVTOOLS_RESTART_POLL_INTERVAL": "1s",
-    "SPRING_DEVTOOLS_RESTART_QUIET_PERIOD": "500ms",
-    "ENABLE_REMOTE_DEBUG": "true",
-    "JWT_SECRET": "rZaL5vR7SaHsH0DryywXyoh44QJlX9PQEKTKK4nShQtfxbjGR5yIrIEJMAj2awCb",
-    "HOST": "0.0.0.0",
-    "CHOKIDAR_USEPOLLING": "true",
-    "CHOKIDAR_INTERVAL": "300"
-  },
+  "containerEnv": {},
   "customizations": {
     "vscode": {
       "extensions": [

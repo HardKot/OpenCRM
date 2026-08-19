@@ -4,8 +4,8 @@ import {
   FormProvider,
   useForm,
   useFormContext,
-  Controller,
   useWatch,
+  useController,
 } from "react-hook-form";
 import { EmployeeFormSchema, IEmployeeForm } from "../model/EmployeeFormSchema";
 import { useI18n } from "#shared/hooks";
@@ -17,9 +17,8 @@ import {
   View,
   Tabs,
   Checkbox,
-  TransferList,
 } from "#shared/ui";
-import { ReactNode } from "react";
+import { ChangeEvent, ReactNode } from "react";
 import type { EmployeeDto } from "#shared/api";
 
 interface EmployeeFormProps {
@@ -279,19 +278,6 @@ const SecurityInformation = () => {
   const isOwner = role === "ROLE_OWNER";
   const isLoading = methods.formState.isLoading;
 
-  const ALL_PERMISSIONS = [
-    "EMPLOYEE_READ",
-    "EMPLOYEE_UPDATE",
-    "EMPLOYEE_ACCESS",
-    "CLIENT_READ",
-    "CLIENT_UPDATE",
-    "CLIENT_NAME_SHOW",
-    "CLIENT_CONTACT_SHOW",
-    "INVESTIGATION_LOG_READ",
-    "COMMODITY_READ",
-    "COMMODITY_UPDATE",
-  ];
-
   return (
     <>
       <Layout.Paper>
@@ -303,28 +289,127 @@ const SecurityInformation = () => {
         />
       </Layout.Paper>
 
-      {isAccessAllowed && (
-        <Layout.Paper sx={{ mt: 2 }}>
-          <Text variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-            {t("employee.security.permissionsTitle")}
-          </Text>
-          <Controller
-            name="permissions"
-            control={methods.control}
-            render={({ field }) => (
-              <TransferList
-                choices={ALL_PERMISSIONS}
-                selectedChoices={field.value || []}
-                onChange={field.onChange}
-                leftTitle={t("employee.security.available")}
-                rightTitle={t("employee.security.selected")}
-                renderOption={(opt) => t(`permission.${opt}`)}
-              />
-            )}
-          />
-        </Layout.Paper>
-      )}
+      {isAccessAllowed && <EmployeePermissions />}
     </>
+  );
+};
+
+const EmployeePermissions = () => {
+  const { t } = useI18n();
+  const { control } = useFormContext<IEmployeeForm>();
+  const { field } = useController({ control, name: "permissions" });
+
+  return (
+    <Layout.Paper>
+      <Text variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+        {t("employee.security.permissionsTitle")}
+      </Text>
+
+      <CheckBoxWithSubItems
+        label={t("permission.EMPLOYEE")}
+        list={["EMPLOYEE_READ", "EMPLOYEE_UPDATE", "EMPLOYEE_ACCESS"]}
+        value={field.value}
+        onChange={(newList) => field.onChange(newList)}
+      />
+
+      <CheckBoxWithSubItems
+        label={t("permission.CLIENT")}
+        list={[
+          "CLIENT_READ",
+          "CLIENT_UPDATE",
+          "CLIENT_NAME_SHOW",
+          "CLIENT_CONTACT_SHOW",
+        ]}
+        value={field.value}
+        onChange={(newList) => field.onChange(newList)}
+      />
+
+      <CheckBoxWithSubItems
+        label={t("permission.COMMODITY")}
+        list={["COMMODITY_READ", "COMMODITY_UPDATE"]}
+        value={field.value}
+        onChange={(newList) => field.onChange(newList)}
+      />
+
+      <Checkbox
+        label={t("permission.INVESTIGATION_LOG_READ")}
+        checked={field.value.includes("INVESTIGATION_LOG_READ")}
+        onChange={(e) =>
+          onChangeField(
+            e,
+            field.onChange,
+            field.value,
+            "INVESTIGATION_LOG_READ",
+          )
+        }
+      />
+    </Layout.Paper>
+  );
+};
+
+function onChangeField<T>(
+  e: ChangeEvent<HTMLInputElement>,
+  onChange: (value: T[]) => void,
+  allItems: T[],
+  value: T | T[],
+) {
+  if (Array.isArray(value)) {
+    let accumulate = [...allItems];
+    for (const item of value)
+      onChangeField(
+        e,
+        (v) => {
+          accumulate = v;
+        },
+        accumulate,
+        item,
+      );
+    onChange(accumulate);
+    return;
+  }
+
+  if (e.target.checked) return onChange([...allItems, value]);
+  onChange(allItems.filter((v) => v !== value));
+}
+
+interface CheckBoxWithSubItemsProps {
+  label: string;
+  list: string[];
+  onChange: (newList: string[]) => void;
+  value: string[];
+}
+
+const CheckBoxWithSubItems = ({
+  label,
+  list,
+  onChange,
+  value,
+}: CheckBoxWithSubItemsProps) => {
+  const { t } = useI18n();
+
+  const isChecked = list.every((item) => value.includes(item));
+  const isIndeterminate =
+    list.some((item) => value.includes(item)) && !isChecked;
+
+  return (
+    <View>
+      <Checkbox
+        label={label}
+        checked={isChecked}
+        indeterminate={isIndeterminate}
+        onChange={(e) => onChangeField(e, onChange, value, list)}
+      />
+      <View sx={{ ml: 3, display: "flex", flexDirection: "column", gap: 1 }}>
+        {list.map((it) => (
+          <Checkbox
+            key={it}
+            label={t(`permission.${it}`)}
+            checked={value.includes(it)}
+            onChange={(e) => onChangeField(e, onChange, value, it)}
+          />
+        ))}
+      </View>
+    </View>
   );
 };
 

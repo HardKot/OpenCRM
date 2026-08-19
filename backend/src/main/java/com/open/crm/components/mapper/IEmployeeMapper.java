@@ -2,8 +2,8 @@ package com.open.crm.components.mapper;
 
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.core.entities.employee.Employee;
-import com.open.crm.dto.EmployeeDto;
-import com.open.crm.dto.EmployeeUserDto;
+import com.open.crm.dto.employee.EmployeeDto;
+import com.open.crm.dto.employee.EmployeeUserDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

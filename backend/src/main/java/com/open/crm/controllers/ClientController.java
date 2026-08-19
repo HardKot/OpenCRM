@@ -5,7 +5,7 @@ import com.open.crm.core.application.errors.ClientException;
 import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.services.ClientService;
 import com.open.crm.core.entities.client.Client;
-import com.open.crm.dto.ApplicationErrorDto;
+import com.open.crm.dto.common.ApplicationErrorDto;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -72,86 +72,54 @@ public class ClientController {
 
   @PutMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
-  public ResponseEntity<?> actionUpdateClient(
+  public ResponseEntity<Client> actionUpdateClient(
       @PathVariable("id") long id, @RequestBody Client data) {
     data.setId(id);
-    ResultApp<Client> result =
+    Client client =
         clientService.updateClient(
             data,
             sessionEmployeeService.getAuthor(),
             sessionEmployeeService.getClientInfoCleaner());
-    if (result instanceof ResultApp.Ok<Client> ok) {
-      Client entity = ok.value();
-      if (Objects.nonNull(data.getBalance()) && data.getBalance() != entity.getBalance()) {
-        var balanceResult =
-            clientService.manualUpdateClientBalance(
-                entity, data.getBalance(), sessionEmployeeService.getAuthor());
-        if (balanceResult instanceof ResultApp.Ok<Client> okBalance) {
-          entity = okBalance.value();
-        } else if (balanceResult instanceof ResultApp.InvalidData invalid) {
-          return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
-        } else if (balanceResult instanceof ResultApp.NotFound) {
-          return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
-        } else {
-          return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
-        }
-      }
-      return ResponseEntity.ok(entity);
-    } else if (result instanceof ResultApp.InvalidData invalid) {
-      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
-    } else if (result instanceof ResultApp.NotFound) {
-      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
-    } else {
-      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
+
+    if (Objects.nonNull(data.getBalance()) && data.getBalance() != client.getBalance()) {
+      client =
+          clientService.manualUpdateClientBalance(
+              client, data.getBalance(), sessionEmployeeService.getAuthor());
     }
+
+    return ResponseEntity.ok(client);
   }
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
   public ResponseEntity<?> actionDeleteClient(@PathVariable("id") long id) {
-    Optional<Client> getResult =
+    Optional<Client> clientOptional =
         clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-    if (!getResult.isPresent()) {
+    if (!clientOptional.isPresent()) {
       return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
     }
-    var result =
+    Client client =
         clientService.deleteClient(
-            getResult.get(),
+            clientOptional.get(),
             sessionEmployeeService.getAuthor(),
             sessionEmployeeService.getClientInfoCleaner());
-    if (result instanceof ResultApp.Ok okDel) {
-      return ResponseEntity.ok(okDel.value());
-    } else if (result instanceof ResultApp.InvalidData invalid) {
-      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
-    } else if (result instanceof ResultApp.NotFound) {
-      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
-    } else {
-      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
-    }
+    return ResponseEntity.ok(client);
   }
 
   @PostMapping("/{id}")
   @PreAuthorize("hasPermission(null, 'CLIENT_UPDATE')")
   public ResponseEntity<?> actionRestoreClient(@PathVariable("id") long id) {
-    var getResult =
+    Optional<Client> clientOptional =
         clientService.getClientById(id, true, sessionEmployeeService.getClientInfoCleaner());
-    if (!getResult.isPresent()) {
+    if (!clientOptional.isPresent()) {
       return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
     }
-    var result =
+    Client result =
         clientService.restoreClient(
-            getResult.get(),
+            clientOptional.get(),
             sessionEmployeeService.getAuthor(),
             sessionEmployeeService.getClientInfoCleaner());
-    if (result instanceof ResultApp.Ok<Client> okRestore) {
-      return ResponseEntity.ok(okRestore.value());
-    } else if (result instanceof ResultApp.InvalidData invalid) {
-      return ResponseEntity.badRequest().body(new ApplicationErrorDto(invalid.message()));
-    } else if (result instanceof ResultApp.NotFound) {
-      return ResponseEntity.status(404).body(new ApplicationErrorDto("Not found"));
-    } else {
-      return ResponseEntity.status(500).body(new ApplicationErrorDto("Unknown error"));
-    }
+    return ResponseEntity.ok(result);
   }
 
   @PutMapping("/{id}/merge")

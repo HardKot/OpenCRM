@@ -5,7 +5,7 @@ import com.open.crm.core.application.errors.CommodityException;
 import com.open.crm.core.application.services.CommodityService;
 import com.open.crm.core.entities.commodity.Commodity;
 import com.open.crm.core.entities.commodity.CommodityCategory;
-import com.open.crm.dto.ApplicationErrorDto;
+import com.open.crm.dto.common.ApplicationErrorDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

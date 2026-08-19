@@ -4,21 +4,20 @@ import com.open.crm.admin.application.UseCreateTenant;
 import com.open.crm.admin.application.UserService;
 import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.IUserRepository;
-import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
 import com.open.crm.components.services.SessionService;
-import com.open.crm.dto.ApplicationErrorDto;
-import com.open.crm.dto.ChangePasswordDto;
-import com.open.crm.dto.ForgoutPasswordDto;
-import com.open.crm.dto.ForgoutPasswrodResponse;
-import com.open.crm.dto.LoginUserRequest;
-import com.open.crm.dto.LoginUserResponse;
-import com.open.crm.dto.PasswordDto;
-import com.open.crm.dto.PasswordLevelDto;
-import com.open.crm.dto.RegisterTenantRequest;
-import com.open.crm.dto.RegisterTenantResponse;
-import com.open.crm.dto.TokenLoginUserResponse;
+import com.open.crm.dto.auth.ChangePasswordDto;
+import com.open.crm.dto.auth.ForgotPasswordDto;
+import com.open.crm.dto.auth.ForgotPasswordResponse;
+import com.open.crm.dto.auth.LoginUserRequest;
+import com.open.crm.dto.auth.LoginUserResponse;
+import com.open.crm.dto.auth.PasswordDto;
+import com.open.crm.dto.auth.PasswordLevelDto;
+import com.open.crm.dto.auth.TokenLoginUserResponse;
+import com.open.crm.dto.common.ApplicationErrorDto;
+import com.open.crm.dto.tenant.RegisterTenantRequest;
+import com.open.crm.dto.tenant.RegisterTenantResponse;
 import com.open.crm.security.TokenData;
 import com.open.crm.security.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -103,15 +102,15 @@ public class AuthController {
     }
   }
 
-  @PostMapping("/forgoutPassword")
-  public ResponseEntity<ForgoutPasswrodResponse> actionForgoutPassword(
-      @RequestBody ForgoutPasswordDto dto) {
+  @PostMapping("/forgotPassword")
+  public ResponseEntity<ForgotPasswordResponse> actionForgotPassword(
+      @RequestBody ForgotPasswordDto dto) {
     Optional<User> userOptional = userRepository.findByEmail(dto.email());
-    if (userOptional.isEmpty()) return ResponseEntity.ok(new ForgoutPasswrodResponse());
+    if (userOptional.isEmpty()) return ResponseEntity.ok(new ForgotPasswordResponse());
 
     userService.recreatePassword(userOptional.get());
 
-    return ResponseEntity.ok(new ForgoutPasswrodResponse());
+    return ResponseEntity.ok(new ForgotPasswordResponse());
   }
 
   @PostMapping("/password/level")
@@ -130,51 +129,18 @@ public class AuthController {
       throw new UserException("Current password is incorrect");
     }
 
-    UserResult userResult = userService.updatePassword(user, dto.newPassword());
+    user = userService.updatePassword(user, dto.newPassword());
 
-    switch (userResult) {
-      case UserResult.Ok result -> {
-        return ResponseEntity.ok(
-            new LoginUserResponse(
-                true,
-                "",
-                result.value().getId(),
-                result.value().getTenant().getId(),
-                result.value().getPermissions(),
-                result.value().getEntityId(),
-                result.value().getEntityName(),
-                result.value().getRole()));
-      }
-      case UserResult.NotFound ignored -> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-      }
-      case UserResult.InvalidData error -> {
-        return ResponseEntity.badRequest()
-            .body(
-                new LoginUserResponse(
-                    false,
-                    error.message(),
-                    user.getId(),
-                    user.getTenant().getId(),
-                    user.getPermissions(),
-                    user.getEntityId(),
-                    user.getEntityName(),
-                    user.getRole()));
-      }
-      default -> {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(
-                new LoginUserResponse(
-                    false,
-                    "Unknown error",
-                    user.getId(),
-                    user.getTenant().getId(),
-                    user.getPermissions(),
-                    user.getEntityId(),
-                    user.getEntityName(),
-                    user.getRole()));
-      }
-    }
+    return ResponseEntity.ok(
+        new LoginUserResponse(
+            true,
+            "",
+            user.getId(),
+            user.getTenant().getId(),
+            user.getPermissions(),
+            user.getEntityId(),
+            user.getEntityName(),
+            user.getRole()));
   }
 
   @GetMapping("/password/generate")
@@ -191,8 +157,12 @@ public class AuthController {
             new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    User user = userRepository.findByEmail(authentication.getName()).orElse(null);
+    Optional<User> userOpt = userRepository.findByEmail(authentication.getName());
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 
+    User user = userOpt.get();
     TokenData tokens = tokenService.generateTokenPairs(user);
 
     TokenLoginUserResponse response =
@@ -280,7 +250,6 @@ public class AuthController {
     if (header == null || !header.startsWith("Bearer ")) {
       return null;
     }
-    String token = header.replace("Bearer ", "");
-    return token;
+    return header.replace("Bearer ", "");
   }
 }

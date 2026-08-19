@@ -6,7 +6,11 @@ public sealed interface ResultApp<T>
 
   public record NotFound<T>() implements ResultApp<T> {}
 
-  public record InvalidData<T>(String message) implements ResultApp<T> {}
+  public record InvalidData<T>(String message, Object errors) implements ResultApp<T> {
+    public InvalidData(String message) {
+      this(message, null);
+    }
+  }
 
   public record IsDeleted<T>(String message) implements ResultApp<T> {}
 }

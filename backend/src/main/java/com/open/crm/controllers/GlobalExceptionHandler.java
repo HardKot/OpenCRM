@@ -3,7 +3,7 @@ package com.open.crm.controllers;
 import com.open.crm.components.errors.SessionException;
 import com.open.crm.core.application.errors.ApplicationException;
 import com.open.crm.core.application.errors.NotFoundException;
-import com.open.crm.dto.ApplicationErrorDto;
+import com.open.crm.dto.common.ApplicationErrorDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -4,3 +4,4 @@ logs/
 .env
 *.log
 .devcontainer/nginx/certs/
+.devcontainer/nvim.pipe

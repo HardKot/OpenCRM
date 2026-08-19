@@ -5,7 +5,6 @@ import com.open.crm.admin.application.exceptions.UserException;
 import com.open.crm.admin.application.interfaces.ISecurityGateway;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.application.interfaces.IUserRepository;
-import com.open.crm.admin.application.results.UserResult;
 import com.open.crm.admin.entities.tenant.Tenant;
 import com.open.crm.admin.entities.user.PasswordType;
 import com.open.crm.admin.entities.user.User;
@@ -25,7 +24,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,10 +31,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService, IUserService {
+
+  private static final String USER_NOT_FOUND_FOR_EMPLOYEE_ID =
+      "User not found for employee with id: ";
 
   private final IUserRepository userRepository;
 
@@ -49,9 +51,7 @@ public class UserService implements UserDetailsService, IUserService {
   private final ConflictAccessSetUseCase conflictAccessSetUseCase;
 
   private String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-  private Pattern EMAIL_REGEX =
-      Pattern.compile("^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$");
+  private final Random random = new Random();
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -61,29 +61,12 @@ public class UserService implements UserDetailsService, IUserService {
   }
 
   @Override
-  public void updateUserEmail(Employee employee, String email) {
+  public void updateUserEmail(Employee employee, String email) throws NotFoundException {
     userRepository
         .findByEmployeeId(employee.getId(), employee.getTenantId())
-        .map(user -> updateUserEmail(user, email))
         .ifPresentOrElse(
-            result -> {
-              switch (result) {
-                case UserResult.InvalidData(String message) -> throw new UserException(message);
-                case UserResult.NoUniqueEmail() ->
-                    throw new UserException("Email is already in use: " + email);
-                case UserResult.IsDeleted() ->
-                    throw new UserException(
-                        "Cannot update email for deleted employee with id: " + employee.getId());
-                case UserResult.NotFound() ->
-                    throw new NotFoundException(
-                        "User not found for employee with id: " + employee.getId());
-                case UserResult.Ok(User value) -> {}
-              }
-            },
-            () -> {
-              throw new NotFoundException(
-                  "User not found for employee with id: " + employee.getId());
-            });
+            user -> updateUserEmail(user, email),
+            () -> new NotFoundException(USER_NOT_FOUND_FOR_EMPLOYEE_ID + employee.getId()));
   }
 
   @Override
@@ -108,22 +91,23 @@ public class UserService implements UserDetailsService, IUserService {
             });
   }
 
-  public UserResult updateUserEmail(User user, String email) {
-    if (userRepository.existsByEmail(email)) return new UserResult.NoUniqueEmail();
+  public User updateUserEmail(User user, String email) throws UserException {
+    if (userRepository.existsByEmail(email))
+      throw new UserException("Email is already in use: " + email);
     user.setEmail(email);
     User updatedUser = userRepository.save(user);
     securityGateway.refreshAccessUser(updatedUser);
-    return new UserResult.Ok(updatedUser);
+    return updatedUser;
   }
 
-  public UserResult createUserFromEmployee(Employee employee, Author author)
+  public User createUserFromEmployee(Employee employee, Author author)
       throws UserException, NotFoundException {
     if (userRepository.existsEmployeeByEmail(employee.getEmail(), employee.getTenantId())) {
-      return new UserResult.NoUniqueEmail();
+      throw new UserException("Employee email is not unique, cannot create user");
     }
 
     if (employee.isDeleted()) {
-      return new UserResult.InvalidData(
+      throw new UserException(
           "Cannot create user for deleted employee with id: " + employee.getId());
     }
 
@@ -141,10 +125,10 @@ public class UserService implements UserDetailsService, IUserService {
 
     eventPublisher.publishEvent(new InviteEmployeeEvent(employee, author));
 
-    return new UserResult.Ok(data);
+    return data;
   }
 
-  public UserResult createOwnerUser(Tenant tenant, String email, long entityId) {
+  public User createOwnerUser(Tenant tenant, String email, long entityId) {
     User data = new User();
     data.setEmail(email);
     data.setEntityName(UserEntity.EMPLOYEE);
@@ -159,14 +143,11 @@ public class UserService implements UserDetailsService, IUserService {
     return userRepository.findByEmployeeId(employee.getId(), employee.getTenantId());
   }
 
-  private UserResult createUser(User data) {
+  private User createUser(@Validated User data) {
     if (Objects.isNull(data.getEmail()) || data.getEmail().isBlank())
-      return new UserResult.InvalidData("Email cannot be empty");
-    if (data.getEmail().length() > 255)
-      return new UserResult.InvalidData("Email cannot be longer than 255 characters");
-    if (!EMAIL_REGEX.matcher(data.getEmail()).matches())
-      return new UserResult.InvalidData("Email is not valid");
-    if (userRepository.existsByEmail(data.getEmail())) return new UserResult.NoUniqueEmail();
+      throw new UserException("Email cannot be empty");
+    if (userRepository.existsByEmail(data.getEmail()))
+      throw new UserException("Email is already in use");
 
     String password = generatePassword();
     data.setPassword(passwordEncoder.encode(password));
@@ -180,29 +161,30 @@ public class UserService implements UserDetailsService, IUserService {
             "email/welcome-email",
             Map.of("username", data.getUsername(), "password", password)));
 
-    return new UserResult.Ok(data);
+    return data;
   }
 
-  public UserResult updateUserPermission(Employee employee, AccessPermission[] permissions) {
+  public User updateUserPermission(Employee employee, AccessPermission[] permissions) {
     return getUserByEmployee(employee)
-        .<UserResult>map(user -> updateUserPermissions(user, permissions))
-        .orElseGet(UserResult.NotFound::new);
+        .<User>map(user -> updateUserPermissions(user, permissions))
+        .orElseThrow(
+            () -> new NotFoundException(USER_NOT_FOUND_FOR_EMPLOYEE_ID + employee.getId()));
   }
 
-  public UserResult updateUserPermissions(User user, AccessPermission[] permissions) {
+  public User updateUserPermissions(User user, AccessPermission[] permissions) {
     if (user.getRole().equals(UserRole.ROLE_OWNER)) {
-      return new UserResult.InvalidData("Cannot change permissions for owner");
+      throw new UserException("Cannot change permissions for owner");
     }
 
     if (user.getRole().equals(UserRole.ROLE_ADMIN)) {
-      return new UserResult.InvalidData("Cannot change permissions for admin");
+      throw new UserException("Cannot change permissions for admin");
     }
     Set<AccessPermission> permissionSet = Set.of(permissions);
 
     ConflictAccessSetUseCase.Result conflictResult =
         conflictAccessSetUseCase.execute(permissionSet);
     if (!conflictResult.isValid()) {
-      return new UserResult.InvalidData(conflictResult.message());
+      throw new UserException(conflictResult.message());
     }
 
     user.setPermissions(permissionSet);
@@ -211,57 +193,47 @@ public class UserService implements UserDetailsService, IUserService {
 
     user = userRepository.save(user);
 
-    return new UserResult.Ok(user);
+    return user;
   }
 
-  public UserResult updateUserPermissionsByEmployee(
+  public User updateUserPermissionsByEmployee(
       Employee employee, AccessPermission[] permissions, Author author) {
 
-    UserResult result =
+    User result =
         getUserByEmployee(employee)
-            .<UserResult>map(user -> updateUserPermissions(user, permissions))
-            .orElseGet(UserResult.NotFound::new);
+            .<User>map(user -> updateUserPermissions(user, permissions))
+            .orElseThrow(
+                () -> new NotFoundException(USER_NOT_FOUND_FOR_EMPLOYEE_ID + employee.getId()));
 
-    if (result instanceof UserResult.Ok) {
-      eventPublisher.publishEvent(new UpdateAccessEmployeeEvent(employee, author));
-    }
+    eventPublisher.publishEvent(new UpdateAccessEmployeeEvent(employee, author));
 
     return result;
   }
 
-  public UserResult updateUserPermissions(
-      UUID userId, AccessPermission[] permissions, Author author) {
-    UserResult result =
+  public User updateUserPermissions(UUID userId, AccessPermission[] permissions) {
+    User user =
         userRepository
             .findById(userId)
-            .<UserResult>map(UserResult.Ok::new)
-            .orElse(new UserResult.NotFound());
+            .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
 
-    if (result instanceof UserResult.Ok) {
-      result = updateUserPermissions(((UserResult.Ok) result).value(), permissions);
-    } else {
-      return result;
-    }
-
-    return result;
+    return updateUserPermissions(user, permissions);
   }
 
-  public UserResult updatePassword(User user, String password) {
+  public User updatePassword(User user, String password) {
     if (matchPassword(password, user)) {
-      return new UserResult.InvalidData("New password cannot be the same as the old password");
+      throw new UserException("New password cannot be the same as the old password");
     }
 
     PasswordType passwordType = getPasswordType(password);
     if (passwordType == PasswordType.WEAK || passwordType == PasswordType.SIMPLE) {
-      return new UserResult.InvalidData("Password is too weak");
+      throw new UserException("Password is too weak");
     }
     user.setPassword(passwordEncoder.encode(password));
-    return new UserResult.Ok(userRepository.save(user));
+    return userRepository.save(user);
   }
 
   public String generatePassword() {
     StringBuilder password = new StringBuilder();
-    Random random = new Random();
     for (int i = 0; i < 10; i++) {
       password.append(chars.charAt(random.nextInt(chars.length())));
     }
@@ -269,7 +241,7 @@ public class UserService implements UserDetailsService, IUserService {
     return password.toString();
   }
 
-  public UserResult recreatePassword(User user) {
+  public User recreatePassword(User user) {
     String password = generatePassword();
     user.setPassword(passwordEncoder.encode(password));
     User updatedUser = userRepository.save(user);
@@ -282,7 +254,7 @@ public class UserService implements UserDetailsService, IUserService {
             "email/reset-password-email",
             Map.of("username", user.getUsername(), "password", password)));
 
-    return new UserResult.Ok(updatedUser);
+    return updatedUser;
   }
 
   public PasswordType getPasswordType(String password) {
@@ -290,7 +262,7 @@ public class UserService implements UserDetailsService, IUserService {
 
     if (password.length() >= 6) score++;
     if (password.length() >= 10) score++;
-    if (password.matches("(?=.*[0-9]).*")) score++;
+    if (password.matches("(?=.*\\d).*")) score++;
     if (password.matches("(?=.*[a-z]).*")) score++;
     if (password.matches("(?=.*[A-Z]).*")) score++;
 

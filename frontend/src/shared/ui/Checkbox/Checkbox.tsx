@@ -12,6 +12,7 @@ export interface CheckboxProps extends MuiCheckboxProps {
   label?: string;
   helperText?: string;
   error?: boolean;
+  indeterminateIcon?: boolean;
 }
 
 const CheckboxBase: React.FC<CheckboxProps> = ({

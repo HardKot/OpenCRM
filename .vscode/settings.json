@@ -17,9 +17,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
   },
-  "eslint.workingDirectories": [
-    "./frontend"
-  ],
+  "eslint.workingDirectories": ["./frontend"],
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -55,5 +53,6 @@
     "**/backend/bin": false,
     "**/backend/.gradle": true,
     "**/logs": true
-  }
+  },
+  "java.format.settings.url": ".vscode/java-formatter.xml"
 }

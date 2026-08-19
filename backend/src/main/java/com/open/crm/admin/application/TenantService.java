@@ -1,6 +1,5 @@
 package com.open.crm.admin.application;
 
-import com.open.crm.admin.application.exceptions.TenantException;
 import com.open.crm.admin.application.interfaces.ITenantRepository;
 import com.open.crm.admin.entities.tenant.Tenant;
 import lombok.RequiredArgsConstructor;
@@ -14,19 +13,14 @@ public class TenantService {
 
   private final ITenantRepository tenantRepository;
 
-  public Tenant generateTenant() throws TenantException {
-    try {
-      Tenant tenant = new Tenant();
-      tenant.setActive(true);
-      tenant.setReady(false);
-      tenant.setSchemaName(generateUniqSchemaName());
+  public Tenant generateTenant() {
+    Tenant tenant = new Tenant();
+    tenant.setActive(true);
+    tenant.setReady(false);
+    tenant.setSchemaName(generateUniqSchemaName());
 
-      tenantRepository.save(tenant);
-      return tenant;
-
-    } catch (Exception e) {
-      throw new TenantException("Error creating tenant: " + e.getMessage());
-    }
+    tenantRepository.save(tenant);
+    return tenant;
   }
 
   private String generateUniqSchemaName() {

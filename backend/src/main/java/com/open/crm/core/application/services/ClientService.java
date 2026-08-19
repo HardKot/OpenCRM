@@ -1,5 +1,7 @@
 package com.open.crm.core.application.services;
 
+import com.open.crm.core.application.errors.ClientException;
+import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IClientRepository;
 import com.open.crm.core.application.results.ResultApp;
@@ -38,15 +40,13 @@ public class ClientService {
   }
 
   @Transactional
-  public ResultApp<Client> updateClient(Client client, Author author, ClientInfoCleaner cleaner) {
+  public Client updateClient(Client client, Author author, ClientInfoCleaner cleaner) {
     var existingOpt = clientRepository.findById(client.getId());
-    if (existingOpt.isEmpty()) {
-      return new ResultApp.NotFound<>();
-    }
+    if (existingOpt.isEmpty())
+      throw new NotFoundException("Client not found with ID: " + client.getId());
     Client existingClient = existingOpt.get();
     if (existingClient.isDeleted()) {
-      return new ResultApp.InvalidData<>(
-          "Cannot update a deleted client with ID: " + client.getId());
+      throw new ClientException("Cannot update a deleted client with ID: " + client.getId());
     }
     if (!cleaner.cleanName()) {
       existingClient.setFirstname(client.getFirstname());
@@ -59,31 +59,28 @@ public class ClientService {
     }
     Client updatedClient = clientRepository.save(existingClient);
     eventPublisher.publishEvent(new UpdateClientEvent(updatedClient, author));
-    return new ResultApp.Ok<>(clearClientInfo(updatedClient, cleaner));
+    return clearClientInfo(updatedClient, cleaner);
   }
 
   @Transactional
-  public ResultApp<Client> deleteClient(Client client, Author author, ClientInfoCleaner cleaner) {
-    if (client.isDeleted()) {
-      return new ResultApp.InvalidData<>(
-          "Cannot delete a already deleted client with ID: " + client.getId());
-    }
+  public Client deleteClient(Client client, Author author, ClientInfoCleaner cleaner) {
+    if (client.isDeleted())
+      throw new ClientException("Client with ID: " + client.getId() + " is already deleted");
     client.setDeleted(true);
     Client deletedClient = clientRepository.save(client);
     eventPublisher.publishEvent(new DeleteClientEvent(deletedClient, author));
-    return new ResultApp.Ok<>(clearClientInfo(deletedClient, cleaner));
+    return clearClientInfo(deletedClient, cleaner);
   }
 
   @Transactional
-  public ResultApp<Client> restoreClient(Client client, Author author, ClientInfoCleaner cleaner) {
+  public Client restoreClient(Client client, Author author, ClientInfoCleaner cleaner) {
     if (!client.isDeleted()) {
-      return new ResultApp.InvalidData<>(
-          "Cannot restore a non-deleted client with ID: " + client.getId());
+      throw new ClientException("Cannot restore a non-deleted client with ID: " + client.getId());
     }
     client.setDeleted(false);
     Client restoredClient = clientRepository.save(client);
     eventPublisher.publishEvent(new RestoreClientEvent(restoredClient, author));
-    return new ResultApp.Ok<>(clearClientInfo(restoredClient, cleaner));
+    return clearClientInfo(restoredClient, cleaner);
   }
 
   @Transactional
@@ -132,16 +129,15 @@ public class ClientService {
   }
 
   @Transactional
-  public ResultApp<Client> manualUpdateClientBalance(
-      Client client, long newBalance, Author author) {
+  public Client manualUpdateClientBalance(Client client, long newBalance, Author author) {
     if (client.isDeleted()) {
-      return new ResultApp.InvalidData<>(
+      throw new ClientException(
           "Cannot update balance of a deleted client with ID: " + client.getId());
     }
     client.setBalance(newBalance);
     Client updatedClient = clientRepository.save(client);
     eventPublisher.publishEvent(new UpdateClientBalanceEvent(updatedClient, author));
-    return new ResultApp.Ok<>(updatedClient);
+    return updatedClient;
   }
 
   public Optional<Client> getClientById(long id, boolean withDeleted, ClientInfoCleaner cleaner) {

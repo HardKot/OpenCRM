@@ -2,7 +2,9 @@ import { useSessionHoldEffect } from "#app/useSessionHoldEffect";
 import { Dashboard } from "#pages/Dashboard";
 import { EmployeeFormPage } from "#pages/employee/EmployeeFormPage";
 import { EmployeeReferencePage } from "#pages/employee/EmployeeReference";
-import { Settings } from "#pages/Settings";
+import { AllSettings } from "#pages/Settings/AllSettings";
+import { InvestigationLogPage } from "#pages/Settings/investigationLogPage";
+import { Settings } from "#pages/Settings/PersonalSettings";
 import { View } from "#shared/ui";
 import { ApplicationBar, NavigationTo } from "#widgets/ApplicationBar";
 import { Route, Routes, useNavigate } from "react-router-dom";
@@ -16,8 +18,7 @@ const MapNavigation = {
 const AuthRoute = () => {
   useSessionHoldEffect();
   const navigate = useNavigate();
-
-  return (
+  navigate.return(
     <>
       <ApplicationBar
         goTo={(key) => navigate(MapNavigation[key])}
@@ -31,10 +32,13 @@ const AuthRoute = () => {
             <Route path=":id" Component={EmployeeFormPage} />
           </Route>
 
-          <Route path="/settings" Component={Settings} />
+          <Route path="/settings" Component={AllSettings}>
+            <Route index Component={Settings} />
+            <Route path="logs" Component={InvestigationLogPage} />
+          </Route>
         </Routes>
       </View>
-    </>
+    </>,
   );
 };
 

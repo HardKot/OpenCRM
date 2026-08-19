@@ -1,9 +1,10 @@
 package com.open.crm.core.application.services;
 
 import com.open.crm.core.application.IUserService;
+import com.open.crm.core.application.errors.EmployeeException;
+import com.open.crm.core.application.errors.NotFoundException;
 import com.open.crm.core.application.investigation.events.*;
 import com.open.crm.core.application.repositories.IEmployeeRepository;
-import com.open.crm.core.application.results.ResultApp;
 import com.open.crm.core.application.selectors.EmployeeSelector;
 import com.open.crm.core.entities.employee.Employee;
 import com.open.crm.core.entities.investigationLog.Author;
@@ -31,7 +32,7 @@ public class EmployeeService {
 
   @Transactional
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResultApp<Employee> createEmployee(Employee employee, Author author) {
+  public Employee createEmployee(Employee employee, Author author) {
     employee.setId(null);
     employee.setCreatedAt(null);
     employee.setUpdatedAt(null);
@@ -40,20 +41,19 @@ public class EmployeeService {
     employee = employeeRepository.save(employee);
     eventPublisher.publishEvent(new CreateEmployeeEvent(employee, author));
 
-    return new ResultApp.Ok<>(employee);
+    return employee;
   }
 
   @Transactional
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResultApp<Employee> updateEmployeeData(Employee employee, Author author) {
+  public Employee updateEmployeeData(Employee employee, Author author)
+      throws EmployeeException, NotFoundException {
     if (Objects.isNull(employee.getId())) {
-      return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
+      throw new EmployeeException("Employee ID cannot be null for update");
     }
 
     Optional<Employee> existingEmployeeOpt = employeeRepository.findById(employee.getId());
-    if (existingEmployeeOpt.isEmpty()) {
-      return new ResultApp.NotFound<>();
-    }
+    if (existingEmployeeOpt.isEmpty()) throw new NotFoundException("Employee not found");
 
     Employee existingEmployee = existingEmployeeOpt.get();
 
@@ -68,18 +68,19 @@ public class EmployeeService {
 
     eventPublisher.publishEvent(new UpdateEmployeeEvent(existingEmployee, author));
 
-    return new ResultApp.Ok<>(existingEmployee);
+    return existingEmployee;
   }
 
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResultApp<Employee> updateEmail(Employee employee, String email, Author author) {
+  public Employee updateEmail(Employee employee, String email, Author author)
+      throws EmployeeException, NotFoundException {
     if (Objects.isNull(employee.getId())) {
-      return new ResultApp.InvalidData<>("Employee ID cannot be null for update");
+      throw new EmployeeException("Employee ID cannot be null for update");
     }
 
     Optional<Employee> existingEmployeeOpt = employeeRepository.findById(employee.getId());
     if (existingEmployeeOpt.isEmpty()) {
-      return new ResultApp.NotFound<>();
+      throw new NotFoundException("Employee not found");
     }
     Employee existingEmployee = existingEmployeeOpt.get();
 
@@ -90,14 +91,13 @@ public class EmployeeService {
 
     eventPublisher.publishEvent(new UpdateEmployeeEvent(existingEmployee, author));
 
-    return new ResultApp.Ok<>(existingEmployee);
+    return existingEmployee;
   }
 
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResultApp<Employee> deleteEmployee(Employee employee, Author author) {
+  public Employee deleteEmployee(Employee employee, Author author) throws NotFoundException {
     if (employee.isDeleted()) {
-      return new ResultApp.InvalidData<>(
-          "Employee with ID: " + employee.getId() + " is already deleted");
+      throw new NotFoundException("Employee with ID: " + employee.getId() + " is already deleted");
     }
 
     employee.setDeleted(true);
@@ -106,20 +106,19 @@ public class EmployeeService {
     eventPublisher.publishEvent(new DeleteEmployeeEvent(employee, author));
     userService.disabledByEmployee(employee);
 
-    return new ResultApp.Ok<>(employee);
+    return employee;
   }
 
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_UPDATE')")
-  public ResultApp<Employee> restoreEmployee(Employee employee, Author author) {
+  public Employee restoreEmployee(Employee employee, Author author) throws NotFoundException {
     if (!employee.isDeleted()) {
-      return new ResultApp.InvalidData<>(
-          "Employee with ID: " + employee.getId() + " is not deleted");
+      throw new NotFoundException("Employee with ID: " + employee.getId() + " is not deleted");
     }
     employee.setDeleted(false);
     employeeRepository.save(employee);
     eventPublisher.publishEvent(new RestoreEmployeeEvent(employee, author));
     userService.enabledByEmployee(employee);
-    return new ResultApp.Ok<>(employee);
+    return employee;
   }
 
   @PreAuthorize("hasPermission(null, 'EMPLOYEE_READ')")

@@ -8,16 +8,22 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 
 type I18nState = {
   t: I18n["t"];
+  strftime: I18n["strftime"];
 };
 
-export const useI18n = (): I18nState => {
-  const [i18n, setI18n] = useState<I18nState>(() => ({
+function buildI18nState(): I18nState {
+  return {
     t: window.app.i18n.t.bind(window.app.i18n),
-  }));
+    strftime: window.app.i18n.strftime.bind(window.app.i18n),
+  };
+}
+
+export const useI18n = (): I18nState => {
+  const [i18n, setI18n] = useState<I18nState>(() => buildI18nState());
 
   useEffect(() => {
     const unsubscribe = window.app.i18n.onChange(() => {
-      setI18n({ t: window.app.i18n.t.bind(window.app.i18n) });
+      setI18n(buildI18nState());
     });
 
     return () => {

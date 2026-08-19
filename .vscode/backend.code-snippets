@@ -1,0 +1,8 @@
+{
+    "Backend Mapper": {
+        "prefix": "mapper",
+        "body": [
+            "package "
+        ]
+    }
+}

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,6 +15,9 @@ if ! command -v openssl >/dev/null 2>&1; then
   exit 1
 fi
 
+
+
+
 echo "Генерация self-signed сертификата для localhost..."
 
 openssl req -x509 -nodes -newkey rsa:2048 -sha256 -days 365 \
@@ -27,4 +31,5 @@ chmod 644 "$CRT_FILE"
 
 echo "Сертификат создан:"
 echo "  CRT: $CRT_FILE"
+
 echo "  KEY: $KEY_FILE"
