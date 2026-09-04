@@ -22,9 +22,6 @@ public class CatalogItem extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   private Catalog catalog;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  private CatalogField field;
-
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "catalogItem")
   private Set<CatalogItemValue> values;
 }
